@@ -1,0 +1,92 @@
+UVLC File Specification
+
+Picture Header
+
+	Like in H.263 UVLC start with a PSC (Picture start code) which is 22 bits long
+		0000 0000 0000 0000 1000 00
+	A PSC is always byte aligned
+	The second information is the picture's format which can be one of following : CIF or VGA (2 bits)
+		00  : forbidden
+		01  : CIF
+		10  : VGA
+	Then comes the picture resolution which is used in combination with the picture's format (3 bits)
+		000 : forbidden
+		001 : for CIF it means sub-QCIF
+		010 : for CIF it means QCIF
+		011 : for CIF it means CIF
+		100 : for CIF it means 4-CIF
+		101 : for CIF it means 16-CIF
+	Then comes the picture's type (3 bits)
+		000 : INTRA picture
+		001 : INTER picture
+	Then comes the quantizer's reference for the picture that ranges from 1 to 31 (5 bits)
+	Then comes the frame number (32 bits)
+	
+	Picture header is at least 67 bits long
+
+Group of Blocks Header
+
+	Each GOB starts with a GOBSC (Group of Blocks start code) wich is 22 bits long
+		0000 0000 0000 0000 1xxx xx
+	A GOBSC is always byte aligned. The least significant bytes represent the blockline's number. We can see that PSC
+	means first gob too. So for the first GOB, GOB's header is always omitted.
+	
+	Then comes the quantizer's reference for the GOB that ranges from 1 to 31 (5 bits)
+	
+	Group of Blocks Header is at least 27 bits long
+	
+MacroBlock Header
+
+	Coded Macroblock bit (1 bit)
+		bit 0 : 1 means there's a macoblock, 0 means macroblock is all zero
+
+	Macrobock description code (7 bits)
+		bit 0 : 1 means there's non dc coefficients for block y0
+		bit 1 : 1 means there's non dc coefficients for block y1
+		bit 2 : 1 means there's non dc coefficients for block y2
+		bit 3 : 1 means there's non dc coefficients for block y3
+		bit 4 : 1 means there's non dc coefficients for block cb
+		bit 5 : 1 means there's non dc coefficients for block cr
+		bit 6 : 1 means there's a quantization value following this code
+		bit 7 : Always 1 to avoid a zero byte
+		
+	Then comes a differential value for the quantization (2 bits)
+		00 : -1
+		01 : -2
+		10 :  1
+		11 :  2
+	
+
+Block layer
+
+	Codes used for uvlc encoding
+
+ 1/ Run encoding
+ 
+  coarse | additional | size |   value of run      | length of run
+       1 |            |   1  |                  0  |       1
+      01 |            |   2  |                  1  |       1
+     001 | x          |   4  |     x +  2   (2:3)  |       2
+    0001 | xx         |   6  |    xx +  4   (4:7)  |       3
+   00001 | xxx        |   8  |   xxx +  8  (8:15)  |       4
+  000001 | xxxx       |  10  |  xxxx + 16 (16:31)  |       5
+ 0000001 | xxxxx      |  12  | xxxxx + 32 (32:63)  |       6
+
+ 2/ Level encoding
+
+   coarse | additional | size | value of level | length of level
+        1 | s          |   2  |              1 |       1
+       01 |            |   2  |            EOB |
+      001 | xs         |   5  |         x +  2 |       2
+     0001 | xxs        |   7  |        xx +  4 |       3
+    00001 | xxxs       |   9  |       xxx +  8 |       4
+   000001 | xxxxs      |  11  |      xxxx + 16 |       5
+  0000001 | xxxxxs     |  13  |     xxxxx + 32 |       6
+ 00000001 | xxxxxxs    |  15  |    xxxxxx + 64 |       7
+
+ (s stands for sign)
+
+End of Picture header
+
+	A picture ends alwways with a code 0000 0000 0000 0000 1111 11 that is byte aligned and 22 bytes long
+	

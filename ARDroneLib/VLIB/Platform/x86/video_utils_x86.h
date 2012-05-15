@@ -1,0 +1,6 @@
+#ifndef _X86_VIDEO_UTILS_H_
+#define _X86_VIDEO_UTILS_H_
+
+// #define HAS_UVLC_DECODE_BLOCKLINE
+
+#endif // _X86_VIDEO_UTILS_H_

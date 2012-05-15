@@ -1,0 +1,26 @@
+#ifndef _ARM_VIDEO_UTILS_H_
+#define _ARM_VIDEO_UTILS_H_
+
+#define HAS_P264_FTRANSFORM
+
+#define HAS_UVLC_ENCODE
+
+#define HAS_UVLC_WRITE_BLOCK
+
+#define HAS_VIDEO_WRITE_DATA
+
+#define HAS_DO_QUANTIZE_INTRA_MB
+
+#ifdef _ELINUX
+
+////#define HAS_VIDEO_BLOCKLINE_TO_MACRO_BLOCKS
+
+////#define HAS_IDCT_COMPUTE
+
+#define HAS_FDCT_QUANT_COMPUTE
+
+#endif // ! _ELINUX
+
+#endif // _ARM_VIDEO_UTILS_H_
+
+

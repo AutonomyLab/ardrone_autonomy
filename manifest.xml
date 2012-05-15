@@ -1,0 +1,19 @@
+<package>
+  <description brief="ardrone_brown">
+
+     A driver for the Parrot AR Drone developed by Brown University.  It includes furll ROS support for both motion control and video.
+
+  </description>
+  <author>Paul Kernfeld and Christopher Crick</author>
+  <email>pkernfel@cs.brown.edu chriscrick@cs.brown.edu</email>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/ardrone_brown</url>
+  <rosdep name="libsdl-dev" />
+  <depend package="roscpp"/>
+  <depend package="image_transport"/>
+  <depend package="sensor_msgs"/>
+  <depend package="std_srvs"/>
+</package>
+
+
