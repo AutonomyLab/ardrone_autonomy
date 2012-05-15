@@ -359,7 +359,7 @@ int main(int argc, char **argv)
   if( show_usage || (argc != 0) )
   {
     ardrone_tool_usage( appname );
-    exit(-1);
+    //exit(-1);
   }
   
   /* After a first analysis, the arguments are restored so they can be passed to the user-defined functions */
