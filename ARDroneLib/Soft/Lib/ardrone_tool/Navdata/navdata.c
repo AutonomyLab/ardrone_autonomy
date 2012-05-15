@@ -130,7 +130,7 @@ C_RESULT ardrone_navdata_unpack_all(navdata_unpacked_t* navdata_unpacked, navdat
 
 
         default:
-          PRINT("Tag %d is an unknown navdata option tag\n", (int) navdata_option_ptr->tag);
+          //PRINT("Tag %d is an unknown navdata option tag\n", (int) navdata_option_ptr->tag);
           navdata_option_ptr = (navdata_option_t *)(((uint32_t)navdata_option_ptr) + navdata_option_ptr->size);
           break;
       }

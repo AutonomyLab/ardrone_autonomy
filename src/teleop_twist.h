@@ -17,5 +17,7 @@ void takeoffCallback(const std_msgs::Empty &msg);
 
 //void toggleCamCallback(const std_msgs::Empty &msg);
 bool toggleCamCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response);
+bool toggleNavdataDemoCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response);
+
 #endif
 

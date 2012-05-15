@@ -20,7 +20,7 @@ ARDroneDriver::ARDroneDriver()
 #ifdef _USING_SDK_1_7_
 	//Ensure that the horizontal camera is running
 	int cam_state = 0; // horizontal
-	int set_navdata_demo_value = 0;
+	int set_navdata_demo_value = 1;
 	ARDRONE_TOOL_CONFIGURATION_ADDEVENT (video_channel, &cam_state, NULL);
 	ARDRONE_TOOL_CONFIGURATION_ADDEVENT (navdata_demo, &set_navdata_demo_value, NULL);
 #else
@@ -29,8 +29,7 @@ ARDroneDriver::ARDroneDriver()
 #endif
 
 	toggleCam_service = node_handle.advertiseService("/ardrone/togglecam", toggleCamCallback);
-
-
+        toggleNavdataDemo_service = node_handle.advertiseService("/ardrone/togglenavdatademo", toggleNavdataDemoCallback);
 }
 
 ARDroneDriver::~ARDroneDriver()
@@ -41,8 +40,41 @@ void ARDroneDriver::run()
 {
 	ros::Rate loop_rate(40);
 
+	int configWate = 250;
+	int cam_state = 0; // horizontal
+	int set_navdata_demo_value = 1; // Low bandwidth usage
+	bool configDone = false;
+        
+        //These are some extra params (experimental)
+        int mCodec = P264_CODEC;
+        int vbcMode = VBC_MODE_DYNAMIC;
+        
 	while (node_handle.ok())
 	{
+		// For some unknown reason, sometimes the ardrone critical configurations are not applied
+		// when the commands are being sent during SDK initialization. This is a trick to send critical 
+		// configurations sometime after SDK boots up. The navdata_demo saves around 300 KBytes/Sec bw!
+		if (configDone == false) 
+		{
+			configWate--;
+			if (configWate == 0) 
+			{
+				configDone = true;
+				fprintf(stderr, "\nSending some critical initial configuration after some delay...\n");
+				#ifdef _USING_SDK_1_7_
+					//Ensure that the horizontal camera is running
+					ARDRONE_TOOL_CONFIGURATION_ADDEVENT (video_channel, &cam_state, NULL);
+					ARDRONE_TOOL_CONFIGURATION_ADDEVENT (navdata_demo, &set_navdata_demo_value, NULL);
+                                        //ARDRONE_TOOL_CONFIGURATION_ADDEVENT (video_codec, &mCodec, NULL);
+                                        //ARDRONE_TOOL_CONFIGURATION_ADDEVENT (bitrate_ctrl_mode, &vbcMode, NULL);
+
+				#else
+					//Ensure that the horizontal camera is running
+					ardrone_at_set_toy_configuration("video:video_channel","0");
+				#endif
+				
+			}
+		}
 		if (current_frame_id != last_frame_id)
 		{
 			publish_video();

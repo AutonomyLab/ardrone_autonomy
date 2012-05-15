@@ -7,7 +7,17 @@ bool is_flying = false;
 bool needs_reset = false;
 geometry_msgs::Twist cmd_vel;
 
-int cam_state=0; // 0 for forward and 1 for vertical, change to enum later
+int cam_state = 0; // 0 for forward and 1 for vertical, change to enum later
+int set_navdata_demo_value = TRUE;
+
+
+bool toggleNavdataDemoCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response)
+{
+    set_navdata_demo_value ^= 1;
+    ARDRONE_TOOL_CONFIGURATION_ADDEVENT (navdata_demo, &set_navdata_demo_value, NULL);
+    fprintf(stderr, "\nToggling navdata_demo, set to %d.\n", set_navdata_demo_value);
+    return true;
+}
 
 // ros service callback function for toggling Cam
 bool toggleCamCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response)
