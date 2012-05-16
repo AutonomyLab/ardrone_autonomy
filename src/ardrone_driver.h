@@ -30,7 +30,8 @@ private:
 
 	//ros::Subscriber toggleCam_sub;
 	ros::ServiceServer toggleCam_service;
-        ros::ServiceServer toggleNavdataDemo_service;
+                ros::ServiceServer toggleNavdataDemo_service;
+                ros::ServiceServer setCamChannel_service;
 
 	int last_frame_id;
 	int flying_state;

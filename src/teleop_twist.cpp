@@ -18,33 +18,34 @@ bool toggleNavdataDemoCallback(std_srvs::Empty::Request& request, std_srvs::Empt
     return true;
 }
 
+//ros service callback to set the camera channel
+//TODO: add input check
+bool setCamChannelCallback(ardrone_brown::CamSelect::Request& request, ardrone_brown::CamSelect::Response& response)
+{
+    cam_state = request.channel;
+ #ifdef _USING_SDK_1_7_
+    ARDRONE_TOOL_CONFIGURATION_ADDEVENT (video_channel, &cam_state, NULL);
+    fprintf(stderr, "\nSetting camera channel to : %d.\n", cam_state);
+#else
+    ardrone_at_set_toy_configuration("video:video_channel",cam_state);
+    fprintf(stderr, "\nSetting camera channel to : %d.\n", cam_state);
+#endif
+    response.result = true;
+    return true;
+}
 // ros service callback function for toggling Cam
 bool toggleCamCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response)
 {
-  if (cam_state == 0) // toggle to 1, the vertical camera
-    {
-      cam_state = 1;
-
 #ifdef _USING_SDK_1_7_
-      ARDRONE_TOOL_CONFIGURATION_ADDEVENT (video_channel, &cam_state, NULL);
+    cam_state = (cam_state + 1) % 4;
+    ARDRONE_TOOL_CONFIGURATION_ADDEVENT (video_channel, &cam_state, NULL);
+    fprintf(stderr, "\nSetting camera channel to : %d.\n", cam_state);
 #else
-      ardrone_at_set_toy_configuration("video:video_channel","1");
+    cam_state = (cam_state + 1) % 2;
+    ardrone_at_set_toy_configuration("video:video_channel",cam_state);
+    fprintf(stderr, "\nSetting camera channel to : %d.\n", cam_state);
 #endif
-
-      fprintf(stderr, "\nToggling from frontal camera to vertical camera.\n");
-    }
-  else if (cam_state == 1) // toggle to the forward camera
-    {
-      cam_state = 0;
-
-#ifdef _USING_SDK_1_7_
-      ARDRONE_TOOL_CONFIGURATION_ADDEVENT (video_channel, &cam_state, NULL);
-#else
-      ardrone_at_set_toy_configuration("video:video_channel","0");
-#endif
-
-      fprintf(stderr, "\nToggling from vertical camera to frontal camera.\n");      
-    }
+    
   return true;
 }
 

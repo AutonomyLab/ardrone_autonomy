@@ -28,7 +28,8 @@ ARDroneDriver::ARDroneDriver()
 #endif
 
 	toggleCam_service = node_handle.advertiseService("/ardrone/togglecam", toggleCamCallback);
-        toggleNavdataDemo_service = node_handle.advertiseService("/ardrone/togglenavdatademo", toggleNavdataDemoCallback);
+                toggleNavdataDemo_service = node_handle.advertiseService("/ardrone/togglenavdatademo", toggleNavdataDemoCallback);
+                setCamChannel_service = node_handle.advertiseService("/ardrone/setcamchannel",setCamChannelCallback );
 }
 
 ARDroneDriver::~ARDroneDriver()
