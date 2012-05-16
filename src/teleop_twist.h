@@ -19,5 +19,10 @@ void takeoffCallback(const std_msgs::Empty &msg);
 bool toggleCamCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response);
 bool toggleNavdataDemoCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response);
 
+//All global drone configs that should be sent on init
+
+#define DEFAULT_CAM_STATE 0
+#define DEFAULT_NAVDATA_DEMO 1
+
 #endif
 

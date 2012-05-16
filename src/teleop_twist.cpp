@@ -7,9 +7,8 @@ bool is_flying = false;
 bool needs_reset = false;
 geometry_msgs::Twist cmd_vel;
 
-int cam_state = 0; // 0 for forward and 1 for vertical, change to enum later
-int set_navdata_demo_value = TRUE;
-
+int cam_state = DEFAULT_CAM_STATE; // 0 for forward and 1 for vertical, change to enum later
+int set_navdata_demo_value = DEFAULT_NAVDATA_DEMO;  
 
 bool toggleNavdataDemoCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response)
 {
