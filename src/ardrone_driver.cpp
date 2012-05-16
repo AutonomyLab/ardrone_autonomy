@@ -53,7 +53,7 @@ void ARDroneDriver::run()
 	{
 		// For some unknown reason, sometimes the ardrone critical configurations are not applied
 		// when the commands are being sent during SDK initialization. This is a trick to send critical 
-		// configurations sometime after SDK boots up. The navdata_demo saves around 300 KBytes/Sec bw!
+		// configurations sometime after SDK boots up.
 		if (configDone == false) 
 		{
 			configWate--;

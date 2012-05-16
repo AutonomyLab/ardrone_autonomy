@@ -24,7 +24,7 @@ bool toggleNavdataDemoCallback(std_srvs::Empty::Request& request, std_srvs::Empt
 //All global drone configs that should be sent on init
 
 #define DEFAULT_CAM_STATE 0
-#define DEFAULT_NAVDATA_DEMO 1
+#define DEFAULT_NAVDATA_DEMO 0
 
 #endif
 
