@@ -1,4 +1,4 @@
 #!/bin/sh
 
-cd mkdir lib && ARDroneLib/Soft/Build && make clean && make && cp -f targets_versions/*/*.a ../../../lib/
+mkdir lib && cd ARDroneLib/Soft/Build && make clean && make && cp -f targets_versions/*/*.a ../../../lib/
 cd ../../../
