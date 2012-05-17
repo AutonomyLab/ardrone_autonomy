@@ -14,6 +14,8 @@ ARDroneDriver::ARDroneDriver()
 	reset_sub = node_handle.subscribe("/ardrone/reset", 1, &resetCallback);
 	land_sub = node_handle.subscribe("/ardrone/land", 1, &landCallback);
 	image_pub = image_transport.advertiseCamera("/ardrone/image_raw", 1);
+        	hori_pub = image_transport.advertiseCamera("/ardrone/front/image_raw", 1);
+	vert_pub = image_transport.advertiseCamera("/ardrone/bottom/image_raw", 1);
 	navdata_pub = node_handle.advertise<ardrone_brown::Navdata>("/ardrone/navdata", 1);
 	//toggleCam_sub = node_handle.subscribe("/ardrone/togglecam", 10, &toggleCamCallback);
 
@@ -89,7 +91,7 @@ void ARDroneDriver::run()
 }
 
 void ARDroneDriver::publish_video()
-{
+{	
 	sensor_msgs::Image image_msg;
 	sensor_msgs::CameraInfo cinfo_msg;
 
@@ -104,8 +106,33 @@ void ARDroneDriver::publish_video()
 	// We only put the width and height in here.
 	cinfo_msg.width = STREAM_WIDTH;
 	cinfo_msg.height = STREAM_HEIGHT;
-
 	image_pub.publish(image_msg, cinfo_msg);
+	if (cam_state == ZAP_CHANNEL_HORI)
+	{		
+		hori_pub.publish(image_msg, cinfo_msg);
+	}
+	else if (cam_state == ZAP_CHANNEL_VERT)
+	{
+		image_msg.width = STREAM_WIDTH / 2;
+		image_msg.height = STREAM_HEIGHT / 2;
+		image_msg.encoding = "rgb8";
+		image_msg.is_bigendian = false;
+		image_msg.step = STREAM_WIDTH*3 / 2;
+		image_msg.data.clear();
+		image_msg.data.resize(STREAM_WIDTH*STREAM_HEIGHT*3 / 4);
+		sensor_msgs::Image::_data_type::iterator _it = image_msg.data.begin();
+		for (int row = 0; row < STREAM_HEIGHT / 2; row++)
+		{
+			int _b = row * STREAM_WIDTH * 3;
+			int _e = _b + image_msg.step;
+			_it = std::copy(buffer + _b, buffer + _e, _it);
+		}
+		
+		cinfo_msg.width = STREAM_WIDTH / 2;
+		cinfo_msg.height = STREAM_HEIGHT / 2;
+		vert_pub.publish(image_msg, cinfo_msg);
+	}
+	
 }
 
 void ARDroneDriver::publish_navdata()

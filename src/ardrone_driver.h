@@ -26,6 +26,9 @@ private:
 	ros::Subscriber land_sub;
 	image_transport::ImageTransport image_transport;
 	image_transport::CameraPublisher image_pub;
+        	image_transport::CameraPublisher hori_pub;
+	image_transport::CameraPublisher vert_pub;
+
 	ros::Publisher navdata_pub;
 
 	//ros::Subscriber toggleCam_sub;
