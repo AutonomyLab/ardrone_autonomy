@@ -26,5 +26,7 @@ bool toggleNavdataDemoCallback(std_srvs::Empty::Request& request, std_srvs::Empt
 #define DEFAULT_CAM_STATE 0
 #define DEFAULT_NAVDATA_DEMO 0
 
+extern int cam_state;
+extern int set_navdata_demo_value;
 #endif
 

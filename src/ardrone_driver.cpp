@@ -18,8 +18,8 @@ ARDroneDriver::ARDroneDriver()
 	//toggleCam_sub = node_handle.subscribe("/ardrone/togglecam", 10, &toggleCamCallback);
 
 #ifdef _USING_SDK_1_7_
-	int cam_state = DEFAULT_CAM_STATE; // 0 for forward and 1 for vertical, change to enum later
-                  int set_navdata_demo_value = DEFAULT_NAVDATA_DEMO;  
+	//int cam_state = DEFAULT_CAM_STATE; // 0 for forward and 1 for vertical, change to enum later
+                  //int set_navdata_demo_value = DEFAULT_NAVDATA_DEMO;  
 	ARDRONE_TOOL_CONFIGURATION_ADDEVENT (video_channel, &cam_state, NULL);
 	ARDRONE_TOOL_CONFIGURATION_ADDEVENT (navdata_demo, &set_navdata_demo_value, NULL);
 #else
@@ -46,8 +46,8 @@ void ARDroneDriver::run()
         //These are some extra params (experimental)
         int mCodec = P264_CODEC;
         int vbcMode = VBC_MODE_DYNAMIC;
-        int cam_state = DEFAULT_CAM_STATE; // 0 for forward and 1 for vertical, change to enum later
-        int set_navdata_demo_value = DEFAULT_NAVDATA_DEMO;  
+        //int cam_state = DEFAULT_CAM_STATE; // 0 for forward and 1 for vertical, change to enum later
+        //int set_navdata_demo_value = DEFAULT_NAVDATA_DEMO;  
         
 	while (node_handle.ok())
 	{
