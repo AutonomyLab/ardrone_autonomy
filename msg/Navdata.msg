@@ -24,6 +24,11 @@ float32 vy
 # linear velocity (mm/sec)
 float32 vz
 
+#linear accelerations (unit: g)
+float32 ax
+float32 ay
+float32 az
+
 #time stamp
 float32 tm
 

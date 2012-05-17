@@ -53,7 +53,7 @@ void ARDroneDriver::run()
 	{
 		// For some unknown reason, sometimes the ardrone critical configurations are not applied
 		// when the commands are being sent during SDK initialization. This is a trick to send critical 
-		// configurations sometime after SDK boots up.
+		// configurations sometime after SDK boots up.  
 		if (configDone == false) 
 		{
 			configWate--;
@@ -123,9 +123,10 @@ void ARDroneDriver::publish_navdata()
 	msg.vx = navdata.vx; // mm/sec
 	msg.vy = -navdata.vy; // mm/sec
 	msg.vz = -navdata.vz; // mm/sec
-
 	msg.tm = arnavtime.time;
-
+	msg.ax = navdata_phys.phys_accs[ACC_X] / 1000.0; // g
+	msg.ay = -navdata_phys.phys_accs[ACC_Y] / 1000.0; // g
+	msg.az = -navdata_phys.phys_accs[ACC_Z] / 1000.0; // g
 	// TODO: Ideally we would be able to figure out whether we are in an emergency state
 	// using the navdata.ctrl_state bitfield with the ARDRONE_EMERGENCY_MASK flag, but
 	// it seems to always be 0.  The emergency state seems to be correlated with the

@@ -36,6 +36,7 @@ extern "C" {
 #include <ardrone_tool/Navdata/ardrone_navdata_client.h>
 }
 
+extern navdata_phys_measures_t navdata_phys;
 extern navdata_demo_t navdata;
 extern navdata_time_t arnavtime;
 

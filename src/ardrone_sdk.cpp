@@ -3,6 +3,8 @@
 #include "video.h"
 
 navdata_demo_t navdata;
+navdata_phys_measures_t navdata_phys;
+
 navdata_time_t arnavtime;
 
 extern "C" {
@@ -20,6 +22,7 @@ extern "C" {
 
 	C_RESULT navdata_custom_process( const navdata_unpacked_t* const pnd )
 	{
+            		navdata_phys = pnd->navdata_phys_measures;
 		navdata = pnd->navdata_demo;
 		arnavtime = pnd->navdata_time;
 		return C_OK;
