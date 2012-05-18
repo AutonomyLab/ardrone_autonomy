@@ -91,9 +91,28 @@ void ARDroneDriver::run()
 }
 
 void ARDroneDriver::publish_video()
-{	
+{
+	/*
+	 * Information on buffer and image sizes.
+	 * Buffer is always in QVGA size, however for different Camera Modes
+	 * The picture and PIP sizes are different.
+	 * 
+	 * image_raw and buffer are always 320x240. In order to preserve backward compatibilty image_raw remains
+	 * always as before. Two new set of topics are added for two new cameras : /ardrone/front/xxx and /ardrone/bottom/xxx
+	 * 
+	 * In Camera State 0 front image relays buffer  and image_raw, bottom image is not updated.
+	 * 
+	 * In Camera State 1 bottom image is a 174x144 crop of buffer. The front image is not updated
+	 * 
+	 * In Camera State 2 bottom image is a PIP cut of size (87x72) from buffer.
+	 * The bottom image is a (320-87)x(240) cut of buffer.
+	 * 
+	 * In Camera State 3 front image is a PIP cut of size (58x42) from buffer.
+	 * The bottom image is a (174-58)x144 crop of the buffer. 
+	 */
 	sensor_msgs::Image image_msg;
 	sensor_msgs::CameraInfo cinfo_msg;
+	sensor_msgs::Image::_data_type::iterator _it;
 
 	image_msg.width = STREAM_WIDTH;
 	image_msg.height = STREAM_HEIGHT;
@@ -108,29 +127,129 @@ void ARDroneDriver::publish_video()
 	cinfo_msg.height = STREAM_HEIGHT;
 	image_pub.publish(image_msg, cinfo_msg);
 	if (cam_state == ZAP_CHANNEL_HORI)
-	{		
+	{
+		/*
+		 * Horizontal camera is activated, only /ardrone/front/ is being updated 
+		 */
 		hori_pub.publish(image_msg, cinfo_msg);
 	}
 	else if (cam_state == ZAP_CHANNEL_VERT)
 	{
-		image_msg.width = STREAM_WIDTH / 2;
-		image_msg.height = STREAM_HEIGHT / 2;
+		/*
+		 * Vertical camera is activated, only /ardrone/bottom/ is being updated 
+		 */
+		image_msg.width = VERTSTREAM_WIDTH;
+		image_msg.height = VERTSTREAM_HEIGHT;
 		image_msg.encoding = "rgb8";
 		image_msg.is_bigendian = false;
-		image_msg.step = STREAM_WIDTH*3 / 2;
+		image_msg.step = VERTSTREAM_WIDTH*3;
 		image_msg.data.clear();
-		image_msg.data.resize(STREAM_WIDTH*STREAM_HEIGHT*3 / 4);
-		sensor_msgs::Image::_data_type::iterator _it = image_msg.data.begin();
-		for (int row = 0; row < STREAM_HEIGHT / 2; row++)
+		image_msg.data.resize(VERTSTREAM_WIDTH*VERTSTREAM_HEIGHT*3);
+		_it = image_msg.data.begin();
+		for (int row = 0; row < VERTSTREAM_HEIGHT ; row++)
 		{
 			int _b = row * STREAM_WIDTH * 3;
 			int _e = _b + image_msg.step;
 			_it = std::copy(buffer + _b, buffer + _e, _it);
 		}
 		
-		cinfo_msg.width = STREAM_WIDTH / 2;
-		cinfo_msg.height = STREAM_HEIGHT / 2;
+		cinfo_msg.width = VERTSTREAM_WIDTH;
+		cinfo_msg.height = VERTSTREAM_HEIGHT;
 		vert_pub.publish(image_msg, cinfo_msg);
+	}
+	else if (cam_state == ZAP_CHANNEL_LARGE_HORI_SMALL_VERT)
+	{
+		/*
+		 * The Picture in Picture is activated with vertical camera inside the horizontal
+		 * camera. Both /ardrone/front and /ardrone/bottom is being updated
+		 */
+		
+		// Front (Cropping the first 88 columns)
+		image_msg.width = STREAM_WIDTH  - MODE2_PIP_WIDTH;
+		image_msg.height = STREAM_HEIGHT;
+		image_msg.encoding = "rgb8";
+		image_msg.is_bigendian = false;
+		image_msg.step = (STREAM_WIDTH-MODE2_PIP_WIDTH)*3;
+		image_msg.data.clear();
+		image_msg.data.resize((STREAM_WIDTH - MODE2_PIP_WIDTH)*STREAM_HEIGHT*3);
+		_it = image_msg.data.begin();
+		for (int row = 0; row < STREAM_HEIGHT; row++)
+		{
+			int _b = (row * STREAM_WIDTH * 3) + (MODE2_PIP_WIDTH * 3);
+			int _e = _b + image_msg.step;
+			_it = std::copy(buffer + _b, buffer + _e, _it);
+		}
+		
+		cinfo_msg.width = STREAM_WIDTH - MODE2_PIP_WIDTH;
+		cinfo_msg.height = STREAM_HEIGHT;
+		hori_pub.publish(image_msg, cinfo_msg);
+		
+		//Bottom
+		image_msg.width = MODE2_PIP_WIDTH;
+		image_msg.height = MODE2_PIP_HEIGHT;
+		image_msg.encoding = "rgb8";
+		image_msg.is_bigendian = false;
+		image_msg.step = MODE2_PIP_WIDTH * 3;
+		image_msg.data.clear();
+		image_msg.data.resize(MODE2_PIP_WIDTH * MODE2_PIP_HEIGHT * 3);
+		_it = image_msg.data.begin();
+		for (int row = 0; row < MODE2_PIP_HEIGHT; row++)
+		{
+			int _b = row * STREAM_WIDTH * 3;
+			int _e = _b + image_msg.step;
+			_it = std::copy(buffer + _b, buffer + _e, _it);
+		}
+		
+		cinfo_msg.width = MODE2_PIP_WIDTH;
+		cinfo_msg.height = MODE2_PIP_HEIGHT;
+		vert_pub.publish(image_msg, cinfo_msg);
+	}
+	else if (cam_state == ZAP_CHANNEL_LARGE_VERT_SMALL_HORI)
+	{
+		/*
+		 * The Picture in Picture is activated with horizontal camera inside the vertical
+		 * camera. Both /ardrone/front and /ardrone/bottom is being updated
+		 */
+		
+		// Bottom  (Cropping the first 58 columns)
+		image_msg.width = VERTSTREAM_WIDTH   - MODE3_PIP_WIDTH;
+		image_msg.height = VERTSTREAM_HEIGHT;
+		image_msg.encoding = "rgb8";
+		image_msg.is_bigendian = false;
+		image_msg.step = (VERTSTREAM_WIDTH - MODE3_PIP_WIDTH)*3;
+		image_msg.data.clear();
+		image_msg.data.resize((VERTSTREAM_WIDTH - MODE3_PIP_WIDTH)* VERTSTREAM_HEIGHT*3);
+		_it = image_msg.data.begin();
+		for (int row = 0; row < VERTSTREAM_HEIGHT; row++)
+		{
+			int _b = (row * (STREAM_WIDTH * 3)) + (MODE3_PIP_WIDTH * 3);
+			int _e = _b + image_msg.step;
+			_it = std::copy(buffer + _b, buffer + _e, _it);
+		}
+		
+		cinfo_msg.width = VERTSTREAM_WIDTH - MODE3_PIP_WIDTH;
+		cinfo_msg.height = VERTSTREAM_HEIGHT;
+		vert_pub.publish(image_msg, cinfo_msg);
+		
+		//Front
+		image_msg.width = MODE3_PIP_WIDTH;
+		image_msg.height = MODE3_PIP_HEIGHT;
+		image_msg.encoding = "rgb8";
+		image_msg.is_bigendian = false;
+		image_msg.step = MODE3_PIP_WIDTH * 3;
+		image_msg.data.clear();
+		image_msg.data.resize(MODE3_PIP_WIDTH * MODE3_PIP_HEIGHT * 3);
+		_it = image_msg.data.begin();
+		for (int row = 0; row < MODE3_PIP_HEIGHT; row++)
+		{
+			int _b = row * STREAM_WIDTH * 3;
+			int _e = _b + image_msg.step;
+			_it = std::copy(buffer + _b, buffer + _e, _it);
+		}
+		
+		cinfo_msg.width = MODE3_PIP_WIDTH;
+		cinfo_msg.height = MODE3_PIP_HEIGHT;
+		hori_pub.publish(image_msg, cinfo_msg);
 	}
 	
 }
