@@ -10,11 +10,12 @@ geometry_msgs::Twist cmd_vel;
 int cam_state = DEFAULT_CAM_STATE; // 0 for forward and 1 for vertical, change to enum later
 int set_navdata_demo_value = DEFAULT_NAVDATA_DEMO; 
 int32_t detect_enemy_color = ARDRONE_DETECTION_COLOR_ORANGE_YELLOW;
-int32_t detect_groundstripes_color = ARDRONE_DETECTION_COLOR_ORANGE_YELLOW;
+int32_t detect_groundstripes_color = ARDRONE_DETECTION_COLOR_ORANGE_BLUE;
 int32_t detect_dtype = CAD_TYPE_MULTIPLE_DETECTION_MODE;
-int32_t detect_hori_type = TAG_TYPE_MASK(TAG_TYPE_STRIPE);
+int32_t detect_hori_type = TAG_TYPE_MASK(TAG_TYPE_SHELL_TAG);
 int32_t detect_vert_type = TAG_TYPE_MASK(TAG_TYPE_ROUNDEL);
-int32_t detect_outdoor_hull = 0;
+int32_t detect_indoor_hull = 1;
+int32_t detect_vertfast_type = 0;
 
 bool toggleNavdataDemoCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response)
 {

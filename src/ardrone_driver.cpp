@@ -29,12 +29,13 @@ ARDroneDriver::ARDroneDriver()
 	ardrone_at_set_toy_configuration("video:video_channel","0");
 #endif
 
-	ARDRONE_TOOL_CONFIGURATION_ADDEVENT (detect_type, &detect_dtype, NULL);
-	ARDRONE_TOOL_CONFIGURATION_ADDEVENT (detections_select_h, &detect_hori_type, NULL);
-	ARDRONE_TOOL_CONFIGURATION_ADDEVENT (detections_select_v_hsync, &detect_vert_type, NULL);	
-	ARDRONE_TOOL_CONFIGURATION_ADDEVENT (enemy_colors, &detect_enemy_color, NULL );
-	ARDRONE_TOOL_CONFIGURATION_ADDEVENT (groundstripe_colors, &detect_groundstripes_color, NULL);
-	ARDRONE_TOOL_CONFIGURATION_ADDEVENT (enemy_without_shell, &detect_outdoor_hull, NULL);
+//	ARDRONE_TOOL_CONFIGURATION_ADDEVENT (detect_type, &detect_dtype, NULL);
+//	ARDRONE_TOOL_CONFIGURATION_ADDEVENT (detections_select_h, &detect_hori_type, NULL);
+//	ARDRONE_TOOL_CONFIGURATION_ADDEVENT (detections_select_v, &detect_vertfast_type, NULL);
+//	ARDRONE_TOOL_CONFIGURATION_ADDEVENT (detections_select_v_hsync, &detect_vert_type, NULL);
+//	ARDRONE_TOOL_CONFIGURATION_ADDEVENT (enemy_colors, &detect_enemy_color, NULL );
+//	ARDRONE_TOOL_CONFIGURATION_ADDEVENT (groundstripe_colors, &detect_groundstripes_color, NULL);
+//	ARDRONE_TOOL_CONFIGURATION_ADDEVENT (enemy_without_shell, &detect_indoor_hull, NULL);
 	
 	
 	toggleCam_service = node_handle.advertiseService("/ardrone/togglecam", toggleCamCallback);
@@ -81,12 +82,13 @@ void ARDroneDriver::run()
 					//Ensure that the horizontal camera is running
 					ardrone_at_set_toy_configuration("video:video_channel","0");
 				#endif
-				ARDRONE_TOOL_CONFIGURATION_ADDEVENT(detect_type, &detect_dtype, NULL);
-				ARDRONE_TOOL_CONFIGURATION_ADDEVENT(detections_select_h, &detect_hori_type, NULL);
-				ARDRONE_TOOL_CONFIGURATION_ADDEVENT(detections_select_v_hsync, &detect_vert_type, NULL);	
-				ARDRONE_TOOL_CONFIGURATION_ADDEVENT(enemy_colors, &detect_enemy_color, NULL );
-				ARDRONE_TOOL_CONFIGURATION_ADDEVENT(groundstripe_colors, &detect_groundstripes_color, NULL);
-				ARDRONE_TOOL_CONFIGURATION_ADDEVENT(enemy_without_shell, &detect_outdoor_hull, NULL);
+				ARDRONE_TOOL_CONFIGURATION_ADDEVENT (detect_type, &detect_dtype, NULL);
+				ARDRONE_TOOL_CONFIGURATION_ADDEVENT (detections_select_v, &detect_vertfast_type, NULL);
+				ARDRONE_TOOL_CONFIGURATION_ADDEVENT (detections_select_v_hsync, &detect_vert_type, NULL);
+				ARDRONE_TOOL_CONFIGURATION_ADDEVENT (detections_select_h, &detect_hori_type, NULL);
+//				ARDRONE_TOOL_CONFIGURATION_ADDEVENT (enemy_colors, &detect_enemy_color, NULL );
+//				ARDRONE_TOOL_CONFIGURATION_ADDEVENT (groundstripe_colors, &detect_groundstripes_color, NULL);
+				ARDRONE_TOOL_CONFIGURATION_ADDEVENT (enemy_without_shell, &detect_indoor_hull, NULL);
 			}
 		}
 		if (current_frame_id != last_frame_id)

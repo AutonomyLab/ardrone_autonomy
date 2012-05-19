@@ -30,10 +30,11 @@ extern int cam_state;
 extern int set_navdata_demo_value;
 extern int32_t detect_enemy_color;
 extern int32_t detect_groundstripes_color;
-extern int32_t detect_outdoor_hull; //0: Indoor Hull
+extern int32_t detect_indoor_hull; //1: Indoor Hull
 extern int32_t detect_dtype;
 extern int32_t detect_hori_type;
 extern int32_t detect_vert_type;
+extern int32_t detect_vertfast_type;
 
 #endif
 
