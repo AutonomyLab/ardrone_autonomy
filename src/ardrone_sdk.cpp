@@ -4,6 +4,7 @@
 
 navdata_demo_t navdata;
 navdata_phys_measures_t navdata_phys;
+navdata_vision_detect_t navdata_detect;
 
 navdata_time_t arnavtime;
 
@@ -22,9 +23,24 @@ extern "C" {
 
 	C_RESULT navdata_custom_process( const navdata_unpacked_t* const pnd )
 	{
-            		navdata_phys = pnd->navdata_phys_measures;
+		navdata_detect = pnd->navdata_vision_detect;
+        navdata_phys = pnd->navdata_phys_measures;
 		navdata = pnd->navdata_demo;
 		arnavtime = pnd->navdata_time;
+		
+		fprintf(stderr, "*** Tag: %d, Size : %d, Detected: %d\n", navdata_detect.tag, navdata_detect.size, navdata_detect.nb_detected);
+		for (int i = 0; i < navdata_detect.nb_detected; i++)
+		{
+			printf("#%d T:%d x:%3d y:%3d w:%3d h:%3d D:%3d \n", 
+					navdata_detect.type[i],
+					navdata_detect.xc[i],
+					navdata_detect.yc[i],
+					navdata_detect.width[i],
+					navdata_detect.height[i],
+					navdata_detect.dist[i]
+					);
+		}
+	
 		return C_OK;
 	}
 

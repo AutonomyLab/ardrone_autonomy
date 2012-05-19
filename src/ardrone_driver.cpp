@@ -14,14 +14,14 @@ ARDroneDriver::ARDroneDriver()
 	reset_sub = node_handle.subscribe("/ardrone/reset", 1, &resetCallback);
 	land_sub = node_handle.subscribe("/ardrone/land", 1, &landCallback);
 	image_pub = image_transport.advertiseCamera("/ardrone/image_raw", 1);
-        	hori_pub = image_transport.advertiseCamera("/ardrone/front/image_raw", 1);
+    hori_pub = image_transport.advertiseCamera("/ardrone/front/image_raw", 1);
 	vert_pub = image_transport.advertiseCamera("/ardrone/bottom/image_raw", 1);
 	navdata_pub = node_handle.advertise<ardrone_brown::Navdata>("/ardrone/navdata", 1);
 	//toggleCam_sub = node_handle.subscribe("/ardrone/togglecam", 10, &toggleCamCallback);
 
 #ifdef _USING_SDK_1_7_
 	//int cam_state = DEFAULT_CAM_STATE; // 0 for forward and 1 for vertical, change to enum later
-                  //int set_navdata_demo_value = DEFAULT_NAVDATA_DEMO;  
+    //int set_navdata_demo_value = DEFAULT_NAVDATA_DEMO;  
 	ARDRONE_TOOL_CONFIGURATION_ADDEVENT (video_channel, &cam_state, NULL);
 	ARDRONE_TOOL_CONFIGURATION_ADDEVENT (navdata_demo, &set_navdata_demo_value, NULL);
 #else
@@ -29,9 +29,17 @@ ARDroneDriver::ARDroneDriver()
 	ardrone_at_set_toy_configuration("video:video_channel","0");
 #endif
 
+	ARDRONE_TOOL_CONFIGURATION_ADDEVENT (detect_type, &detect_dtype, NULL);
+	ARDRONE_TOOL_CONFIGURATION_ADDEVENT (detections_select_h, &detect_hori_type, NULL);
+	ARDRONE_TOOL_CONFIGURATION_ADDEVENT (detections_select_v_hsync, &detect_vert_type, NULL);	
+	ARDRONE_TOOL_CONFIGURATION_ADDEVENT (enemy_colors, &detect_enemy_color, NULL );
+	ARDRONE_TOOL_CONFIGURATION_ADDEVENT (groundstripe_colors, &detect_groundstripes_color, NULL);
+	ARDRONE_TOOL_CONFIGURATION_ADDEVENT (enemy_without_shell, &detect_outdoor_hull, NULL);
+	
+	
 	toggleCam_service = node_handle.advertiseService("/ardrone/togglecam", toggleCamCallback);
-                toggleNavdataDemo_service = node_handle.advertiseService("/ardrone/togglenavdatademo", toggleNavdataDemoCallback);
-                setCamChannel_service = node_handle.advertiseService("/ardrone/setcamchannel",setCamChannelCallback );
+	toggleNavdataDemo_service = node_handle.advertiseService("/ardrone/togglenavdatademo", toggleNavdataDemoCallback);
+	setCamChannel_service = node_handle.advertiseService("/ardrone/setcamchannel",setCamChannelCallback );
 }
 
 ARDroneDriver::~ARDroneDriver()
@@ -67,14 +75,18 @@ void ARDroneDriver::run()
 					//Ensure that the horizontal camera is running
 					ARDRONE_TOOL_CONFIGURATION_ADDEVENT (video_channel, &cam_state, NULL);
 					ARDRONE_TOOL_CONFIGURATION_ADDEVENT (navdata_demo, &set_navdata_demo_value, NULL);
-                                        //ARDRONE_TOOL_CONFIGURATION_ADDEVENT (video_codec, &mCodec, NULL);
-                                        //ARDRONE_TOOL_CONFIGURATION_ADDEVENT (bitrate_ctrl_mode, &vbcMode, NULL);
-
+					//ARDRONE_TOOL_CONFIGURATION_ADDEVENT (video_codec, &mCodec, NULL);
+					//ARDRONE_TOOL_CONFIGURATION_ADDEVENT (bitrate_ctrl_mode, &vbcMode, NULL);					
 				#else
 					//Ensure that the horizontal camera is running
 					ardrone_at_set_toy_configuration("video:video_channel","0");
 				#endif
-				
+				ARDRONE_TOOL_CONFIGURATION_ADDEVENT(detect_type, &detect_dtype, NULL);
+				ARDRONE_TOOL_CONFIGURATION_ADDEVENT(detections_select_h, &detect_hori_type, NULL);
+				ARDRONE_TOOL_CONFIGURATION_ADDEVENT(detections_select_v_hsync, &detect_vert_type, NULL);	
+				ARDRONE_TOOL_CONFIGURATION_ADDEVENT(enemy_colors, &detect_enemy_color, NULL );
+				ARDRONE_TOOL_CONFIGURATION_ADDEVENT(groundstripe_colors, &detect_groundstripes_color, NULL);
+				ARDRONE_TOOL_CONFIGURATION_ADDEVENT(enemy_without_shell, &detect_outdoor_hull, NULL);
 			}
 		}
 		if (current_frame_id != last_frame_id)
