@@ -34,7 +34,7 @@ extern int32_t detect_indoor_hull; //1: Indoor Hull
 extern int32_t detect_dtype;
 extern int32_t detect_hori_type;
 extern int32_t detect_vert_type;
-extern int32_t detect_vertfast_type;
+extern int32_t detect_disable_placeholder;
 
 #endif
 

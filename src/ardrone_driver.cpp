@@ -83,10 +83,10 @@ void ARDroneDriver::run()
 					ardrone_at_set_toy_configuration("video:video_channel","0");
 				#endif
 				ARDRONE_TOOL_CONFIGURATION_ADDEVENT (detect_type, &detect_dtype, NULL);
-				ARDRONE_TOOL_CONFIGURATION_ADDEVENT (detections_select_v, &detect_vertfast_type, NULL);
-				ARDRONE_TOOL_CONFIGURATION_ADDEVENT (detections_select_v_hsync, &detect_vert_type, NULL);
+				ARDRONE_TOOL_CONFIGURATION_ADDEVENT (detections_select_v, &detect_vert_type, NULL);
+				ARDRONE_TOOL_CONFIGURATION_ADDEVENT (detections_select_v_hsync, &detect_disable_placeholder, NULL);
 				ARDRONE_TOOL_CONFIGURATION_ADDEVENT (detections_select_h, &detect_hori_type, NULL);
-//				ARDRONE_TOOL_CONFIGURATION_ADDEVENT (enemy_colors, &detect_enemy_color, NULL );
+				ARDRONE_TOOL_CONFIGURATION_ADDEVENT (enemy_colors, &detect_enemy_color, NULL );
 //				ARDRONE_TOOL_CONFIGURATION_ADDEVENT (groundstripe_colors, &detect_groundstripes_color, NULL);
 				ARDRONE_TOOL_CONFIGURATION_ADDEVENT (enemy_without_shell, &detect_indoor_hull, NULL);
 			}
@@ -292,6 +292,18 @@ void ARDroneDriver::publish_navdata()
 	msg.tags_count = navdata_detect.nb_detected;
 	for (int i = 0; i < navdata_detect.nb_detected; i++)
 	{
+		/*
+		 * The tags_type is in raw format. In order to extract the information 
+		 * macros from ardrone_api.h is needed.
+		 *
+		 * #define DETECTION_MAKE_TYPE(source,tag) ( ((source)<<16) | (tag) )
+		 * #define DETECTION_EXTRACT_SOURCE(type)  ( ((type)>>16) & 0x0FF )
+		 * #define DETECTION_EXTRACT_TAG(type)     ( (type) & 0x0FF )
+		 * 
+		 * Please also note that the xc, yc, width and height are in [0,1000] range
+		 * and must get converted back based on image resolution.
+		 */
+		msg.tags_type.push_back(navdata_detect.type[i]);
 		msg.tags_xc.push_back(navdata_detect.xc[i]);
 		msg.tags_yc.push_back(navdata_detect.yc[i]);
 		msg.tags_width.push_back(navdata_detect.width[i]);
