@@ -29,6 +29,16 @@ float32 ax
 float32 ay
 float32 az
 
+#Tags in Vision Detectoion
+uint32 tags_count
+uint32[] tags_type
+uint32[] tags_xc
+uint32[] tags_yc
+uint32[] tags_width
+uint32[] tags_height
+uint32[] tags_orientation
+uint32[] tags_distance
+
 #time stamp
 float32 tm
 

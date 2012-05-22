@@ -28,18 +28,18 @@ extern "C" {
 		navdata = pnd->navdata_demo;
 		arnavtime = pnd->navdata_time;
 		
-		fprintf(stderr, "*** Tag: %d, Size : %d, Detected: %d\n", navdata_detect.tag, navdata_detect.size, navdata_detect.nb_detected);
-		for (int i = 0; i < navdata_detect.nb_detected; i++)
-		{
-			printf("#%d T:%d x:%3d y:%3d w:%3d h:%3d D:%3d \n", 
-					navdata_detect.type[i],
-					navdata_detect.xc[i],
-					navdata_detect.yc[i],
-					navdata_detect.width[i],
-					navdata_detect.height[i],
-					navdata_detect.dist[i]
-					);
-		}
+//		fprintf(stderr, "*** Tag: %d, Size : %d, Detected: %d\n", navdata_detect.tag, navdata_detect.size, navdata_detect.nb_detected);
+//		for (int i = 0; i < navdata_detect.nb_detected; i++)
+//		{
+//			printf("#%d T:%d x:%3d y:%3d w:%3d h:%3d D:%3d \n", 
+//					navdata_detect.type[i],
+//					navdata_detect.xc[i],
+//					navdata_detect.yc[i],
+//					navdata_detect.width[i],
+//					navdata_detect.height[i],
+//					navdata_detect.dist[i]
+//					);
+//		}
 	
 		return C_OK;
 	}

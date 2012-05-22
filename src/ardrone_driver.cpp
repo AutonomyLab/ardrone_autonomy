@@ -287,6 +287,18 @@ void ARDroneDriver::publish_navdata()
 	msg.ax = navdata_phys.phys_accs[ACC_X] / 1000.0; // g
 	msg.ay = -navdata_phys.phys_accs[ACC_Y] / 1000.0; // g
 	msg.az = -navdata_phys.phys_accs[ACC_Z] / 1000.0; // g
+	
+	// Tag Detection
+	msg.tags_count = navdata_detect.nb_detected;
+	for (int i = 0; i < navdata_detect.nb_detected; i++)
+	{
+		msg.tags_xc.push_back(navdata_detect.xc[i]);
+		msg.tags_yc.push_back(navdata_detect.yc[i]);
+		msg.tags_width.push_back(navdata_detect.width[i]);
+		msg.tags_height.push_back(navdata_detect.height[i]);
+		msg.tags_orientation.push_back(navdata_detect.orientation_angle[i]);
+		msg.tags_distance.push_back(navdata_detect.dist[i]);
+	}
 	// TODO: Ideally we would be able to figure out whether we are in an emergency state
 	// using the navdata.ctrl_state bitfield with the ARDRONE_EMERGENCY_MASK flag, but
 	// it seems to always be 0.  The emergency state seems to be correlated with the
