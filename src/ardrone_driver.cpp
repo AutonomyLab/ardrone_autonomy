@@ -41,6 +41,8 @@ ARDroneDriver::ARDroneDriver()
 	toggleCam_service = node_handle.advertiseService("/ardrone/togglecam", toggleCamCallback);
 	toggleNavdataDemo_service = node_handle.advertiseService("/ardrone/togglenavdatademo", toggleNavdataDemoCallback);
 	setCamChannel_service = node_handle.advertiseService("/ardrone/setcamchannel",setCamChannelCallback );
+//	setEnemyColor_service = node_handle.advertiseService("/ardrone/setenemycolor", setEnemyColorCallback);
+//	setHullType_service = node_handle.advertiseService("/ardrone/sethulltype", setHullTypeCallback);
 }
 
 ARDroneDriver::~ARDroneDriver()

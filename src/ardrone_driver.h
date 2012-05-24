@@ -33,8 +33,21 @@ private:
 
 	//ros::Subscriber toggleCam_sub;
 	ros::ServiceServer toggleCam_service;
-                ros::ServiceServer toggleNavdataDemo_service;
-                ros::ServiceServer setCamChannel_service;
+	ros::ServiceServer toggleNavdataDemo_service;
+	ros::ServiceServer setCamChannel_service;
+	
+	/*
+	 * Orange Green : 1
+	 * Orange Yellow: 2
+	 * Orange Blue: 3
+	 */
+	//ros::ServiceServer setEnemyColor_service; 
+	
+	/*
+	 * Indoor: 1
+	 * Oudoor: 0
+	 */
+	//ros::ServiceServer setHullType_service;
 
 	int last_frame_id;
 	int flying_state;
