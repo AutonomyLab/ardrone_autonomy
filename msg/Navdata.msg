@@ -37,7 +37,7 @@ uint32[] tags_yc
 uint32[] tags_width
 uint32[] tags_height
 uint32[] tags_orientation
-uint32[] tags_distance
+float32[] tags_distance
 
 #time stamp
 float32 tm
