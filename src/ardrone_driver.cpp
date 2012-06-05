@@ -51,7 +51,7 @@ void ARDroneDriver::run()
 {
 	ros::Rate loop_rate(40);
 
-	int configWate = 250;
+	int configWait = 250;
 	bool configDone = false;
         
         //These are some extra params (experimental)
@@ -67,8 +67,8 @@ void ARDroneDriver::run()
 		// configurations sometime after SDK boots up.  
 		if (configDone == false) 
 		{
-			configWate--;
-			if (configWate == 0) 
+			configWait--;
+			if (configWait == 0) 
 			{
 				configDone = true;
 				fprintf(stderr, "\nSending some critical initial configuration after some delay...\n");
@@ -114,12 +114,12 @@ void ARDroneDriver::publish_video()
 	 * image_raw and buffer are always 320x240. In order to preserve backward compatibilty image_raw remains
 	 * always as before. Two new set of topics are added for two new cameras : /ardrone/front/xxx and /ardrone/bottom/xxx
 	 * 
-	 * In Camera State 0 front image relays buffer  and image_raw, bottom image is not updated.
+	 * In Camera State 0 front image relays the buffer  and image_raw and bottom image are not updated.
 	 * 
-	 * In Camera State 1 bottom image is a 174x144 crop of buffer. The front image is not updated
+	 * In Camera State 1 bottom image is a 174x144 crop of the buffer. The front image is not updated
 	 * 
 	 * In Camera State 2 bottom image is a PIP cut of size (87x72) from buffer.
-	 * The bottom image is a (320-87)x(240) cut of buffer.
+	 * The bottom image is a (320-87)x(240) cut of the buffer.
 	 * 
 	 * In Camera State 3 front image is a PIP cut of size (58x42) from buffer.
 	 * The bottom image is a (174-58)x144 crop of the buffer. 
