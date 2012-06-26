@@ -32,12 +32,12 @@ static int atcodec_lib_init_ok = 0;
 // only for client
 static vp_os_mutex_t ATcodec_cond_mutex;
 static vp_os_cond_t  ATcodec_wait_cond;
-static int8_t        ATcodec_Message_Buffer[INTERNAL_BUFFER_SIZE];
+static uint8_t       ATcodec_Message_Buffer[INTERNAL_BUFFER_SIZE];
 static int32_t       ATcodec_Message_len = 0;
 
 static int32_t v_continue = 0;
 
-
+#if !defined(TARGET_OS_IPHONE) && !defined(TARGET_IPHONE_SIMULATOR)
 static ATCODEC_RET
 test_dyn_strs_one_node(ATcodec_Tree_t *tree, ATcodec_Tree_Node_t *node, int depth, const char *dynamic_str, ATcodec_Memory_t *memory, AT_CODEC_Message_Received *ptr, int *len_dec)
 {
@@ -106,7 +106,7 @@ test_process_node(ATcodec_Tree_t *tree, ATcodec_Tree_Node_t *node, const char *c
   char *fmt_str;
   int32_t output_len;
   char output_params[INTERNAL_BUFFER_SIZE];
-  int8_t output_str[INTERNAL_BUFFER_SIZE];
+  uint8_t output_str[INTERNAL_BUFFER_SIZE];
   ATcodec_Memory_t output, dest, fmt;
 	
   if(test_dyn_strs(tree, node, depth, cpy, memory, &ptr, len_dec) == ATCODEC_TRUE)
@@ -163,6 +163,7 @@ find_process_node(ATcodec_Tree_t *tree, const char *message, ATcodec_Memory_t *m
 	
   return test_process_node(tree, current, cpy, memory, len_dec, depth);
 }
+#endif
 
 /********************************************************************
  * @param[in] str String to a raw AT command (with % standing for parameters).
@@ -294,7 +295,7 @@ ATcodec_Add_Defined_Message_Tree (ATcodec_Tree_t *tree, const char *str)
 void
 ATcodec_Init_Library        (AT_CODEC_FUNCTIONS_PTRS *funcs)
 {
-  ATcodec_Init_Library_Tree   (&default_tree, funcs);
+    ATcodec_Init_Library_Tree   (&default_tree, funcs);
 }
 
 void
@@ -337,11 +338,10 @@ ATcodec_Init_Library_Tree   (ATcodec_Tree_t *tree, AT_CODEC_FUNCTIONS_PTRS *func
     }
 }
 
-
 void
 ATcodec_Shutdown_Library        (void)
 {
-  ATcodec_Shutdown_Library_Tree(&default_tree);
+    ATcodec_Shutdown_Library_Tree(&default_tree);
 }
 
 
@@ -355,25 +355,26 @@ ATcodec_Shutdown_Library_Tree   (ATcodec_Tree_t *tree)
 }
 
 
+#if !defined(TARGET_OS_IPHONE) && !defined(TARGET_IPHONE_SIMULATOR)
 // \todo CHANGE THE '\r'
 static int append_reception(char *buffer, int len, char *global_buffer, int *global_len, int global_buffer_limit)
 {
   int res = 0, i;
-	
+
   for(i = 0 ; i < len ; i++)
+  {
+    global_buffer[(*global_len)++] = buffer[i];
+    if(*global_len >= /*INTERNAL_BUFFER_SIZE*/global_buffer_limit)
     {
-      global_buffer[(*global_len)++] = buffer[i];
-      if(*global_len >= /*INTERNAL_BUFFER_SIZE*/global_buffer_limit)
-	{
-	  // buffer overflow => purge
-	  *global_len = 0;
-	  return -1;
-	}
-      if(buffer[i] == '\r')
-	{
-	  res++;
-	}
+      // buffer overflow => purge
+      *global_len = 0;
+      return -1;
     }
+    if(buffer[i] == '\r')
+    {
+      res++;
+    }
+  }
 	
   global_buffer[*global_len] = '\0';
 	
@@ -388,44 +389,42 @@ static ATCODEC_RET process_received_data(ATcodec_Tree_t *tree, int nb, char *glo
   char memory[INTERNAL_BUFFER_SIZE];
   ATcodec_Memory_t mem;
 
-  while(nb--) /* nb is the number of \r in the buffer, ie. the number of potential AT commands */
+  while (nb--) /* nb is the number of \r in the buffer, ie. the number of potential AT commands */
+  {
+    ATcodec_Memory_Init(&mem, &memory[0], sizeof(memory), 1, NULL, NULL);
+    if (find_process_node(tree, global_buffer, &mem, &len_dec) != ATCODEC_TRUE)
     {
-      ATcodec_Memory_Init(&mem, &memory[0], sizeof(memory), 1, NULL, NULL);
-      if(find_process_node(tree, global_buffer, &mem, &len_dec) != ATCODEC_TRUE)
-	{
       /* Go to the next potential command */
-	  for(len_dec = 0 ; len_dec < *global_len && global_buffer[len_dec] != '\r' ; len_dec++)
-	    {
-	      // nothing
-	    }
-	  ATCODEC_PRINT("PURGE\n");
-	  if(global_buffer[len_dec++] == '\r')
-	    {
-	      if(global_buffer[len_dec++] == '\0')
-		len_dec++;
-	    }
-	}
+      for(len_dec = 0 ; len_dec < *global_len && global_buffer[len_dec] != '\r' ; len_dec++)
+      {
+        // nothing
+      }
+      ATCODEC_PRINT("PURGE\n");
+      if(global_buffer[len_dec++] == '\r')
+      {
+        if(global_buffer[len_dec++] == '\0')
+          len_dec++;
+      }
+    }
 		
-      if(--len_dec >= *global_len)
-	len_dec = *global_len;
+    if (--len_dec >= *global_len)
+      len_dec = *global_len;
 		
-    if(*global_len == len_dec)
+    if (*global_len == len_dec)
 	{
 	  ATCODEC_ZERO_MEMSET(global_buffer, 0, *global_len*sizeof(char));
 	  *global_len = 0;
 	}
-      else
+    else
 	{
 	  memmove(/*dest*/global_buffer, /*src*/global_buffer+len_dec, /*nb bytes*/*global_len-len_dec);
 	  ATCODEC_ZERO_MEMSET(global_buffer+*global_len-len_dec, 0, (len_dec)*sizeof(char));
 	  *global_len -= len_dec;
 	}
-    }
-	
+  }
+
   return res;
 }
-
-
 
 
 /**
@@ -434,7 +433,6 @@ static ATCODEC_RET process_received_data(ATcodec_Tree_t *tree, int nb, char *glo
 * in 'func_ptrs.read' to fetch data, accumulates these data until
 * a full AT command has been received, and then call the AT decoder.
 * */
-#if !defined(TARGET_OS_IPHONE) && !defined(TARGET_IPHONE_SIMULATOR)
 DEFINE_THREAD_ROUTINE_STACK(ATcodec_Commands_Server,data,ATCODEC_STACK_SIZE)
 {
   ATcodec_Tree_t *tree = &default_tree;
@@ -448,129 +446,126 @@ DEFINE_THREAD_ROUTINE_STACK(ATcodec_Commands_Server,data,ATCODEC_STACK_SIZE)
   v_continue = 1;
   PRINT("Thread AT Commands Server Start\n");
 	
-
-
   while(!atcodec_lib_init_ok)
-    {
-      vp_os_thread_yield();
-    }
+  {
+    vp_os_thread_yield();
+  }
 	
   while(v_continue)
-    {
-	  vp_os_memset(buffer,0,sizeof(buffer));
-	  vp_os_memset(global_buffer,0,sizeof(global_buffer));global_len=0;
-	  vp_os_memset(safety,0,sizeof(safety));
+  {
+    vp_os_memset(buffer,0,sizeof(buffer));
+    vp_os_memset(global_buffer,0,sizeof(global_buffer));global_len=0;
+    vp_os_memset(safety,0,sizeof(safety));
 
-      // open and init
+    // open and init
 		  if((res = func_ptrs.open()) != AT_CODEC_OPEN_OK){
-			  v_continue = 0;
-		  }
-		
-      for ( v_loop = 1 ; v_loop && func_ptrs.enable() == AT_CODEC_ENABLE_OK; )
-		{
-		  v_read = 1;
-		  do
-			{
-			  // wait so that thread can give the hand : delay user-defined / OS-dependent
-			  // ...
-				  vp_os_delay(ATCODEC_SERVER_YIELD_DELAY);
-				  //vp_os_thread_yield();
-
-
-
-			  /* In case of reading from packets, we clear the incoming buffer.
-			   * Splitting AT commands into several packets would be a bad idea since packet order in not guaranteed in UDP.
-			   */
-				  if (at_codec_reading_mode==ATCODEC_READ_FROM_PACKETS){
-					  vp_os_memset(global_buffer,0,sizeof(global_buffer));
-					  global_len=0;
-				  }
-
-			  /*
-			   * Read some bytes; this function blocks until some data are made
-			   * available by the VP_COM thread.
-			   */
-				  len = sizeof(buffer); //INTERNAL_BUFFER_SIZE/*/2*/; // user-defined
-				  res = func_ptrs.read((int8_t*)&buffer[0], (int32_t*)&len);
-
-				if(res == AT_CODEC_READ_OK)
-				{
-				  if(len > 0)
-					{
-					  // process characters and update v_read
-					  // \todo Do not use nb_cmd ?
-
-					  /* Data are accumulated in the global buffer until at least one '\r' is found. */
-					  if((nb_cmd = append_reception(&buffer[0], len, &global_buffer[0], &global_len,sizeof(global_buffer))) > 0)
-						{
-						  v_read = 0;
-						}
-					  else if(nb_cmd == -1) /* no \r found in the global_buffer*/
-						{
-						  // a buffer overflow occurs
-							  switch(at_codec_reading_mode)
-							  {
-								  case ATCODEC_READ_FROM_STREAM:
-									  PRINT("AT Codec buffer was filled before a full AT commands was received.");
-									  break;
-								  case ATCODEC_READ_FROM_PACKETS:
-									 PRINT("AT Codec received a packet with no complete AT command or buffer was too small to store the whole packet.");
-									 break;
-							  }
-							  //ATCODEC_PRINT("Overflow\n");
-
-						/* In case of overflow, a TCP connection should be reinitialized in order to resynchronize
-						 * the client and the server. Otherwise there is no way to find the beginning of the next AT Command.
-						 * For a UDP connection, we assume all packets begin with an AT Command, and we just wait
-						 * for the next packet to arrive.
-						 */
-							  if (at_codec_reading_mode==ATCODEC_READ_FROM_STREAM) { v_loop = 0; }
-						}
-					  else
-						{
-						  v_read = 1;
-						}
-					}
-				  else
-					{
-					  if(len < 0)
-					{
-					  ATCODEC_PRINT("read returns a neg length\n");
-					  v_loop = 0;
-					}
-					}
-				}
-			  else /* if (res == AT_CODEC_READ_OK) */
-				{
-				  // an error occurred
-				  ATCODEC_PRINT("an error occurs\n");
-				  v_loop = 0;
-				}
-			}
-		  while (v_read && v_loop);
-
-		  // process what has been received if no error occurs
-		  if(v_loop)
-			{
-			  // ...
-			  if(process_received_data(tree, nb_cmd, &global_buffer[0], &global_len) != ATCODEC_TRUE)
-			{
-			  ATCODEC_PRINT("process_received returns false\n");
-			  v_loop = 0;
-			}
-			}
-		}/*for*/
-		
-      // close and un-init : user-defined
-		  if((res = func_ptrs.close()) != AT_CODEC_CLOSE_OK)
-		  v_continue = 0;
-
-    }/* while */
-	
-  if((res = func_ptrs.shutdown()) != AT_CODEC_SHUTDOWN_OK)
-    {
-      ATCODEC_PRINT("ATcodec Shutdown error\n");
+      v_continue = 0;
     }
+		
+    for ( v_loop = 1 ; v_loop && func_ptrs.enable() == AT_CODEC_ENABLE_OK; )
+    {
+      v_read = 1;
+      do
+      {
+        // wait so that thread can give the hand : delay user-defined / OS-dependent
+        //vp_os_thread_yield();
+
+        // -> we do a blocking read few lines after, thus
+        // other threads will be able to run during the I/O
+
+        /* In case of reading from packets, we clear the incoming buffer.
+         * Splitting AT commands into several packets would be a bad idea since packet order in not guaranteed in UDP.
+         */
+		if (at_codec_reading_mode==ATCODEC_READ_FROM_PACKETS){
+          vp_os_memset(global_buffer,0,sizeof(global_buffer));
+          global_len=0;
+        }
+
+        /*
+         * Read some bytes; this function blocks until some data are made
+         * available by the VP_COM thread.
+         */
+        len = sizeof(buffer); //INTERNAL_BUFFER_SIZE/*/2*/; // user-defined
+        res = func_ptrs.read((uint8_t*)&buffer[0], (int32_t*)&len);
+
+        if(res == AT_CODEC_READ_OK)
+        {
+          if(len > 0)
+          {
+            // process characters and update v_read
+            // \todo Do not use nb_cmd ?
+
+            /* Data are accumulated in the global buffer until at least one '\r' is found. */
+            if((nb_cmd = append_reception(&buffer[0], len, &global_buffer[0], &global_len,sizeof(global_buffer))) > 0)
+            {
+              v_read = 0;
+            }
+            else if(nb_cmd == -1) /* no \r found in the global_buffer*/
+            {
+              // a buffer overflow occurs
+              switch(at_codec_reading_mode)
+              {
+                case ATCODEC_READ_FROM_STREAM:
+                  PRINT("AT Codec buffer was filled before a full AT commands was received.");
+                  break;
+                case ATCODEC_READ_FROM_PACKETS:
+                  PRINT("AT Codec received a packet with no complete AT command or buffer was too small to store the whole packet.");
+                  break;
+              }
+              //ATCODEC_PRINT("Overflow\n");
+
+              /* In case of overflow, a TCP connection should be reinitialized in order to resynchronize
+               * the client and the server. Otherwise there is no way to find the beginning of the next AT Command.
+               * For a UDP connection, we assume all packets begin with an AT Command, and we just wait
+               * for the next packet to arrive.
+               */
+              if (at_codec_reading_mode==ATCODEC_READ_FROM_STREAM) { v_loop = 0; }
+            }
+            else
+            {
+              v_read = 1;
+            }
+          }
+          else
+          {
+            if(len < 0)
+            {
+              ATCODEC_PRINT("read returns a neg length\n");
+              v_loop = 0;
+            }
+          }
+        }
+        else /* if (res == AT_CODEC_READ_OK) */
+        {
+          // an error occurred
+          ATCODEC_PRINT("an error occurs\n");
+          v_loop = 0;
+        }
+      }
+      while (v_read && v_loop);
+
+      // process what has been received if no error occurs
+      if(v_loop)
+      {
+        // ...
+        if(process_received_data(tree, nb_cmd, &global_buffer[0], &global_len) != ATCODEC_TRUE)
+        {
+          ATCODEC_PRINT("process_received returns false\n");
+          v_loop = 0;
+        }
+      }
+    } /*for*/
+		
+    // close and un-init : user-defined
+    if((res = func_ptrs.close()) != AT_CODEC_CLOSE_OK)
+      v_continue = 0;
+
+  }/* while */
+	
+  if ((res = func_ptrs.shutdown()) != AT_CODEC_SHUTDOWN_OK)
+  {
+    ATCODEC_PRINT("ATcodec Shutdown error\n");
+  }
 	
   return((THREAD_RET)0);
 }
@@ -616,8 +611,6 @@ valist_ATcodec_Queue_Message_valist_Tree(ATcodec_Tree_t *tree, AT_CODEC_MSG_ID i
 	
   return ATCODEC_TRUE;
 }
-
-
 
 /**
 * Push an AT Command in the AT command output queue.
@@ -706,16 +699,15 @@ ATcodec_Send_Messages()
 
   if(!atcodec_lib_init_ok)
     return ATCODEC_FALSE;
-	
+    
   vp_os_mutex_lock(&ATcodec_cond_mutex);
- 
   if(ATcodec_Message_len > INTERNAL_BUFFER_SIZE)
 	  printf("ATcodec_Send_Messages : buf=%s, len=%d\n", &ATcodec_Message_Buffer[0], ATcodec_Message_len);
-	
-  if(ATcodec_Message_len && func_ptrs.write((int8_t*)&ATcodec_Message_Buffer[0], (int32_t*)&ATcodec_Message_len) != AT_CODEC_WRITE_OK)
-    res = ATCODEC_FALSE;
-	
-  ATcodec_Message_len = 0;
+
+  if(ATcodec_Message_len && func_ptrs.write((uint8_t*)&ATcodec_Message_Buffer[0], (int32_t*)&ATcodec_Message_len) != AT_CODEC_WRITE_OK)
+          res = ATCODEC_FALSE;
+          
+      ATcodec_Message_len = 0;
 	
   vp_os_mutex_unlock(&ATcodec_cond_mutex);
 	
@@ -744,7 +736,6 @@ DEFINE_THREAD_ROUTINE_STACK(ATcodec_Commands_Client,data,ATCODEC_STACK_SIZE)
 		
       for ( v_loop = 1 ; v_loop ; )
 	{
-	  // vp_os_delay(ATCODEC_SERVER_YIELD_DELAY);
 	  vp_os_thread_yield();
 			
 	  // wait a successful ATcodec_Queue_... has been called
@@ -752,7 +743,7 @@ DEFINE_THREAD_ROUTINE_STACK(ATcodec_Commands_Client,data,ATCODEC_STACK_SIZE)
 	  //vp_os_cond_wait(&ATcodec_wait_cond);
 			
 	  //ATCODEC_PRINT("Must send \"%s\"\n", &ATcodec_Message_Buffer[0]);
-	  if(ATcodec_Message_len && func_ptrs.write((int8_t*)&ATcodec_Message_Buffer[0], (int32_t*)&ATcodec_Message_len) != AT_CODEC_WRITE_OK)
+	  if(ATcodec_Message_len && func_ptrs.write((uint8_t*)&ATcodec_Message_Buffer[0], (int32_t*)&ATcodec_Message_len) != AT_CODEC_WRITE_OK)
 	    v_loop = 0;
 			
 	  ATcodec_Message_len = 0;

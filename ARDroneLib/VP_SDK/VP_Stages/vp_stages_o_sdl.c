@@ -100,6 +100,14 @@ void manage_events(void)
 
 #endif
 
+const vp_api_stage_funcs_t vp_stages_output_sdl_funcs =
+{
+  (vp_api_stage_handle_msg_t) NULL,
+  (vp_api_stage_open_t) vp_stages_output_sdl_stage_open,
+  (vp_api_stage_transform_t) vp_stages_output_sdl_stage_transform,
+  (vp_api_stage_close_t) vp_stages_output_sdl_stage_close
+};
+
 PROTO_THREAD_ROUTINE(escaper,nomParams)
 {
   SDL_Event event;

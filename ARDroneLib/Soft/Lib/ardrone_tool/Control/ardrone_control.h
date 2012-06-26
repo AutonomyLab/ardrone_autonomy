@@ -1,5 +1,5 @@
-#ifndef _ARDRONE_TOOL_CONTROL_H_
-#define _ARDRONE_TOOL_CONTROL_H_
+#ifndef _ARDRONE_CONTROL_H_
+#define _ARDRONE_CONTROL_H_
 
 #include <VP_Os/vp_os_types.h>
 #include <VP_Api/vp_api_thread_helper.h>
@@ -36,11 +36,11 @@ C_RESULT ardrone_control_init(void);
 C_RESULT ardrone_control_shutdown(void);
 C_RESULT ardrone_control_resume_on_navdata_received(uint32_t ardrone_state);
 
-C_RESULT ardrone_control_read(int8_t* buffer, int32_t* size);
-C_RESULT ardrone_control_write(const int8_t* buffer, int32_t* size);
+C_RESULT ardrone_control_read(uint8_t* buffer, int32_t* size);
+C_RESULT ardrone_control_write(const uint8_t* buffer, int32_t* size);
 
 C_RESULT ardrone_control_send_event( ardrone_control_event_t* event );
 
 PROTO_THREAD_ROUTINE( ardrone_control, nomParams );
 
-#endif // _ARDRONE_TOOL_CONTROL_H_
+#endif // _ARDRONE_CONTROL_H_

@@ -149,6 +149,7 @@ C_RESULT video_blockline_to_macro_blocks(video_picture_context_t* ctx, int16_t* 
 // Transform macro blocks in picture of specified format
 static C_RESULT video_blockline_from_macro_blocks_yuv420(video_picture_context_t* ctx, int16_t* src, int32_t num_macro_blocks);
 static C_RESULT video_blockline_from_macro_blocks_rgb565(video_picture_context_t* ctx, int16_t* src, int32_t num_macro_blocks);
+static C_RESULT video_blockline_from_macro_blocks_rgb24(video_picture_context_t* ctx, int16_t* src, int32_t num_macro_blocks);
 
 C_RESULT video_blockline_from_macro_blocks(video_picture_context_t* ctx, int16_t* src, int32_t num_macro_blocks, enum PixelFormat format)
 {
@@ -161,6 +162,9 @@ C_RESULT video_blockline_from_macro_blocks(video_picture_context_t* ctx, int16_t
       break;
     case PIX_FMT_RGB565:
       res = video_blockline_from_macro_blocks_rgb565(ctx, src, num_macro_blocks);
+      break;
+    case PIX_FMT_RGB24:
+      res = video_blockline_from_macro_blocks_rgb24(ctx, src, num_macro_blocks);
       break;
 
     default:
@@ -244,7 +248,7 @@ C_RESULT video_blockline_from_macro_blocks_yuv420(video_picture_context_t* ctx, 
 #if TARGET_CPU_ARM == 1 && defined(TARGET_OS_IPHONE)
 static inline int32_t saturate8(int32_t x)
 {
-	usat(x, 7, 8);
+	usat(x, 8, 8);
 
 	return x;
 }
@@ -303,7 +307,6 @@ static inline uint16_t saturate6(int32_t x)
   return x > 0x3F ? 0x3F : x;
 }
 #endif
-
 
 static C_RESULT video_blockline_from_macro_blocks_rgb565(video_picture_context_t* ctx, int16_t* src, int32_t num_macro_blocks)
 {
@@ -546,11 +549,284 @@ static C_RESULT video_blockline_from_macro_blocks_rgb565(video_picture_context_t
   return C_OK;
 }
 
+static C_RESULT video_blockline_from_macro_blocks_rgb24(video_picture_context_t* ctx, int16_t* src, int32_t num_macro_blocks)
+{
+  uint32_t y_up_read, y_down_read, cr_current, cb_current;
+  int32_t u, v, vr, ug, vg, ub, r, g, b;
+  int16_t *y_buf1, *y_buf2, *cr_buf, *cb_buf;
+  uint8_t *dst_up, *dst_down;
+
+  // Control variables
+  int32_t line_size, block_size, y_woffset, y_hoffset;
+
+  y_buf1  = src;
+  y_buf2  = y_buf1 + MCU_WIDTH;
+
+  cb_buf  = y_buf1 + MCU_BLOCK_SIZE * 4;
+  cr_buf  = cb_buf + MCU_BLOCK_SIZE;
+
+  y_woffset = ctx->y_woffset;
+  y_hoffset = ctx->y_hoffset;
+
+  dst_up    = (uint8_t*) ctx->y_src;
+  dst_down  = dst_up + y_woffset;
+
+  line_size	= MCU_WIDTH / 2; // We compute two pixels at a time
+  block_size	= MCU_HEIGHT / 2; // We compute two lines at a time
+
+  while( num_macro_blocks > 0 )
+  {
+    // First quarter
+    cb_current  = cb_buf[0];
+    cr_current  = cr_buf[0];
+
+    u   = cb_current - 128;
+    ug  = 88 * u;
+    ub  = 454 * u;
+    v   = cr_current - 128;
+    vg  = 183 * v;
+    vr  = 359 * v;
+
+    y_up_read   = y_buf1[0] << 8;
+    y_down_read = y_buf2[0] << 8;
+
+    r = saturate8((y_up_read + vr));
+    g = saturate8((y_up_read - ug - vg));
+    b = saturate8((y_up_read + ub));
+
+    dst_up[0] = r;
+    dst_up[1] = g;
+    dst_up[2] = b;
+
+    r = saturate8((y_down_read + vr));
+    g = saturate8((y_down_read - ug - vg));
+    b = saturate8((y_down_read + ub));
+
+    dst_down[0] = r;
+    dst_down[1] = g;
+    dst_down[2] = b;
+
+    y_up_read   = y_buf1[1] << 8;
+    y_down_read = y_buf2[1] << 8;
+
+    r = saturate8((y_up_read + vr));
+    g = saturate8((y_up_read - ug - vg));
+    b = saturate8((y_up_read + ub));
+
+    dst_up[3] = r;
+    dst_up[4] = g;
+    dst_up[5] = b;
+
+    r = saturate8((y_down_read + vr));
+    g = saturate8((y_down_read - ug - vg));
+    b = saturate8((y_down_read + ub));
+
+    dst_down[3] = r;
+    dst_down[4] = g;
+    dst_down[5] = b;
+
+    // Second quarter
+    cr_current  = cr_buf[MCU_WIDTH / 2];
+    cb_current  = cb_buf[MCU_WIDTH / 2];
+
+    u   = cb_current - 128;
+    ug  = 88 * u;
+    ub  = 454 * u;
+    v   = cr_current - 128;
+    vg  = 183 * v;
+    vr  = 359 * v;
+
+    y_up_read   = y_buf1[MCU_BLOCK_SIZE] << 8;
+    y_down_read = y_buf2[MCU_BLOCK_SIZE] << 8;
+
+    r = saturate8((y_up_read + vr));
+    g = saturate8((y_up_read - ug - vg));
+    b = saturate8((y_up_read + ub));
+
+    dst_up[3 * MCU_WIDTH + 0] = r;
+    dst_up[3 * MCU_WIDTH + 1] = g;
+    dst_up[3 * MCU_WIDTH + 2] = b;
+
+    r = saturate8((y_down_read + vr));
+    g = saturate8((y_down_read - ug - vg));
+    b = saturate8((y_down_read + ub));
+
+    dst_down[3 * MCU_WIDTH + 0] = r;
+    dst_down[3 * MCU_WIDTH + 1] = g;
+    dst_down[3 * MCU_WIDTH + 2] = b;
+
+    y_up_read   = y_buf1[MCU_BLOCK_SIZE + 1] << 8;
+    y_down_read = y_buf2[MCU_BLOCK_SIZE + 1] << 8;
+
+    r = saturate8((y_up_read + vr));
+    g = saturate8((y_up_read - ug - vg));
+    b = saturate8((y_up_read + ub));
+
+    dst_up[3 * MCU_WIDTH + 3] = r;
+    dst_up[3 * MCU_WIDTH + 4] = g;
+    dst_up[3 * MCU_WIDTH + 5] = b;
+
+    r = saturate8((y_down_read + vr));
+    g = saturate8((y_down_read - ug - vg));
+    b = saturate8((y_down_read + ub));
+
+    dst_down[3 * MCU_WIDTH + 3] = r;
+    dst_down[3 * MCU_WIDTH + 4] = g;
+    dst_down[3 * MCU_WIDTH + 5] = b;
+
+    // Third quarter
+    cr_current  = cr_buf[MCU_BLOCK_SIZE/2];
+    cb_current  = cb_buf[MCU_BLOCK_SIZE/2];
+
+    u   = cb_current - 128;
+    ug  = 88 * u;
+    ub  = 454 * u;
+    v   = cr_current - 128;
+    vg  = 183 * v;
+    vr  = 359 * v;
+
+    y_up_read   = y_buf1[MCU_BLOCK_SIZE*2] << 8;
+    y_down_read = y_buf2[MCU_BLOCK_SIZE*2] << 8;
+
+    r = saturate8((y_up_read + vr));
+    g = saturate8((y_up_read - ug - vg));
+    b = saturate8((y_up_read + ub));
+
+    dst_up[y_hoffset + 0] = r;
+    dst_up[y_hoffset + 1] = g;
+    dst_up[y_hoffset + 2] = b;
+
+    r = saturate8((y_down_read + vr));
+    g = saturate8((y_down_read - ug - vg));
+    b = saturate8((y_down_read + ub));
+
+    dst_down[y_hoffset + 0] = r;
+    dst_down[y_hoffset + 1] = g;
+    dst_down[y_hoffset + 2] = b;
+
+    y_up_read   = y_buf1[MCU_BLOCK_SIZE*2 + 1] << 8;
+    y_down_read = y_buf2[MCU_BLOCK_SIZE*2 + 1] << 8;
+
+    r = saturate8((y_up_read + vr));
+    g = saturate8((y_up_read - ug - vg));
+    b = saturate8((y_up_read + ub));
+
+    dst_up[y_hoffset + 3] = r;
+    dst_up[y_hoffset + 4] = g;
+    dst_up[y_hoffset + 5] = b;
+
+    r = saturate8((y_down_read + vr));
+    g = saturate8((y_down_read - ug - vg));
+    b = saturate8((y_down_read + ub));
+
+    dst_down[y_hoffset + 3] = r;
+    dst_down[y_hoffset + 4] = g;
+    dst_down[y_hoffset + 5] = b;
+
+    // Fourth quarter
+    cr_current  = cr_buf[MCU_BLOCK_SIZE/2 + MCU_WIDTH/2];
+    cb_current  = cb_buf[MCU_BLOCK_SIZE/2 + MCU_WIDTH/2];
+
+    u   = cb_current - 128;
+    ug  = 88 * u;
+    ub  = 454 * u;
+    v   = cr_current - 128;
+    vg  = 183 * v;
+    vr  = 359 * v;
+
+    y_up_read   = y_buf1[MCU_BLOCK_SIZE*3] << 8;
+    y_down_read = y_buf2[MCU_BLOCK_SIZE*3] << 8;
+
+    r = saturate8((y_up_read + vr));
+    g = saturate8((y_up_read - ug - vg));
+    b = saturate8((y_up_read + ub));
+
+    dst_up[y_hoffset + 3 * MCU_WIDTH + 0] = r;
+    dst_up[y_hoffset + 3 * MCU_WIDTH + 1] = g;
+    dst_up[y_hoffset + 3 * MCU_WIDTH + 2] = b;
+
+    r = saturate8((y_down_read + vr));
+    g = saturate8((y_down_read - ug - vg));
+    b = saturate8((y_down_read + ub));
+
+    dst_down[y_hoffset + 3 * MCU_WIDTH + 0] = r;
+    dst_down[y_hoffset + 3 * MCU_WIDTH + 1] = g;
+    dst_down[y_hoffset + 3 * MCU_WIDTH + 2] = b;
+
+    y_up_read   = y_buf1[MCU_BLOCK_SIZE*3 + 1] << 8;
+    y_down_read = y_buf2[MCU_BLOCK_SIZE*3 + 1] << 8;
+
+    r = saturate8((y_up_read + vr));
+    g = saturate8((y_up_read - ug - vg));
+    b = saturate8((y_up_read + ub));
+
+    dst_up[y_hoffset + 3 * MCU_WIDTH + 3] = r;
+    dst_up[y_hoffset + 3 * MCU_WIDTH + 4] = g;
+    dst_up[y_hoffset + 3 * MCU_WIDTH + 5] = b;
+
+    r = saturate8((y_down_read + vr));
+    g = saturate8((y_down_read - ug - vg));
+    b = saturate8((y_down_read + ub));
+
+    dst_down[y_hoffset + 3 * MCU_WIDTH + 3] = r;
+    dst_down[y_hoffset + 3 * MCU_WIDTH + 4] = g;
+    dst_down[y_hoffset + 3 * MCU_WIDTH + 5] = b;
+
+    cr_buf    += 1;
+    cb_buf    += 1;
+    y_buf1    += 2;
+    y_buf2    += 2;
+    dst_up    += 6;
+    dst_down  += 6;
+
+    line_size--;
+
+    if( line_size == 0 ) // We computed one line of a luma-block
+    {
+      dst_up    += y_woffset*2 - (3 * MCU_WIDTH);
+      dst_down  += y_woffset*2 - (3 * MCU_WIDTH);
+
+      block_size--;
+
+      if( block_size == 0 )
+      {
+        y_buf1  = cr_buf + MCU_BLOCK_SIZE/2 + MCU_WIDTH/2;
+        y_buf2  = y_buf1 + MCU_WIDTH;
+
+        cb_buf  = y_buf1 + MCU_BLOCK_SIZE * 4;
+        cr_buf  = cb_buf + MCU_BLOCK_SIZE;
+
+        block_size = MCU_WIDTH / 2; // We compute two lines at a time
+
+        dst_up  += 6*MCU_WIDTH - y_hoffset;
+        dst_down = dst_up + y_woffset;
+
+        num_macro_blocks--;
+      }
+      else
+      {
+        y_buf1  = y_buf2;
+        y_buf2 += MCU_WIDTH;
+
+        cr_buf += MCU_WIDTH / 2;
+        cb_buf += MCU_WIDTH / 2;
+      }
+
+      line_size	= MCU_WIDTH / 2; // We compute two pixels at a time
+    }
+  }
+
+  ctx->y_src = (uint8_t*) dst_up;
+
+  return C_OK;
+}
+
 
 
 // Transform a blockline YUV 4:2:0 in picture of specified format
 static C_RESULT video_blockline_from_blockline_yuv420(video_picture_context_t* ctx, video_picture_context_t* src, int32_t num_macro_blocks);
 static C_RESULT video_blockline_from_blockline_rgb565(video_picture_context_t* ctx, video_picture_context_t* src, int32_t num_macro_blocks);
+static C_RESULT video_blockline_from_blockline_rgb24(video_picture_context_t* ctx, video_picture_context_t* src, int32_t num_macro_blocks);
 
 C_RESULT video_blockline_from_blockline(video_picture_context_t* ctx, video_picture_context_t* src, int32_t num_macro_blocks, enum PixelFormat format)
 {
@@ -563,6 +839,9 @@ C_RESULT video_blockline_from_blockline(video_picture_context_t* ctx, video_pict
       break;
     case PIX_FMT_RGB565:
       res = video_blockline_from_blockline_rgb565(ctx, src, num_macro_blocks);
+      break;
+    case PIX_FMT_RGB24:
+      res = video_blockline_from_blockline_rgb24(ctx, src, num_macro_blocks);
       break;
 
     default:
@@ -719,4 +998,104 @@ video_blockline_from_blockline_rgb565(video_picture_context_t* ctx,
 	}
 	
 	return C_OK;
+}
+
+static C_RESULT
+video_blockline_from_blockline_rgb24(video_picture_context_t* ctx,
+                                     video_picture_context_t* src,
+                                     int32_t num_macro_blocks)
+{
+  uint32_t y_up_read, y_down_read, cr_current, cb_current;
+  int32_t u, v, vr, ug, vg, ub, r, g, b;
+  uint8_t *y_buf_up, *y_buf_down, *cr_buf, *cb_buf;
+  uint8_t *dst_up, *dst_down;
+  int32_t line_size,dest_y_woffset;
+  
+  // Control variables
+  uint32_t pixel,line;
+  
+  // In ptrs
+  y_buf_up = src->y_src;
+  y_buf_down = y_buf_up + src->y_woffset;
+	
+  cb_buf = src->cb_src;
+  cr_buf = src->cr_src;
+	
+  dest_y_woffset = ctx->y_woffset;
+	
+  dst_up = (uint8_t*) ctx->y_src;
+  dst_down = dst_up + dest_y_woffset;
+	
+  // We compute two pixels at a time
+  line_size = MB_WIDTH_Y*num_macro_blocks; 
+	
+  pixel = line_size>>1;
+  line = MB_WIDTH_Y>>1;
+	
+  while (line)
+    {
+      // load cb cr
+      cb_current = *cb_buf++;
+      cr_current = *cr_buf++;
+		
+      u = cb_current - 128;
+      ug = 88 * u;
+      ub = 454 * u;
+      v = cr_current - 128;
+      vg = 183 * v;
+      vr = 359 * v;
+		
+      // compute pixel(0,0)
+      y_up_read = (*y_buf_up++) << 8;
+      r = saturate8((y_up_read + vr));
+      g = saturate8((y_up_read - ug - vg));
+      b = saturate8((y_up_read + ub));
+		
+      *dst_up++ = r; *dst_up++ = g; *dst_up++ = b;
+		
+      // compute pixel(1,0)
+      y_up_read = (*y_buf_up++) << 8;
+		
+      r = saturate8((y_up_read + vr));
+      g = saturate8((y_up_read - ug - vg));
+      b = saturate8((y_up_read + ub));
+		
+      *dst_up++ = r; *dst_up++ = g; *dst_up++ = b;
+		
+      // compute pixel (0,1)
+      y_down_read = (*y_buf_down++) << 8;
+		
+      r = saturate8((y_down_read + vr));
+      g = saturate8((y_down_read - ug - vg));
+      b = saturate8((y_down_read + ub));
+		
+      *dst_down++ = r; *dst_down++ = g; *dst_down++ = b;
+		
+      // compute pixel (1,1)
+      y_down_read = (*y_buf_down++) << 8;
+		
+      r = saturate8((y_down_read + vr));
+      g = saturate8((y_down_read - ug - vg));
+      b = saturate8((y_down_read + ub));
+		
+      *dst_down++ = r; *dst_down++ = g; *dst_down++ = b;
+		
+      pixel--;
+      if (pixel == 0)
+        {
+          // jump to next line
+          y_buf_up += 2*src->y_woffset - line_size;
+          y_buf_down += 2*src->y_woffset - line_size;
+          cb_buf += src->c_woffset - (line_size>>1);
+          cr_buf += src->c_woffset - (line_size>>1);
+			
+          dst_up += 2*dest_y_woffset - (line_size*3);
+          dst_down += 2*dest_y_woffset - (line_size*3);
+			
+          pixel = line_size>>1;
+          line--;
+        }
+    }
+	
+  return C_OK;
 }

@@ -296,8 +296,21 @@ C_RESULT p264_unpack_controller( video_controller_t* controller )
     {
       if( controller->blockline == 0 )
       {
+        uint32_t last_frame_decoded = controller->num_frames;
         // new picture
         p264_read_picture_layer( controller, stream );
+
+        if (((controller->num_frames == (last_frame_decoded + 1)) && (controller->last_frame_decoded == TRUE))
+            || (controller->picture_type == VIDEO_PICTURE_INTRA))
+        {
+            // new picture is decodable because it's an I frame or previous frame was decodable
+            controller->last_frame_decoded = TRUE;
+        }
+        else
+        {
+            controller->last_frame_decoded = FALSE;
+        }
+
         p264_realloc_ref(controller);
         picture_layer->gobs = (p264_gob_layer_t*) controller->gobs;
         gob = &picture_layer->gobs[controller->blockline];
@@ -323,7 +336,7 @@ C_RESULT p264_encode_blockline( video_controller_t* controller, const vp_api_pic
   //int16_t *in = NULL;//, *out = NULL;
   int32_t num_macro_blocks = 0;
   video_macroblock_t* macroblock = NULL;
-  video_picture_context_t blockline_ctx;
+  //video_picture_context_t blockline_ctx;
   video_gob_t*  gobs;
 
   video_stream_t* stream = &controller->in_stream;
@@ -340,12 +353,15 @@ C_RESULT p264_encode_blockline( video_controller_t* controller, const vp_api_pic
   controller->picture_complete  = picture_complete;
   controller->blockline         = blockline->blockline;
 
+  /*
   blockline_ctx.y_src     = blockline->y_buf;
   blockline_ctx.cb_src    = blockline->cb_buf;
   blockline_ctx.cr_src    = blockline->cr_buf;
   blockline_ctx.y_woffset = blockline->y_line_size;
   blockline_ctx.c_woffset = blockline->cb_line_size;
   blockline_ctx.y_hoffset = blockline->y_line_size * MCU_HEIGHT;
+  */
+
 
   gobs        = &controller->gobs[controller->blockline];
   gobs->quant = controller->quant;
@@ -639,9 +655,9 @@ C_RESULT p264_decode_blockline( video_controller_t* controller, vp_api_picture_t
 
     controller->picture_complete  = 0;
     controller->in_stream.length  = 32;
-    controller->num_frames++;
+    //controller->num_frames++;
 
-    *got_image = TRUE;
+    *got_image = controller->last_frame_decoded;
   }
   else
   {

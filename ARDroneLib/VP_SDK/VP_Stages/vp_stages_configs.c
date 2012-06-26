@@ -158,7 +158,7 @@ bluetooth_config = {
 
 #ifdef USE_WIFI
 static vp_com_wifi_config_t
-wifi_config = {
+wifi_conf = {
 #ifdef __linux__
   .itfName              = "rausb0",
   .localHost            = "10.10.10.2",
@@ -236,7 +236,7 @@ vp_stages_fill_default_config(DEFAULT_STAGE_CONFIG config, void *cfg, size_t siz
 #endif // ! defined(USE_BLUEZ)
 #ifdef USE_WIFI
     case WIFI_COM_CONFIG:
-      _internal_vp_stages_fill_default_config(cfg, wifi_config, size);
+      _internal_vp_stages_fill_default_config(cfg, wifi_conf, size);
       break;
 #endif // ! USE_WIFI
     default:

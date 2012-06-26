@@ -44,6 +44,8 @@ void
 vp_os_free(void *ptr);
 void
 vp_os_sfree(void **ptr);
+void
+vp_os_sfree(void **ptr);
 /**
  * Same as realloc, see <stdlib.h>
  */

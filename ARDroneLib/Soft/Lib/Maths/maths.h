@@ -87,6 +87,7 @@ float32_t exp_taylor( float32_t x );
 float32_t secant_taylor( float32_t x );
 float32_t cos_taylor( float32_t x );
 float32_t sin_taylor( float32_t x );
+float32_t pow_taylor( float32_t x , float32_t y );
 float32_t time_navdata_in_ms( uint32_t current_time, int32_t dec );
 
 static inline uint32_t iabs(int32_t v) { return ( v < 0 ) ? -v : v; }

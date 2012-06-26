@@ -7,12 +7,6 @@
 #include <VP_Os/vp_os_print.h>
 #include <VLIB/Platform/video_config.h>
 
-#ifdef _ELINUX
-#include "dma_malloc.h"
-#define vp_os_aligned_realloc(A,B,C) dma_realloc(A,B)
-#define vp_os_aligned_free(A) dma_free(A)
-#endif
-
 extern C_RESULT video_utils_set_format( uint32_t width, uint32_t height );
 
 C_RESULT video_controller_update( video_controller_t* controller, bool_t complete )
@@ -63,11 +57,12 @@ static void video_realloc_buffers( video_controller_t* controller, int32_t num_p
 
   // Realloc global cache (YUV420 format)
   if (controller->codec_type == P264_CODEC)
-  {
+  { 
     // realloc nb_macroblocks (MB_p264_t type) per picture
     controller->cache = (int16_t*) vp_os_aligned_realloc( controller->cache,
-                                                        (controller->width>>4) * (controller->height>>4) * sizeof(MB_p264_t),
-                                                        VLIB_ALLOC_ALIGN );
+                                                          (controller->width>>4) * (controller->height>>4) * sizeof(MB_p264_t),
+                                                          VLIB_ALLOC_ALIGN );
+    
     vp_os_memset( controller->cache, 0, (controller->width>>4) * (controller->height>>4) * sizeof(MB_p264_t));
   }
   else
@@ -75,6 +70,7 @@ static void video_realloc_buffers( video_controller_t* controller, int32_t num_p
     controller->cache = (int16_t*) vp_os_aligned_realloc( controller->cache,
                                                           3 * controller->width * controller->height * sizeof(int16_t) / 2,
                                                           VLIB_ALLOC_ALIGN );
+                                                          
     vp_os_memset( controller->cache, 0, 3 * controller->width * controller->height * sizeof(int16_t) / 2 );
   }
 
@@ -128,11 +124,13 @@ C_RESULT video_controller_cleanup( video_controller_t* controller )
     gob = &controller->gobs[0];
     vp_os_free(gob->macroblocks);
     vp_os_free( controller->gobs );
+    controller->gobs = NULL;
   }
 
   if( controller->cache != NULL )
   {
     vp_os_aligned_free( controller->cache );
+      controller->cache = NULL;
   }
 
   return C_OK;

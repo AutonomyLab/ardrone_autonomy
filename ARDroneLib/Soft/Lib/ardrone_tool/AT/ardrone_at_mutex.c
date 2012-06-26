@@ -12,6 +12,10 @@
  *
  *
  *******************************************************************/
+#ifdef __ARMCC_VERSION
+#undef _XOPEN_SOURCE
+#endif
+
 #include <VP_Os/vp_os_assert.h>
 #include <VP_Os/vp_os_print.h>
 #include <ardrone_tool/Com/config_com.h>
@@ -25,14 +29,24 @@
 //SDK
 #include <VP_Com/vp_com.h>
 #include <VP_Com/vp_com_socket.h>
+#include <VP_SDK/ATcodec/ATcodec_api.h>
 
 //GNU STANDARD C LIBRARY
 #include <stdio.h>
+#include <stdlib.h>
+#include <ctype.h>
+#include <string.h>
+#include <sys/socket.h>
+
+#include <netinet/in.h>
+#include <netinet/ip.h>
+
 
 /********************************************************************
  * Constants
  *******************************************************************/
 #define MAX_BUF_SIZE 256
+#define AT_MUTEX_SNDBUF_SIZE    256
 
 /********************************************************************
  * Static variables and types
@@ -47,41 +61,30 @@ static Write atcodec_write = NULL;
 static Read atcodec_read = NULL;
 
 // Navdata
-float32_t nd_iphone_gaz=0;
-float32_t nd_iphone_yaw=0;
-int32_t nd_iphone_flag = 0;
-float32_t nd_iphone_phi=0;
-float32_t nd_iphone_theta=0;
+extern float32_t nd_iphone_gaz;
+extern float32_t nd_iphone_yaw;
+extern int32_t nd_iphone_flag;
+extern float32_t nd_iphone_phi;
+extern float32_t nd_iphone_theta;
+extern float32_t nd_iphone_magneto_psi;
+extern float32_t nd_iphone_magneto_psi_accuracy;
 
 /********************************************************************
  * Static function declarations
  *******************************************************************/
 static void atcodec_init( AT_CODEC_FUNCTIONS_PTRS *funcs );
 void ardrone_at_shutdown ( void );
-AT_CODEC_ERROR_CODE atresu_error(ATcodec_Memory_t *mem, ATcodec_Memory_t *output, int *id);
-AT_CODEC_ERROR_CODE atresu_ok(ATcodec_Memory_t *mem, ATcodec_Memory_t *output, int *id);
 AT_CODEC_ERROR_CODE host_init( void );
 AT_CODEC_ERROR_CODE host_shutdown( void );
 AT_CODEC_ERROR_CODE host_enable( void );
 AT_CODEC_ERROR_CODE host_open( void );
 AT_CODEC_ERROR_CODE host_close( void );
-AT_CODEC_ERROR_CODE host_write(int8_t *buffer, int32_t *len);
-AT_CODEC_ERROR_CODE host_read(int8_t *buffer, int32_t *len);
-
+AT_CODEC_ERROR_CODE host_write(uint8_t *buffer, int32_t *len);
+AT_CODEC_ERROR_CODE host_read(uint8_t *buffer, int32_t *len);
 
 /********************************************************************
  * Static functions
  *******************************************************************/
-AT_CODEC_ERROR_CODE atresu_ok(ATcodec_Memory_t *mem, ATcodec_Memory_t *output, int *id)
-{
-  return AT_CODEC_GENERAL_OK;
-}
-
-AT_CODEC_ERROR_CODE atresu_error(ATcodec_Memory_t *mem, ATcodec_Memory_t *output, int *id)
-{
-  return AT_CODEC_GENERAL_OK;
-}
-
 AT_CODEC_ERROR_CODE host_init( void )
 {
   if( func_ptrs.init != NULL )
@@ -127,33 +130,53 @@ AT_CODEC_ERROR_CODE host_enable( void )
 
 AT_CODEC_ERROR_CODE host_open( void )
 {
-	static bool_t init_ok = FALSE;
+  static bool_t init_ok = FALSE;
 
-   if( func_ptrs.open != NULL )
-      return func_ptrs.open();
- 
-	if( !init_ok )
-	{
-		COM_CONFIG_SOCKET_AT(&at_socket, VP_COM_CLIENT, AT_PORT, wifi_ardrone_ip);
-		at_socket.protocol = VP_COM_UDP;
+  if( func_ptrs.open != NULL )
+    return func_ptrs.open();
 
-		if(VP_FAILED(vp_com_init(COM_AT())))
-		{
-         PRINT ("Failed to init AT\n");
-			vp_com_shutdown( COM_AT() );
-			return AT_CODEC_OPEN_ERROR;
-		}
+  if( !init_ok )
+  {
+    COM_CONFIG_SOCKET_AT(&at_socket, VP_COM_CLIENT, AT_PORT, wifi_ardrone_ip);
+    at_socket.protocol = VP_COM_UDP;
 
-      if(VP_FAILED(vp_com_open(COM_AT(), &at_socket, &atcodec_read, &atcodec_write)))
-		{
-         PRINT ("Failed to open AT\n");
-			return AT_CODEC_OPEN_ERROR;
-		}
-       
-		init_ok = TRUE;
-	}
-   
-	return AT_CODEC_OPEN_OK;
+    if(VP_FAILED(vp_com_init(COM_AT())))
+    {
+      PRINT ("Failed to init AT\n");
+      vp_com_shutdown( COM_AT() );
+      return AT_CODEC_OPEN_ERROR;
+    }
+
+    if(VP_FAILED(vp_com_open(COM_AT(), &at_socket, &atcodec_read, &atcodec_write)))
+    {
+      PRINT ("Failed to open AT\n");
+      return AT_CODEC_OPEN_ERROR;
+    }
+
+    // set send_buffer to a low value to limit latency
+    int32_t sendbuf = AT_MUTEX_SNDBUF_SIZE;
+    if ( setsockopt((int32_t)at_socket.priv, SOL_SOCKET, SO_SNDBUF, &sendbuf, sizeof(sendbuf)) )
+    {
+      PRINT ("Error setting SND_BUF for AT socket\n");
+    }
+
+    int opt = IPTOS_PREC_NETCONTROL;
+    int res = setsockopt((int)at_socket.priv, IPPROTO_IP, IP_TOS, &opt, (socklen_t)sizeof(opt));
+    if (res)
+    {
+        perror("AT stage - setting Live video socket IP Type Of Service : "); 
+    }
+    else
+    {
+        printf ("Set IP_TOS ok\n");
+    }
+
+    
+
+    init_ok = TRUE;
+  }
+
+  return AT_CODEC_OPEN_OK;
 }
 
 AT_CODEC_ERROR_CODE host_close( void )
@@ -166,7 +189,7 @@ AT_CODEC_ERROR_CODE host_close( void )
   return AT_CODEC_CLOSE_OK;
 }
 
-AT_CODEC_ERROR_CODE host_write(int8_t *buffer, int32_t *len)
+AT_CODEC_ERROR_CODE host_write(uint8_t *buffer, int32_t *len)
 {
   if( func_ptrs.write != NULL )
      return func_ptrs.write( buffer, len );
@@ -179,7 +202,7 @@ AT_CODEC_ERROR_CODE host_write(int8_t *buffer, int32_t *len)
   return AT_CODEC_WRITE_OK;
 }
 
-AT_CODEC_ERROR_CODE host_read(int8_t *buffer, int32_t *len)
+AT_CODEC_ERROR_CODE host_read(uint8_t *buffer, int32_t *len)
 {
   if( func_ptrs.read != NULL )
      return func_ptrs.read( buffer, len );
@@ -225,7 +248,7 @@ static void atcodec_init( AT_CODEC_FUNCTIONS_PTRS *funcs )
 /********************************************************************
  * Public functions
  *******************************************************************/
-void ardrone_at_set_ui_value( uint32_t value )
+void ardrone_at_set_ui_pad_value( uint32_t value )
 {
   if (!at_init)
      return;
@@ -264,7 +287,7 @@ void ardrone_at_set_ui_misc(int32_t m1, int32_t m2, int32_t m3, int32_t m4)
   vp_os_mutex_unlock(&at_mutex);
 }
 
-void ardrone_at_set_anim( anim_mayday_t type, int32_t timeout )
+void ardrone_at_set_anim( anim_mayday_t type, int32_t duration )
 {
 	int32_t animtype = type;
 
@@ -275,7 +298,7 @@ void ardrone_at_set_anim( anim_mayday_t type, int32_t timeout )
 	ATcodec_Queue_Message_valist( ids.AT_MSG_ATCMD_ANIM_EXE,
 			++nb_sequence,
 			animtype,
-			timeout );
+			duration );
 	vp_os_mutex_unlock(&at_mutex);
 }
 
@@ -344,14 +367,29 @@ void ardrone_at_set_vision_track_params( api_vision_tracker_params_t* params )
   vp_os_mutex_unlock(&at_mutex);
 }
 
-void ardrone_at_start_raw_capture(void)
+void ardrone_at_raw_capture(  uint8_t active )
 {
   if (!at_init)
      return;
 
   vp_os_mutex_lock(&at_mutex);
   ATcodec_Queue_Message_valist(ids.AT_MSG_ATCMD_RAWC_EXE,
-                               ++nb_sequence);
+                               ++nb_sequence,
+                               0,
+                               active);
+  vp_os_mutex_unlock(&at_mutex);
+}
+
+void ardrone_at_raw_picture(void)
+{
+  if (!at_init)
+     return;
+
+  vp_os_mutex_lock(&at_mutex);
+  ATcodec_Queue_Message_valist(ids.AT_MSG_ATCMD_RAWC_EXE,
+                               ++nb_sequence,
+                               1,
+                               0);
   vp_os_mutex_unlock(&at_mutex);
 }
 
@@ -398,34 +436,77 @@ void ardrone_at_cad( CAD_TYPE type, float32_t tag_size )
  * @DESCRIPTION
  *
  *******************************************************************/
-void ardrone_at_set_progress_cmd( int32_t flag, float32_t phi, float32_t theta, float32_t gaz, float32_t yaw )
-{
-   float_or_int_t _phi, _theta, _gaz, _yaw;
+void ardrone_at_set_progress_cmd(int32_t flag, float32_t phi, float32_t theta,float32_t gaz, float32_t yaw) {
+
+	float_or_int_t _phi, _theta, _gaz, _yaw;
 
 	if (!at_init)
 		return;
-   
-   _phi.f = phi;
-   _theta.f = theta;
-   _gaz.f = gaz;
-   _yaw.f = yaw;
+
+	_phi.f = phi;
+	_theta.f = theta;
+	_gaz.f = gaz;
+	_yaw.f = yaw;
 
 	// Saving values to set them in navdata_file
-   nd_iphone_flag=flag;
-	nd_iphone_phi=phi;
-	nd_iphone_theta=theta;
-	nd_iphone_gaz=gaz;
-	nd_iphone_yaw=yaw;
+	nd_iphone_flag = flag;
+	nd_iphone_phi = phi;
+	nd_iphone_theta = theta;
+	nd_iphone_gaz = gaz;
+	nd_iphone_yaw = yaw;
 
-  vp_os_mutex_lock(&at_mutex);
-	ATcodec_Queue_Message_valist( ids.AT_MSG_ATCMD_PCMD_EXE, 
-                                 ++nb_sequence,
-                                 flag,
-                                 _phi.i, 
-                                 _theta.i, 
-                                 _gaz.i, 
-                                 _yaw.i );
-  vp_os_mutex_unlock(&at_mutex);
+	vp_os_mutex_lock(&at_mutex);
+	ATcodec_Queue_Message_valist(ids.AT_MSG_ATCMD_PCMD_EXE, ++nb_sequence,
+			flag, _phi.i, _theta.i, _gaz.i, _yaw.i);
+	vp_os_mutex_unlock(&at_mutex);
+}
+
+/********************************************************************
+ * ardrone_at_set_progress_cmd:
+ *-----------------------------------------------------------------*/
+/**
+ * @param enable 1,with pitch,roll and 0,without pitch,roll.
+ * @param pitch Using floating value between -1 to +1.
+ * @param roll Using floating value between -1 to +1.
+ * @param gaz Using floating value between -1 to +1.
+ * @param yaw Using floating value between -1 to +1.
+ * @param magneto_psi floating value between -1 to +1.
+ * @param magneto_psi_accuracy floating value between -1 to +1
+ *
+ * @brief
+ *
+ * @DESCRIPTION
+ *
+ *******************************************************************/
+void ardrone_at_set_progress_cmd_with_magneto(int32_t flag, float32_t phi, float32_t theta,float32_t gaz, float32_t yaw, float32_t magneto_psi,float32_t magneto_psi_accuracy) {
+
+	float_or_int_t _phi, _theta, _gaz, _yaw, _magneto_psi, _magneto_psi_accuracy;
+
+	if (!at_init)
+		return;
+
+	_phi.f = phi;
+	_theta.f = theta;
+	_gaz.f = gaz;
+	_yaw.f = yaw;
+	_magneto_psi.f = magneto_psi;
+	_magneto_psi_accuracy.f = magneto_psi_accuracy;
+
+	// Saving values to set them in navdata_file
+	nd_iphone_flag = flag;
+	nd_iphone_phi = phi;
+	nd_iphone_theta = theta;
+	nd_iphone_gaz = gaz;
+	nd_iphone_yaw = yaw;
+	nd_iphone_magneto_psi = magneto_psi;
+	nd_iphone_magneto_psi_accuracy = magneto_psi_accuracy;
+
+	//printf("Sent : psi_iphone = %.4f    acc = %.4f\n",magneto_psi,magneto_psi_accuracy);
+
+	vp_os_mutex_lock(&at_mutex);
+	ATcodec_Queue_Message_valist(ids.AT_MSG_ATCMD_PCMD_MAG_EXE, ++nb_sequence,
+			flag, _phi.i, _theta.i, _gaz.i, _yaw.i, _magneto_psi.i, _magneto_psi_accuracy.i);
+	vp_os_mutex_unlock(&at_mutex);
 }
 
 void ardrone_at_set_led_animation ( LED_ANIMATION_IDS anim_id, float32_t freq, uint32_t duration_sec )
@@ -573,14 +654,12 @@ void ardrone_at_reset_com_watchdog(void)
 /**
  * @param what_to_do
  *
- * @param filesize
- *
  * @brief .
  *
  * @DESCRIPTION
  *
  *******************************************************************/
-void ardrone_at_update_control_mode(uint32_t what_to_do, uint32_t filesize)
+void ardrone_at_update_control_mode(ARDRONE_CONTROL_MODE control_mode)
 {
   if (!at_init)
      return;
@@ -588,8 +667,8 @@ void ardrone_at_update_control_mode(uint32_t what_to_do, uint32_t filesize)
   vp_os_mutex_lock(&at_mutex);
   ATcodec_Queue_Message_valist( ids.AT_MSG_ATCMD_CTRL_EXE,
                                 ++nb_sequence,
-                                what_to_do, 
-                                filesize );
+                                control_mode,
+                                0);
   vp_os_mutex_unlock(&at_mutex);
 }
 
@@ -607,17 +686,15 @@ void ardrone_at_configuration_get_ctrl_mode(void)
   if (!at_init)
      return;
   
- ardrone_at_update_control_mode( CFG_GET_CONTROL_MODE, 0 ); 
+ ardrone_at_update_control_mode( CFG_GET_CONTROL_MODE ); 
 }
 
-/* Stephane - multiconfiguration support */
 void ardrone_at_custom_configuration_get_ctrl_mode(void)
 {
-	printf("%s %s %i\n",__FILE__,__FUNCTION__,__LINE__);
   if (!at_init)
      return;
 
- ardrone_at_update_control_mode( CUSTOM_CFG_GET_CONTROL_MODE, 0 );
+ ardrone_at_update_control_mode( CUSTOM_CFG_GET_CONTROL_MODE );
 }
 
 /********************************************************************
@@ -634,7 +711,7 @@ void ardrone_at_configuration_ack_ctrl_mode(void)
   if (!at_init)
      return;
  
-  ardrone_at_update_control_mode( ACK_CONTROL_MODE, 0 );
+  ardrone_at_update_control_mode( ACK_CONTROL_MODE );
 }
 
 /********************************************************************
@@ -692,10 +769,33 @@ void ardrone_at_set_autonomous_flight( int32_t isActive )
   vp_os_mutex_unlock(&at_mutex);
 }
 
-static inline void strtolower(char *str)
+/********************************************************************
+ * ardrone_at_set_calibration: Start calibration sequence on device
+ *-----------------------------------------------------------------*/
+/**
+ * @param deviceId Integer -> device to calibrate (0 = magnetometer)
+ *
+ * @brief Start calibration sequence on device.
+ *
+ * @DESCRIPTION
+ *
+ *******************************************************************/
+void ardrone_at_set_calibration( int32_t deviceId )
+{
+  if (!at_init)
+     return;
+
+  vp_os_mutex_lock(&at_mutex);
+	ATcodec_Queue_Message_valist( ids.AT_MSG_ATCMD_CALIB,
+                                ++nb_sequence,
+                                deviceId );
+  vp_os_mutex_unlock(&at_mutex);
+}
+
+static inline void strtolower(char *str, int length)
 {
 	int i;
-	for(i = 0 ; str[i] != '\0' ; i++)
+    for(i = 0 ; (i < length) && (str[i] != '\0') ; i++)
 		str[i] = (char)tolower((int)str[i]);
 }
 
@@ -709,30 +809,31 @@ ARDRONE_CONFIGURATION_PROTOTYPE(NAME)															\
     char msg[64];                                                                               \
     if(strcmp("" #INI_TYPE, "INI_FLOAT") == 0)                                                  \
     {                                                                                           \
-        sprintf( &msg[0], "%f", *((float*)value));                                              \
         res = C_OK;                                                                             \
+        snprintf( &msg[0], sizeof(msg), "%f", *((float*)value));                                \
     }                                                                                           \
     if(strcmp("" #INI_TYPE, "INI_DOUBLE") == 0)                                                 \
     {                                                                                           \
-    sprintf( &msg[0], "%lf", *((double*)value));                                                \
-    res = C_OK;                                                                                 \
+    	snprintf( &msg[0], sizeof(msg), "%lf", *((double*)value));                                           \
+    	res = C_OK;                                                                             \
     }                                                                                           \
     else if(strcmp("" #INI_TYPE, "INI_INT") == 0)                                               \
     {                                                                                           \
-        sprintf( &msg[0], "%d", *((int*)value));                                                \
+        snprintf( &msg[0], sizeof(msg), "%d", *((int*)value));                                  \
         res = C_OK;                                                                             \
     }                                                                                           \
     else if(strcmp("" #INI_TYPE, "INI_BOOLEAN") == 0)                                           \
     {                                                                                           \
-        sprintf( &msg[0], *((bool_t*)value) ? "TRUE" : "FALSE");                                \
+        snprintf( &msg[0], sizeof(msg), *((bool_t*)value) ? "TRUE" : "FALSE");                  \
         res = C_OK;                                                                             \
     }                                                                                           \
     if(res == C_OK)                                                                             \
     {                                                                                           \
         char tmp[64];                                                                           \
-        strcpy(&tmp[0], KEY);                                                                   \
-        strtolower(&tmp[0]);                                                                    \
-        strcat(tmp, ":" #NAME);                                                                 \
+		tmp[sizeof(tmp)-1]='\0';																\
+		strncpy(&tmp[0], KEY, sizeof(tmp)-1);                                          		 	\
+        strtolower(&tmp[0], strlen(tmp));                                                       \
+        strncat(tmp, ":" #NAME, sizeof(tmp)-strlen(tmp)-1);                                     \
         ardrone_at_set_toy_configuration_ids( &tmp[0], ses_id, usr_id, app_id, &msg[0] );       \
     }                                                                                           \
 	return res;																					\
@@ -747,18 +848,17 @@ ARDRONE_CONFIGURATION_PROTOTYPE(NAME)															\
 	if(value != NULL)                                                                           \
 	{																							\
 		char tmp[64];																			\
-		strcpy(&tmp[0], KEY);																	\
-		strtolower(&tmp[0]);																	\
-		strcat(&tmp[0], ":" #NAME);																\
-		ardrone_at_set_toy_configuration_ids( &tmp[0], ses_id, usr_id, app_id, ((C_TYPE_PTR)value) ); \
-		res = C_OK;																				\
-	}																							\
-	return res;																					\
+		tmp[sizeof(tmp)-1]='\0';																\
+		strncpy(&tmp[0], KEY, sizeof(tmp)-1);                                                   \
+		strtolower(&tmp[0], strlen(tmp));																\
+		strncat(tmp, ":" #NAME, sizeof(tmp)-strlen(tmp)-1);                                           	\
+		ardrone_at_set_toy_configuration_ids( &tmp[0], ses_id, usr_id, app_id, ((C_TYPE_PTR)value) ); 	\
+		res = C_OK;																						\
+	}																									\
+	return res;																							\
 }
 
 #include <config_keys.h> // must be included before to have types
-
-
 
 /********************************************************************
  * ardrone_at_init_with_funcs: Init at command with ATCodec funcs
@@ -777,7 +877,10 @@ void ardrone_at_init_with_funcs ( const char* ip, size_t ip_len, AT_CODEC_FUNCTI
    if ( at_init )
       return;
 
-   VP_OS_ASSERT( ip_len < MAX_BUF_SIZE );
+   VP_OS_ASSERT( ip_len < ARDRONE_IPADDRESS_SIZE );
+ 
+   if(ip_len >= ARDRONE_IPADDRESS_SIZE)
+       ip_len = ARDRONE_IPADDRESS_SIZE - 1;
 
    vp_os_memcpy( &wifi_ardrone_ip[0], ip, ip_len);
    wifi_ardrone_ip[ip_len]='\0';
@@ -826,11 +929,12 @@ void ardrone_at_init ( const char* ip, size_t ip_len)
    if ( at_init )
       return;
 
-   VP_OS_ASSERT( ip_len < MAX_BUF_SIZE );
+   VP_OS_ASSERT( ip_len < ARDRONE_IPADDRESS_SIZE );
 
-   if(wifi_ardrone_ip!=ip){
+    if(ip_len >= ARDRONE_IPADDRESS_SIZE)
+        ip_len = ARDRONE_IPADDRESS_SIZE - 1;
+
 	   vp_os_memcpy( &wifi_ardrone_ip[0], ip, ip_len);
-   }
    wifi_ardrone_ip[ip_len]='\0';
    
    atcodec_init (NULL);
@@ -870,7 +974,7 @@ ATCODEC_RET ardrone_at_open ( void )
  *******************************************************************/
 ATCODEC_RET ardrone_at_send ( void )
 {
-	C_RESULT res;
+	ATCODEC_RET res;
 
     if ( !at_init )
       return ATCODEC_FALSE;
@@ -879,4 +983,3 @@ ATCODEC_RET ardrone_at_send ( void )
 
    return res;
 }
-

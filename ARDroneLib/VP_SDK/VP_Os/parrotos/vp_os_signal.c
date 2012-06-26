@@ -58,3 +58,9 @@ void vp_os_cond_signal(vp_os_cond_t *cond)
   sup_cond_signal(cond);
 }
 
+
+void
+vp_os_cond_broadcast(vp_os_cond_t *cond)
+{
+	sup_cond_broadcast(&cond->cond);
+}

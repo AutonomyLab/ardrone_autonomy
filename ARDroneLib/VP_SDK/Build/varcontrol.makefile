@@ -135,10 +135,12 @@ $(eval $(call CHECK_YES_NO,USE_ARDRONE_CALIBRATION))
 ifeq "$(USE_ELINUX)" "yes"
   $(eval $(call CHECK_YES_NO,USE_PARROTOS_CORE))
   ifneq "$(TOOLCHAIN_VERSION)" "arm-uclibc"
+  ifneq "$(TOOLCHAIN_VERSION)" "arm-2009q1"
   ifneq "$(TOOLCHAIN_VERSION)" "arm-eglibc"
   ifneq "$(TOOLCHAIN_VERSION)" "arm-2010.09"
-    $(warning ERROR Bad TOOLCHAIN_VERSION : must be "arm-uclibc", "arm-eglibc", or "arm-2010.09")
+    $(warning ERROR Bad TOOLCHAIN_VERSION : must be "arm-uclibc", "arm-2009q1", or "arm-2010.09")
     ERROR=1
+  endif
   endif
   endif
   endif
@@ -173,10 +175,6 @@ endif
 ifeq "$(USE_SDK)" "yes"
   $(eval $(call CHECK_DIR,$(ALL_SOURCES)/$(SDK_SOURCE_DIR),SDK_VERSION))
   $(eval $(call EXIT_IF_ERROR))
-  #Disabled by Stephane - this is probably deprecated
-  #ifeq "$(USE_FFMPEG)" "yes"
-  #  $(eval $(call CHECK_DIR,$(ALL_SOURCES)/$(SDK_SOURCE_DIR)/PFFMPEG/$(FF_ARCH),FF_ARCH))
-  #endif
 endif
 ifeq "$(USE_BONJOUR)" "yes"
    $(eval $(call CHECK_DIR,$(ALL_SOURCES)/bonjour/$(BONJOUR_VERSION)/Bonjour,BONJOUR_VERSION))
@@ -209,13 +207,16 @@ endif
 
 ifeq "$(USE_IPHONE)" "yes"
   $(eval $(call CHECK_VALUE,USE_ANDROID,no,linux is used))
-  $(eval $(call CHECK_DEFINITION,IPHONE_SDK_PATH,(example : "path to sdk")))
-  $(eval $(call CHECK_DEFINITION,IPHONE_PLATFORM,(example : "iphoneos or iphonesimulator")))
+  $(eval $(call CHECK_DEFINITION,SDKROOT,(example : "SDKROOT is the root path of iphone sdk")))
+  $(eval $(call CHECK_DEFINITION,PLATFORM_DEVELOPER_USR_DIR,("PLATFORM_DEVELOPER_USR_DIR is the user directory of platform path")))
+  $(eval $(call CHECK_DEFINITION,PLATFORM_DEVELOPER_BIN_DIR,("PLATFORM_DEVELOPER_BIN_DIR is the binary directory of platform path")))
+  $(eval $(call CHECK_DEFINITION,PLATFORM_PREFERRED_ARCH,("PLATFORM_PREFERRED_ARCH is the preferred architecture of platforms")))
+  $(eval $(call CHECK_DEFINITION,PLATFORM_NAME,("PLATFORM_NAME is the name of platform (iphoneos, iphonesimulator)")))
   $(eval $(call CHECK_VALUE,USE_NDS,no,iphone is used))
   $(eval $(call CHECK_VALUE,USE_LINUX,no,iphone is used))
   $(eval $(call CHECK_VALUE,USE_ELINUX,no,iphone is used))
   $(eval $(call CHECK_VALUE,USE_PARROTOS_CORE,no,iphone is used (parrotos is available only on elinux)))
-  $(eval $(call CHECK_TWO_VALUES,IPHONE_PLATFORM,iphoneos,iphonesimulator, IPHONE_PLATFORM must be set to iphoneos or iphonesimulator))
+  $(eval $(call CHECK_TWO_VALUES,PLATFORM_NAME,iphoneos,iphonesimulator, PLATFORM_NAME must be set to iphoneos or iphonesimulator))
 endif
 
 $(eval $(call CHECK_VALUE,USE_BONJOUR,no,ecos is not used))

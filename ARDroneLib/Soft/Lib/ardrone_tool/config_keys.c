@@ -1,4 +1,4 @@
-
+#include <unistd.h>
 #include <Maths/maths.h>
 #include <Maths/matrices.h>
 
@@ -13,6 +13,8 @@ const vector31_t default_gyros_offset = {{{ 1662.5f, 1662.5f, 1662.5f}}};
 const vector31_t default_gyros_gains = {{{ 395.0f * MDEG_TO_RAD, -395.0f * MDEG_TO_RAD, -207.5f * MDEG_TO_RAD }}};
 const vector21_t default_gyros110_offset = {{ 1662.5f, 1662.5f}};
 const vector21_t default_gyros110_gains = {{ 87.5f * MDEG_TO_RAD, -87.5f * MDEG_TO_RAD }};
+const vector31_t default_magneto_offset = {{{ 0.0f, 0.0f, 0.0f}}};
+const float32_t  default_magneto_radius = 0.0f;
 
 /* Stephane - multiconfiguration support */
 

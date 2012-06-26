@@ -183,7 +183,11 @@ endif
 	@$$(INTERNAL_ECHO) "cc $$*$(2)"
   endif
 	@echo -E $$(INTERNAL_CC) $$(GENERIC_CFLAGS) $$(CFLAGS_$$(subst /,_,$$*)) $$(GENERIC_INCLUDES) -c -o $$@ $$(GENERIC_$(1)_SOURCE_DIR)/$$*$(2) >> $$(GENERIC_$(1)_TARGET_DIR)/$(INTERNAL_LOG_FILE)
+    ifeq ("$(STUBBORN_BUILD)","yes")
+	until $$(INTERNAL_CC) -Wfatal-errors $$(GENERIC_CFLAGS) $$(CFLAGS_$$(subst /,_,$$*)) $$(GENERIC_INCLUDES) -c -o $$@ $$(GENERIC_$(1)_SOURCE_DIR)/$$*$(2) 2>&1 >> $$(GENERIC_$(1)_TARGET_DIR)/$(INTERNAL_LOG_FILE); do echo "--- Press a key to recompile this file ---"; read phony; done;
+    else
 	$$(INTERNAL_CC) $$(GENERIC_CFLAGS) $$(CFLAGS_$$(subst /,_,$$*)) $$(GENERIC_INCLUDES) -c -o $$@ $$(GENERIC_$(1)_SOURCE_DIR)/$$*$(2) 2>&1 >> $$(GENERIC_$(1)_TARGET_DIR)/$(INTERNAL_LOG_FILE)
+    endif
   ifeq ("$$(USE_MEMPROT)","yes")
   ifdef GENERIC_DOMAIN
     ifeq ($$(QUIET_BUILD),yes)

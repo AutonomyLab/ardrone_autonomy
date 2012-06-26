@@ -138,7 +138,6 @@ C_RESULT p263_encode_blockline( video_controller_t* controller, const vp_api_pic
 
 C_RESULT p263_decode_blockline( video_controller_t* controller, vp_api_picture_t* picture, bool_t* got_image )
 {
-  video_codec_t* video_codec;
   vp_api_picture_t blockline = { 0 };
   int16_t *in = NULL;
   int32_t num_macro_blocks = 0;
@@ -147,7 +146,6 @@ C_RESULT p263_decode_blockline( video_controller_t* controller, vp_api_picture_t
   video_gob_t*  gobs;
 
   controller->mode  = VIDEO_DECODE;
-  video_codec       = controller->video_codec;
 
   blockline                   = *picture;
   blockline.height            = MB_HEIGHT_Y;
@@ -218,7 +216,7 @@ C_RESULT p263_decode_blockline( video_controller_t* controller, vp_api_picture_t
     controller->in_stream.length  = 32;
     //controller->num_frames++;
 
-    *got_image = TRUE;
+    *got_image = controller->last_frame_decoded;
   }
   else
   {

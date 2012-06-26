@@ -7,7 +7,7 @@
 
 #include <config_keys.h>
 
-static int8_t ini_buffer[ARDRONE_CONTROL_CONFIGURATION_INI_BUFFER_SIZE];
+static uint8_t ini_buffer[ARDRONE_CONTROL_CONFIGURATION_INI_BUFFER_SIZE];
 static uint32_t ini_buffer_index = 0;
 
 static void set_state(ardrone_control_configuration_event_t* event, ardrone_config_state_t s)
@@ -39,7 +39,7 @@ void ardrone_control_reset_custom_configurations_list(custom_configuration_list_
 }
 
 
-void ardrone_control_read_custom_configurations_list(/*in*/char * buffer,
+void ardrone_control_read_custom_configurations_list(/*in*/uint8_t * buffer,
 													 /*in*/int buffer_size,
 													 /*out*/custom_configuration_list_t *available_configurations)
 {
@@ -47,8 +47,9 @@ void ardrone_control_read_custom_configurations_list(/*in*/char * buffer,
 	char id[CUSTOM_CONFIGURATION_ID_LENGTH+1];
 	char description[1024];
 	int index = 0;
-	char * pindex; int i,j;
-	char * end_of_buffer;
+	uint8_t * pindex; 
+	int j;
+	uint8_t * end_of_buffer;
 
 	index = 0;
 	pindex = buffer;
@@ -66,7 +67,7 @@ void ardrone_control_read_custom_configurations_list(/*in*/char * buffer,
 			for (;index<buffer_size;index++) { if (buffer[index]==13 ) { buffer[index]=0; break; } }    if(index==buffer_size) return;
 		/* Search the corresponding category */
 			for (j=0;j<NB_CONFIG_CATEGORIES;j++){
-				if ( strcmp(custom_configuration_headers[j],pindex)==0 ){
+				if ( strcmp((char*)custom_configuration_headers[j],(char*)pindex)==0 ){
 					/* Found the category */
 					current_scope = &available_configurations[j];
 					DEBUG_CONFIG_RECEIVE(" Found Scope <%s>\n",custom_configuration_headers[j]);
@@ -92,11 +93,11 @@ void ardrone_control_read_custom_configurations_list(/*in*/char * buffer,
 
 				//DEBUG_CONFIG_RECEIVE("Now scanning <%c> %i\n",*pindex,index);
 				for (;index<buffer_size;index++) { if (buffer[index]==',' || buffer[index]=='\r') { buffer[index]=0; break; } }   if(index==buffer_size) return;
-				strncpy(id,pindex,sizeof(id));
+				strncpy(id,(char*)pindex,sizeof(id));
 				index++;
 				pindex=buffer+index;
 				for (;index<buffer_size;index++) { if (buffer[index]==0 || buffer[index]=='\r') { buffer[index]=0; break; } }   if(index==buffer_size) return;
-				strncpy(description,pindex,sizeof(description));
+				strncpy(description,(char*)pindex,sizeof(description));
 				DEBUG_CONFIG_RECEIVE(" Found ID <%s> description <%s>\n",id,description);
 				index++;
 				pindex=buffer+index;
@@ -135,7 +136,7 @@ C_RESULT ardrone_control_configuration_run( uint32_t ardrone_state, ardrone_cont
 	int bytes_to_read;
 
 	/* Multiconfiguration support */
-	static char *custom_configuration_list_buffer = NULL;
+	static uint8_t *custom_configuration_list_buffer = NULL;
 	static int  custom_configuration_list_buffer_size = 0;
 	static int  custom_configuration_list_data_size = 0;
 	#define CUSTOM_CFG_BLOCK_SIZE 1024
@@ -149,7 +150,7 @@ C_RESULT ardrone_control_configuration_run( uint32_t ardrone_state, ardrone_cont
 			{
 				/* If the ACK bit is set, we must ask the drone to clear it before asking the configuration. */
 				DEBUG_CONFIG_RECEIVE("%s %s %i - Requesting ack. bit reset.\n",__FILE__,__FUNCTION__,__LINE__);
-				ardrone_at_update_control_mode(ACK_CONTROL_MODE, 0);
+				ardrone_at_update_control_mode(ACK_CONTROL_MODE);
 			}
 			else
 			{
@@ -166,7 +167,7 @@ C_RESULT ardrone_control_configuration_run( uint32_t ardrone_state, ardrone_cont
 			if( ardrone_state & ARDRONE_COMMAND_MASK )
 			{
 				DEBUG_CONFIG_RECEIVE("%s %s %i - Requesting ack. bit reset.\n",__FILE__,__FUNCTION__,__LINE__);
-				ardrone_at_update_control_mode(ACK_CONTROL_MODE, 0);
+				ardrone_at_update_control_mode(ACK_CONTROL_MODE);
 			}
 			else
 			{
@@ -185,6 +186,7 @@ C_RESULT ardrone_control_configuration_run( uint32_t ardrone_state, ardrone_cont
 			buffer_size = ARDRONE_CONTROL_CONFIGURATION_INI_BUFFER_SIZE - ini_buffer_index;
 			res = ardrone_control_read( &ini_buffer[ini_buffer_index], &buffer_size );
 			DEBUG_CONFIG_RECEIVE("Received <<%s>>\n",&ini_buffer[ini_buffer_index]);
+
 			if(VP_SUCCEEDED(res))
 			{      
 				buffer_size += ini_buffer_index;
@@ -255,7 +257,7 @@ C_RESULT ardrone_control_configuration_run( uint32_t ardrone_state, ardrone_cont
 					{
 						/* Reading the condfiguration is finished, we ask the drone
 						 * to clear the ACK bit */
-						ardrone_at_update_control_mode(ACK_CONTROL_MODE, 0);
+						ardrone_at_update_control_mode(ACK_CONTROL_MODE);
 						set_state(event, CONFIG_RECEIVED);
 					}
 					else if( ini_buffer_more )
@@ -317,7 +319,7 @@ C_RESULT ardrone_control_configuration_run( uint32_t ardrone_state, ardrone_cont
 							/* Reading the condfiguration is finished, we ask the drone
 							 * to clear the ACK bit */
 							DEBUG_CONFIG_RECEIVE("Finished receiving\n");
-							ardrone_at_update_control_mode(ACK_CONTROL_MODE, 0);
+							ardrone_at_update_control_mode(ACK_CONTROL_MODE);
 							set_state(event, CUSTOM_CONFIG_RECEIVED);
 
 							ardrone_control_reset_custom_configurations_list(available_configurations);
@@ -327,7 +329,7 @@ C_RESULT ardrone_control_configuration_run( uint32_t ardrone_state, ardrone_cont
 																			available_configurations);
 
 							/* Clean up */
-								vp_os_sfree(&custom_configuration_list_buffer);
+								vp_os_sfree((void**)&custom_configuration_list_buffer);
 								custom_configuration_list_buffer_size = 0;
 								custom_configuration_list_data_size = 0;
 							res = C_OK;
@@ -355,12 +357,12 @@ C_RESULT ardrone_control_configuration_run( uint32_t ardrone_state, ardrone_cont
 				if( ardrone_state & ARDRONE_COMMAND_MASK )
 				{
 					/* If the ACK bit is set, we must ask the drone to clear it before asking the configuration. */
-					PRINT("%s %s %i - Requesting ack. bit reset.\n",__FILE__,__FUNCTION__,__LINE__);
-					ardrone_at_update_control_mode(ACK_CONTROL_MODE, 0);
+					DEBUG_PRINT("%s %s %i - Requesting ack. bit reset.\n",__FILE__,__FUNCTION__,__LINE__);
+					ardrone_at_update_control_mode(ACK_CONTROL_MODE);
 				}
 				else
 				{
-					PRINT("%s %s %i - Finished.\n",__FILE__,__FUNCTION__,__LINE__);
+					DEBUG_PRINT("%s %s %i - Finished.\n",__FILE__,__FUNCTION__,__LINE__);
 					event->status = ARDRONE_CONTROL_EVENT_FINISH_SUCCESS;
 				}
 				res = C_OK;

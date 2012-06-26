@@ -20,6 +20,7 @@ GENERIC_LIBRARY_SOURCE_FILES=				\
 	$(API_PATH)/vp_api_error.c			\
 	$(API_PATH)/vp_api_io_multi_stage.c		\
 	$(API_PATH)/vp_api_stage.c			\
+	$(API_PATH)/vp_api_picture.c			\
 	$(API_PATH)/vp_api_supervisor.c			\
 	$(API_PATH)/vp_api_thread_helper.c		\
 	$(STAGES_PATH)/vp_stages_frame_pipe.c		\
@@ -51,17 +52,6 @@ GENERIC_LIBRARY_SOURCE_FILES+=				\
 	$(OS_PATH)/$(OS)/vp_os_thread.c
 endif
 
-ifneq ($(USE_ANDROID),yes)
-ifneq ($(USE_ELINUX),yes)
-ifneq ($(USE_MINGW32),yes)
-ifneq ($(USE_IPHONE),yes)
-  GENERIC_LIBRARY_SOURCE_FILES+=			\
-	$(STAGES_PATH)/vp_stages_o_sdl.c		
-endif
-endif
-endif
-endif
-
 #ifneq ($(USE_MINGW32),yes)
 ifneq ($(USE_ANDROID),yes)
 ifneq ($(USE_NDS),yes)
@@ -90,7 +80,6 @@ ifeq ($(USE_ELINUX),yes)
   ifeq ($(USE_WIFI),yes)
     GENERIC_LIBRARY_SOURCE_FILES += 			\
 	$(COM_PATH)/elinux/vp_com_wifi.c		\
-	$(COM_PATH)/elinux/vp_com_wlc.c			\
 	$(COM_PATH)/elinux/vp_com_interface.c
   endif
 endif
@@ -214,12 +203,10 @@ ifeq ($(NO_COM),yes)
   $(eval $(call FILTER_OUT_PATTERN,videoEncoder,GENERIC_BINARIES_SOURCE_ENTRYPOINTS))
 endif
 ifneq ($(USE_MJPEG),yes)
-ifneq ($(USE_FFMPEG),yes)
   $(eval $(call FILTER_OUT_PATTERN,videoEncoder,GENERIC_BINARIES_SOURCE_ENTRYPOINTS))
   $(eval $(call FILTER_OUT_PATTERN,encoder,GENERIC_BINARIES_SOURCE_ENTRYPOINTS))
   $(eval $(call FILTER_OUT_PATTERN,decoder,GENERIC_BINARIES_SOURCE_ENTRYPOINTS))
   $(eval $(call FILTER_OUT_PATTERN,video_tracker,GENERIC_BINARIES_SOURCE_ENTRYPOINTS))
-endif
 endif
 ifneq ($(USE_VLIB),yes)
   $(eval $(call FILTER_OUT_PATTERN,vlib,GENERIC_BINARIES_SOURCE_ENTRYPOINTS))

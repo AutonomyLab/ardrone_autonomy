@@ -13,7 +13,7 @@
 
 #ifndef _VP_STAGES_IO_FILE_H_
 #define _VP_STAGES_IO_FILE_H_
-
+#include <VP_Api/vp_api_picture.h>
 
 /**
  * @defgroup VP_SDK
@@ -35,10 +35,19 @@
 
 typedef struct _vp_stages_input_file_config_
 {
-  char *name;
-  FILE *f;
-  uint32_t buffer_size;
-  bool_t loop;
+  char *name;                          // initialise with input file
+  bool_t loop;                         // to be initialised to 1
+  bool_t moving_picture;               // =0:one still picture  =1:several frames
+  FILE *f;                             //  initialised in open stage
+  int width,height;                    // for input files, the resolution to use
+  int nb_buffers;
+  uint8_t ** buffers;
+  uint8_t * data;
+  uint32_t buffer_size;                // initialised in open stage
+  vp_api_picture_t vp_api_picture;     // output image
+  int preload;                         // if not 0, number of bytes to load from file to memory
+  int current_buffer;
+
 } vp_stages_input_file_config_t;
 
 typedef struct _vp_stages_output_file_config_

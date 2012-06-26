@@ -22,6 +22,7 @@ C_RESULT vlib_stage_decoding_open(vlib_stage_decoding_config_t *cfg)
   if(cfg->block_mode_enable)
   {
     vp_os_free( cfg->controller.in_stream.bytes );
+    cfg->controller.in_stream.bytes = NULL;
   }
   else
   {
@@ -39,13 +40,14 @@ C_RESULT vlib_stage_decoding_open(vlib_stage_decoding_config_t *cfg)
 C_RESULT vlib_stage_decoding_transform(vlib_stage_decoding_config_t *cfg, vp_api_io_data_t *in, vp_api_io_data_t *out)
 {
   bool_t got_image;
+  C_RESULT decodeOk = C_FAIL;
 
   vp_os_mutex_lock( &out->lock );
 
   if(out->status == VP_API_STATUS_INIT)
   {
     out->numBuffers   = 1;
-    out->buffers      = (int8_t**)(int8_t*)cfg->picture;
+    out->buffers      = (uint8_t**)&(cfg->picture->y_buf);
     out->indexBuffer  = 0;
     out->lineSize     = 0;
 
@@ -76,7 +78,7 @@ C_RESULT vlib_stage_decoding_transform(vlib_stage_decoding_config_t *cfg, vp_api
       cfg->controller.in_stream.length  = 32;
       cfg->controller.in_stream.code    = 0;
 
-	      video_decode_blockline( &cfg->controller, cfg->picture, &got_image );
+      decodeOk = video_decode_blockline( &cfg->controller, cfg->picture, &got_image );
     }
     else
     {
@@ -84,10 +86,11 @@ C_RESULT vlib_stage_decoding_transform(vlib_stage_decoding_config_t *cfg, vp_api
       stream.used   = in->size;
       vp_os_memcpy(&stream.bytes[0], (uint32_t*)in->buffers[0], in->size);
 
-      video_decode_picture( &cfg->controller, cfg->picture, &stream, &got_image );
+      decodeOk = video_decode_picture( &cfg->controller, cfg->picture, &stream, &got_image );
     }
 
-	  if( got_image )
+	  if( got_image &&
+          C_OK == decodeOk)
     {
       // we got one picture
       out->size = 1;
@@ -114,6 +117,12 @@ C_RESULT vlib_stage_decoding_transform(vlib_stage_decoding_config_t *cfg, vp_api
 C_RESULT vlib_stage_decoding_close(vlib_stage_decoding_config_t *cfg)
 {
   if(!cfg->block_mode_enable)
+  {
     vp_os_free(stream.bytes);
+    stream.bytes = NULL;
+  }
+  else
+    cfg->controller.in_stream.bytes = NULL;
+    
   return video_codec_close( &cfg->controller );
 }

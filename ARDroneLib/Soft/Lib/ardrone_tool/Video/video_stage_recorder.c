@@ -32,9 +32,10 @@
 
 #ifndef VIDEO_FILE_DEFAULT_PATH
 #ifdef USE_ELINUX
-#define VIDEO_FILE_DEFAULT_PATH "/data/video"
+#define VIDEO_FILE_DEFAULT_PATH "/data/video/usb/"
 #else
-#define VIDEO_FILE_DEFAULT_PATH "."
+#define VIDEO_FILE_DEFAULT_PATH root_dir
+extern char root_dir[];
 #endif
 #endif
 
@@ -49,8 +50,6 @@ const vp_api_stage_funcs_t video_recorder_funcs = {
   (vp_api_stage_transform_t) video_stage_recorder_transform,
   (vp_api_stage_close_t) video_stage_recorder_close
 };
-
-char video_filename[VIDEO_FILENAME_LENGTH];
 
 C_RESULT
 video_stage_recorder_handle (video_stage_recorder_config_t * cfg, PIPELINE_MSG msg_id, void *callback, void *param)
@@ -143,18 +142,16 @@ C_RESULT video_stage_recorder_transform(video_stage_recorder_config_t *cfg, vp_a
 	{
 		struct tm *atm;
 
-
 		temptime = (time_t)tv.tv_sec;
 		atm = localtime(&temptime);  //atm = localtime(&tv.tv_sec);
 		printf("recording video\n");
-		sprintf(cfg->video_filename, "%s/video_%04d%02d%02d_%02d%02d%02d_w%i_h%i.%s",
+		if(strlen(cfg->video_filename) == 0)
+			sprintf(cfg->video_filename, "%s/video_%04d%02d%02d_%02d%02d%02d_w%i_h%i.%s",
 				VIDEO_FILE_DEFAULT_PATH,
 				atm->tm_year+1900, atm->tm_mon+1, atm->tm_mday,
 				atm->tm_hour, atm->tm_min, atm->tm_sec,
 				picture->width,picture->height,
 				VIDEO_FILE_EXTENSION);
-		
-		memcpy(video_filename, cfg->video_filename, sizeof(video_filename));
 
 		cfg->fp = fopen(cfg->video_filename, "wb");
 		if (cfg->fp == NULL)
@@ -178,7 +175,6 @@ C_RESULT video_stage_recorder_transform(video_stage_recorder_config_t *cfg, vp_a
 				picture->width,picture->height,
 				VIDEO_FILE_EXTENSION);
 
-		memcpy(video_filename, cfg->video_filename, sizeof(video_filename));
 		cfg->fp = fopen(cfg->video_filename, "wb");
 		if (cfg->fp == NULL)
 			printf ("error open file %s\n", cfg->video_filename);

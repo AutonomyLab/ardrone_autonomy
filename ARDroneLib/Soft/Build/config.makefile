@@ -5,6 +5,7 @@
 
 RELEASE_BUILD        = yes
 QUIET_BUILD          = yes
+VPSDK_PARALLEL_BUILD = no
 
 #########################################################
 # System utility definitions (STATIC)
@@ -39,9 +40,7 @@ $(eval $(call EXIT_IF_ERROR))
 #########################################################
 
 ifeq "$(QUIET_BUILD)" "yes"
-  MAKE=@make -s
-else
-  MAKE=make
+  export MAKEFLAGS+=-s --no-print-directory
 endif
 
 COMMON_DIR:=../Common
@@ -62,34 +61,34 @@ endif
 ifdef PC_TARGET
   SDK_FLAGS+="NO_COM=no"
 
-  ifeq ($(ARDRONE_TARGET_OS),Linux)
+  ifeq ("$(IPHONE_MODE)","yes")
     OS_DEFINE=GNU_LINUX
   else
-   ifeq ($(ARDRONE_TARGET_OS),iphoneos)
+   ifeq ("$(USE_LINUX)","yes")
     OS_DEFINE=GNU_LINUX
    else
-      ifeq ($(ARDRONE_TARGET_OS),iphonesimulator)
-         OS_DEFINE=GNU_LINUX
-      else
-         TARGET:=$(TARGET).exe
-         OS_DEFINE=WINDOW
-      endif
+     TARGET:=$(TARGET).exe
+     OS_DEFINE=WINDOW
     endif
   endif
 
   GENERIC_CFLAGS+=-D_MOBILE
 
-  ifeq ("$(PC_USE_TABLE_PILOTAGE)","yes")
-    GENERIC_CFLAGS+=-DUSE_TABLE_PILOTAGE
+  ifeq ($(RECORD_RAW_VIDEO),yes)
+    GENERIC_CFLAGS+=-DRECORD_RAW_VIDEO
   endif
 
-  ifeq ("$(RECORD_VIDEO)","yes")
-    GENERIC_CFLAGS+=-DRECORD_VIDEO
+  ifeq ($(RECORD_FFMPEG_VIDEO),yes)
+    GENERIC_CFLAGS+=-DRECORD_FFMPEG_VIDEO
+  endif
+
+  ifeq ($(RECORD_ENCODED_VIDEO),yes)
+    GENERIC_CFLAGS+=-DRECORD_ENCODED_VIDEO
   endif
 
   GENERIC_CFLAGS+=-D$(OS_DEFINE)
-  ifeq ($(IPHONE_MODE),yes)
-     ifeq ($(ARDRONE_TARGET_OS),iphoneos)
+  ifeq ("$(IPHONE_MODE)","yes")
+     ifeq ($(PLATFORM_NAME),iphoneos)
         GENERIC_CFLAGS+=-DTARGET_OS_IPHONE
      else
         GENERIC_CFLAGS+=-DTARGET_IPHONE_SIMULATOR
@@ -106,39 +105,50 @@ ifdef PC_TARGET
   else
      SDK_FLAGS+="USE_LINUX=no"
   endif
-  
+
   SDK_FLAGS+="USE_ELINUX=no"
-  
-  ifneq ($(findstring iphone,$(ARDRONE_TARGET_OS)),)
+
+  ifeq ("$(IPHONE_MODE)","yes")
 	SDK_FLAGS+="USE_IPHONE=yes"
-  	SDK_FLAGS+="IPHONE_PLATFORM=$(ARDRONE_TARGET_OS)"
-    SDK_FLAGS+="IPHONE_SDK_PATH=$(IPHONE_SDK_PATH)"
+	SDK_FLAGS+="FFMPEG_SUPPORT=no"
+	SDK_FLAGS+="ITTIAM_SUPPORT=yes"
+	SDK_FLAGS+="USE_VIDEO_TCP=yes"
+	SDK_FLAGS+="USE_VIDEO_HD=no"
   else
 	SDK_FLAGS+="USE_IPHONE=no"
   endif
-  
-  SDK_FLAGS+="ARDRONE_TARGET_ARCH=$(ARDRONE_TARGET_ARCH)"
-  
+
   ifeq ("$(USE_NDS)","yes")
      SDK_FLAGS+="USE_NDS=yes"
      SDK_FLAGS+="NDS_CPU=ARM7"
   else
      SDK_FLAGS+="USE_NDS=no"
   endif
-  
+
   ifeq ("$(USE_ANDROID)","yes")
      SDK_FLAGS+="USE_ANDROID=yes"
-     SDK_FLAGS+="TOOLCHAIN_VERSION=arm-eabi-4.4.0"
-     SDK_FLAGS+="NDK_PLATFORM_VERSION=android-5"
+     SDK_FLAGS+="TOOLCHAIN_VERSION=arm-linux-androideabi-4.4.3"
+     SDK_FLAGS+="NDK_PLATFORM_VERSION=android-8"
+     SDK_FLAGS+="FFMPEG_SUPPORT=yes"
+     SDK_FLAGS+="ITTIAM_SUPPORT=yes"
+     SDK_FLAGS+="USE_VIDEO_TCP=yes"
+     SDK_FLAGS+="USE_VIDEO_HD=no"
   else
      SDK_FLAGS+="USE_ANDROID=no"
   endif
 
-  ifeq ($(FFMPEG_RECORDING_SUPPORT),yes)
-  ifeq ($(USE_LINUX),yes)
-	  SDK_FLAGS+="USE_FFMPEG=yes"
-	  GENERIC_CFLAGS+=-DUSE_FFMPEG
-  endif
+  ifeq ("$(USE_LINUX)","yes")
+     ifeq ("$(PROJECT)","ardrone")
+        SDK_FLAGS+="FFMPEG_SUPPORT=yes"
+        SDK_FLAGS+="ITTIAM_SUPPORT=no"
+        SDK_FLAGS+="USE_VIDEO_TCP=no"
+        SDK_FLAGS+="USE_VIDEO_HD=no"
+     else
+        SDK_FLAGS+="FFMPEG_SUPPORT=yes"
+        SDK_FLAGS+="ITTIAM_SUPPORT=no"
+        SDK_FLAGS+="USE_VIDEO_TCP=yes"
+        SDK_FLAGS+="USE_VIDEO_HD=no"
+     endif
   endif
 
   ifeq ($(filter USE_BLUEZ=%,$(TMP_SDK_FLAGS)),)
@@ -148,7 +158,7 @@ ifdef PC_TARGET
   SDK_FLAGS+="USE_VLIB=yes"
   SDK_FLAGS+="USE_BONJOUR=no"
   SDK_FLAGS+="USE_WIFI=yes"
-  
+
   SDK_FLAGS+="USE_BROADCOM=no"
   SDK_FLAGS+="USE_IWLIB=no"
 
@@ -159,7 +169,7 @@ ifdef PC_TARGET
   SDK_FLAGS+="USE_PARROTOS_DEVS=no"
   SDK_FLAGS+="USE_PARROTOS_CODEC=no"
 
-  
+
   SDK_FLAGS+="USE_ARDRONELIB=yes"
   SDK_FLAGS+="USE_ARDRONE_VISION=yes"
   SDK_FLAGS+="USE_ARDRONE_POLARIS=no"
@@ -169,3 +179,6 @@ ifdef PC_TARGET
 
 endif
 
+export SDK_FLAGS
+export GENERIC_CFLAGS
+export VPSDK_PARALLEL_BUILD

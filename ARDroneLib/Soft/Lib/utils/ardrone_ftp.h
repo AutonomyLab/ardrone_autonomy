@@ -59,6 +59,8 @@ typedef struct _ftp_s
   int connected;
   int opInProgress;
   int abortCurrentOp;
+  _ftp_status lastStatus;
+  char *lastFileList;
 } _ftp_t;
 
 /**
@@ -88,7 +90,7 @@ _ftp_t *ftpConnect (const char *ip, int port, const char *username, const char *
 
 /**
  * @brief Connect to a FTP server
- * @param ip Host name (string format) of the server. (e.g. "www.google.fr"). Must not be NULL.
+ * @param name Host name (string format) of the server. (e.g. "www.google.fr"). Must not be NULL.
  * @param port Port of the FTP server (default ftp port is 21)
  * @param username Username on the server (put "anonymous" for an anonymous connexion). Must not be NULL.
  * @param password Password for the user (put "" for an anonymous connexion). Must not be NULL.

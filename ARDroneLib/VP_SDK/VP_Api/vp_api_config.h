@@ -30,7 +30,7 @@
  *  @def    VP_API_PIPELINE_FIFO_SIZE
  *  @brief  Encoder buffer size
  */
-#define VP_API_PIPELINE_FIFO_SIZE          4000
+#define VP_API_PIPELINE_FIFO_SIZE          (4096)
 
 
 ///////////////////////////////////////////////

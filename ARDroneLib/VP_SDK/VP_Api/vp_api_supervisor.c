@@ -138,7 +138,7 @@ static C_RESULT vp_api_get_message(vp_api_io_pipeline_t *pipeline, DEST_HANDLE *
 
   vp_os_mutex_lock(&pipeline->fifo.mutex);
 
-  if((pipeline->fifo.pget + sizeof(PIPELINE_MSG) + sizeof(void *) + sizeof(void *)) >= (pipeline->fifo.pbase + VP_API_PIPELINE_FIFO_SIZE))
+  if((pipeline->fifo.pget + sizeof(DEST_HANDLE) + sizeof(PIPELINE_MSG) + sizeof(void *) + sizeof(void *)) >= (pipeline->fifo.pbase + VP_API_PIPELINE_FIFO_SIZE))
     pipeline->fifo.pget = pipeline->fifo.pbase;
 
   if(dest != NULL)
@@ -183,7 +183,9 @@ C_RESULT vp_api_handle_messages(vp_api_io_pipeline_t *pipeline)
     {
       if(dest.stage == VP_API_DEST_PIPELINE_LEVEL)
       {
-        pipeline->handle_msg(pipeline, msg_id, callback, param);
+    	 if (pipeline->handle_msg){
+           pipeline->handle_msg(pipeline, msg_id, callback, param);
+    	 }
       }
       else if(dest.stage == VP_API_DEST_STAGE_BROADCAST)
       {

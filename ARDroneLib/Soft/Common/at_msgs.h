@@ -13,14 +13,14 @@ ATCODEC_DEFINE_AT_CMD(AT_MSG_ATCMD_PMODE_EXE,         "AT*PMODE=%d,%d\r",       
 // old school
 ATCODEC_DEFINE_AT_CMD(AT_MSG_ATCMD_MISC_EXE,          "AT*MISC=%d,%d,%d,%d,%d\r",                      0, at_misc_exe,           3 )
 // gains
-ATCODEC_DEFINE_AT_CMD(AT_MSG_ATCMD_GAIN_EXE,          "AT*GAIN=%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\r", 0, at_gain_exe,           3 )
-ATCODEC_DEFINE_AT_CMD(AT_MSG_ATCMD_ANIM_EXE,          "AT*ANIM=%d,%d,%d\r",                          0, at_anim_exe,         3 )
+ATCODEC_DEFINE_AT_CMD(AT_MSG_ATCMD_GAIN_EXE,          "AT*GAIN=%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\r", 0, at_gain_exe,     3 )
+ATCODEC_DEFINE_AT_CMD(AT_MSG_ATCMD_ANIM_EXE,          "AT*ANIM=%d,%d,%d\r",                            0, at_anim_exe,           3 )
 // vision params
 ATCODEC_DEFINE_AT_CMD(AT_MSG_ATCMD_VISP_EXE,          "AT*VISP=%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\r",       0, at_visp_exe,           3 )
 // vision params
 ATCODEC_DEFINE_AT_CMD(AT_MSG_ATCMD_VISO_EXE,          "AT*VISO=%d,%d\r",                               0, at_viso_exe,           3 )
 // capture params
-ATCODEC_DEFINE_AT_CMD(AT_MSG_ATCMD_RAWC_EXE,          "AT*CAP=%d\r",                                   0, at_cap,                3 )
+ATCODEC_DEFINE_AT_CMD(AT_MSG_ATCMD_RAWC_EXE,          "AT*CAP=%d,%d,%d\r",                             0, at_cap,                3 )
 // zapper
 ATCODEC_DEFINE_AT_CMD(AT_MSG_ATCMD_ZAP_EXE,           "AT*ZAP=%d,%d\r",                                0, at_zap,                3 )
 // Change camera for arwiz detection
@@ -28,11 +28,13 @@ ATCODEC_DEFINE_AT_CMD(AT_MSG_ATCMD_CAD_EXE,           "AT*CAD=%d,%d,%d\r",      
 // flat trim
 ATCODEC_DEFINE_AT_CMD(AT_MSG_ATCMD_FTRIM_EXE,         "AT*FTRIM=%d\r",                                 0, at_flat_trim_exe,      3 )
 // manual trims
-ATCODEC_DEFINE_AT_CMD(AT_MSG_ATCMD_MTRIM_EXE,          "AT*MTRIM=%d,%d,%d,%d\r",                       0, at_manual_trims_exe,	  3 )
+ATCODEC_DEFINE_AT_CMD(AT_MSG_ATCMD_MTRIM_EXE,          "AT*MTRIM=%d,%d,%d,%d\r",                       0, at_manual_trims_exe,   3 )
 // send attitude
 ATCODEC_DEFINE_AT_CMD(AT_MSG_ATCMD_POLARIS_EXE,       "AT*POL=%d,%d,%d,%d,%d,%d\r",                    0, at_pol_exe,            3 )
 // sends iphone command for all axes
-ATCODEC_DEFINE_AT_CMD(AT_MSG_ATCMD_PCMD_EXE,       	  "AT*PCMD=%d,%d,%d,%d,%d,%d\r",		           0, at_pcmd_exe,           3 )
+ATCODEC_DEFINE_AT_CMD(AT_MSG_ATCMD_PCMD_EXE,       	  "AT*PCMD=%d,%d,%d,%d,%d,%d\r",		   	       0, at_pcmd_exe,           3 )
+// sends iphone command for all axes + device  client agnetometer
+ATCODEC_DEFINE_AT_CMD(AT_MSG_ATCMD_PCMD_MAG_EXE,      "AT*PCMD_MAG=%d,%d,%d,%d,%d,%d,%d,%d\r",		   0, at_pcmd_mag_exe,       3 )
 // sends Radiocommand values for all 4 axis.
 ATCODEC_DEFINE_AT_CMD(AT_MSG_ATCMD_CONFIG_EXE,        "AT*CONFIG=%d,\"%s\",\"%s\"\r",                  0, at_toy_configuration_exe, 3)
 // control command
@@ -47,14 +49,8 @@ ATCODEC_DEFINE_AT_CMD(AT_MSG_ATCMD_RESET_COM_WATCHDOG,"AT*COMWDG=%d\r",         
 ATCODEC_DEFINE_AT_CMD(AT_MSG_ATCMD_PWM_EXE,           "AT*PWM=%d,%d,%d,%d,%d\r",                       0, at_pwm,                3)
 
 ATCODEC_DEFINE_AT_CMD(AT_MSG_ATCMD_AUTONOMOUS_FLIGHT_EXE, "AT*AFLIGHT=%d,%d\r",                        0, at_autonomous_flight_exe,  3 )
+// run instrument calibration
+ATCODEC_DEFINE_AT_CMD(AT_MSG_ATCMD_CALIB,             "AT*CALIB=%d,%d\r",                              0, at_calibration,        3 )
 
 // Vicon information
-ATCODEC_DEFINE_AT_CMD(AT_MSG_ATCMD_VICON_EXE, 		   "AT*VICON=%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\r",  0, at_vicon_exe,  3 )
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// Result messages
-ATCODEC_DEFINE_AT_RESU(AT_MSG_ATRESU_OK,       "OK\r",        AT_MSG_ATCMD_DEFAULT,      atresu_ok)
-ATCODEC_DEFINE_AT_RESU(AT_MSG_ATRESU_ERROR,    "ERROR\r",     AT_MSG_ATCMD_DEFAULT,      atresu_error)
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+ATCODEC_DEFINE_AT_CMD(AT_MSG_ATCMD_VICON_EXE, 		   "AT*VICON=%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\r", 0, at_vicon_exe,  3 )

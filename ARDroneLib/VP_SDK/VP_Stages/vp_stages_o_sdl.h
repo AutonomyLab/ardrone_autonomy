@@ -139,6 +139,7 @@ vp_stages_output_sdl_stage_transform(vp_stages_output_sdl_config_t *cfg, vp_api_
 C_RESULT
 vp_stages_output_sdl_stage_close(vp_stages_output_sdl_config_t *cfg);
 
+extern const vp_api_stage_funcs_t vp_stages_output_sdl_funcs;
 
 #endif // ! __NDS__
 

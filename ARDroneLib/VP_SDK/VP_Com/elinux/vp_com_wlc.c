@@ -18,6 +18,14 @@ static wl_ioctl_t wldata;
 static struct ifreq ifr;
 static char buffer[WLC_IOCTL_MAXLEN];
 
+typedef union
+{
+  char*    aschar;
+  int32_t* asint32;
+} buffer_repr_t;
+
+static buffer_repr_t buffer_repr = { .aschar = buffer };
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static int vp_wlc_ioctl(int cmd, void *buffer, int length, bool set)
@@ -94,7 +102,7 @@ int32_t vp_wlc_get_magic(void)
   if(vp_wlc_get(WLC_GET_MAGIC, buffer, sizeof(int32_t)) < 0)
     return -1;
 
-  return *(int32_t*)buffer;
+  return *(buffer_repr.asint32);
 }
 
 int32_t vp_wlc_set_channel(int32_t channel)
@@ -142,7 +150,7 @@ int32_t vp_wlc_get_radio(void)
   if(vp_wlc_get(WLC_GET_RADIO, buffer, sizeof(int32_t)) < 0)
     return -1;
 
-  radio_state = *(int32_t*) buffer;
+  radio_state = *(buffer_repr.asint32);
   if(radio_state == 0)
     return VP_WLC_RADIO_ENABLE;
 
@@ -159,7 +167,7 @@ int32_t vp_wlc_get_infrastructure(void)
   if(vp_wlc_get(WLC_GET_INFRA, buffer, sizeof(int32_t)) < 0)
     return -1;
 
-  return *(int32_t*) buffer;
+  return *(buffer_repr.asint32);
 }
 
 int32_t vp_wlc_set_authentication(VP_WLC_AUTH_MODE mode)
@@ -172,7 +180,7 @@ int32_t vp_wlc_get_authentication(void)
   if(vp_wlc_get(WLC_GET_AUTH, buffer, sizeof(int32_t)) < 0)
     return -1;
 
-  return *(int32_t*) buffer;
+  return *(buffer_repr.asint32);
 }
 
 int32_t vp_wlc_set_ssid(const char* name)
@@ -220,7 +228,7 @@ int32_t vp_wlc_get_security_mode(void)
   if(vp_wlc_get(WLC_GET_WSEC, buffer, sizeof(int32_t)) < 0)
     return -1;
 
-  return *(int32_t*)buffer;
+  return *(buffer_repr.asint32);
 }
 
 int32_t vp_wlc_set_wep128_key(const char* wep_key)
@@ -247,7 +255,7 @@ int32_t vp_wlc_get_mac_mode(void)
   if( vp_wlc_get(WLC_GET_MACMODE, buffer, sizeof(int32_t)) < 0)
     return -1;
 
-  return *(int32_t*)buffer;
+  return *(buffer_repr.asint32);
 }
 
 static int32_t vp_wlc_set_roam_trigger(int32_t value)
@@ -260,7 +268,7 @@ static int32_t vp_wlc_get_roam_trigger(int32_t* value)
   if( vp_wlc_get(WLC_GET_MACMODE, buffer, sizeof(int32_t)) < 0)
     return -1;
 
-  *value = *(int32_t*)buffer;
+  *value = *(buffer_repr.asint32);
 
   return 0;
 }

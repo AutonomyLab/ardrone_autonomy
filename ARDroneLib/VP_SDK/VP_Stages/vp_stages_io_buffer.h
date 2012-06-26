@@ -39,7 +39,7 @@
 
 typedef struct _vp_stages_input_buffer_config_
 {
-  int8_t  *buffer;
+  uint8_t  *buffer;
   uint32_t total_size;
   uint32_t send_size;
 

@@ -74,6 +74,7 @@ struct _video_controller_t {
   int32_t   mb_blockline;         // Number of macroblocks per blockline for this picture
   int32_t   blockline;            // Current blockline in picture
   bool_t    picture_complete;     // tells if picture is complete
+  bool_t    last_frame_decoded;   // used to skip undecodable frames 
 
   int32_t   quant;
   int32_t   dquant;

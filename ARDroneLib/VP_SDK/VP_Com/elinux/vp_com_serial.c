@@ -11,12 +11,17 @@
 
 // Include //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#include <time.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/types.h>
-#include <sys/stat.h>
+//#include <sys/stat.h>
 #include <fcntl.h>
+#ifdef __ARMCC_VERSION
+#include <linux/errno.h>
+#else
 #include <errno.h>
+#endif
 
 #include <VP_Com/vp_com.h>
 #include <VP_Com/vp_com_error.h>

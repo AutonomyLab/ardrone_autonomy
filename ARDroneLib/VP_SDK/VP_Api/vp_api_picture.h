@@ -12,7 +12,7 @@
 #define _VP_API_PICTURE_H_
 
 #include <VP_Os/vp_os_types.h>
-#ifdef USE_FFMPEG
+#ifdef FFMPEG_SUPPORT
 #include <libavutil/avutil.h>
 #else
 /**
@@ -57,6 +57,7 @@ enum PixelFormat {
     PIX_FMT_XVMC_MPEG2_IDCT,
     PIX_FMT_UYVY422,   ///< Packed pixel, Cb Y0 Cr Y1
     PIX_FMT_UYVY411,   ///< Packed pixel, Cb Y0 Y1 Cr Y2 Y3
+    PIX_FMT_VYUY422,   ///< Packed pixel, Cr Y0 Cb Y1
     PIX_FMT_NB,
 };
 #endif
@@ -113,7 +114,27 @@ enum PixelFormat {
 #define VGA_SIZE                (VGA_WIDTH * VGA_HEIGHT)
 
 
-typedef struct _vp_api_picture_
+//360P
+#define hdtv360P_WIDTH				640
+#define hdtv360P_HEIGHT				360
+#define hdtv360P_SIZE				( (hdtv360P_WIDTH) * (hdtv360P_HEIGHT) )
+
+//720P
+#define hdtv720P_WIDTH				1280
+#define hdtv720P_HEIGHT				720
+#define hdtv720P_SIZE				( (hdtv720P_WIDTH) * (hdtv720P_HEIGHT) )
+
+
+#if defined(_MSC_VER)
+	#define _ATTRIBUTE_PACKED_
+	/* Asks Visual C++ to pack structures from now on*/
+	#pragma pack(1)
+#else
+	#define _ATTRIBUTE_PACKED_  __attribute__ ((packed))
+#endif
+
+
+typedef struct _ATTRIBUTE_PACKED_ _vp_api_picture_
 {
   enum PixelFormat format;    // camif -> encoder : PIX_FMT_YUV420P
 
@@ -121,9 +142,10 @@ typedef struct _vp_api_picture_
   uint32_t         height;    // camif -> encoder
   uint32_t         framerate; // camif -> encoder
 
-  uint8_t         *y_buf;     // camif -> encoder
-  uint8_t         *cb_buf;    // camif -> encoder
-  uint8_t         *cr_buf;    // camif -> encoder
+  uint8_t         *raw;       // point to the start of the Y/Cb/Cr data block
+  uint8_t         *y_buf;     // point to 1st Y  component in raw
+  uint8_t         *cb_buf;    // point to 1st Cb component in raw
+  uint8_t         *cr_buf;    // point to 1st Cr component in raw
 
   uint32_t         y_pad;     // 2* camif_config.y_pad
   uint32_t         c_pad;     // 2* camif_config.c_pad
@@ -135,8 +157,20 @@ typedef struct _vp_api_picture_
   uint32_t         vision_complete;
   uint32_t         complete;
   int32_t          blockline;
+  
+  #ifdef USE_ELINUX
+  uint32_t acquisition_timestamp;
+  uint32_t scale;
+  #endif
 }
 vp_api_picture_t;
 
+C_RESULT vp_api_picture_print_allocator_log();
+C_RESULT vp_api_picture_alloc(vp_api_picture_t * pic,const int width,const int height,enum PixelFormat format);
+int vp_api_picture_get_buffer_size(const vp_api_picture_t * pic);
+const char * vp_api_picture_get_filename_extension(const vp_api_picture_t * pic);
+const char * vp_api_picture_get_pixelformat_name(enum PixelFormat fmt);
+int vp_api_picture_format_to_buf_address(vp_api_picture_t * pic);
+int vp_api_picture_point_to_buf_address(vp_api_picture_t * pic,void*addr);
 
 #endif // ! _VP_API_PICTURE_H_

@@ -7,12 +7,6 @@
 #include <VP_Os/vp_os_malloc.h>
 #include <VP_Os/vp_os_print.h>
 
-#ifdef _ELINUX
-#include "dma_malloc.h"
-#define vp_os_aligned_malloc(A,B) dma_malloc(A)
-#define vp_os_aligned_free(A) dma_free(A)
-#endif
-
 extern C_RESULT video_utils_init( video_controller_t* controller );
 extern C_RESULT video_utils_close( video_controller_t* controller );
 
@@ -45,7 +39,8 @@ static C_RESULT video_codec_open_private( video_controller_t* controller, codec_
   controller->aq              = 0;
   controller->bq              = 0;
   controller->target_bitrate  = VLIB_DEFAULT_BITRATE;
-  controller->num_frames      = 0;
+  if(codec_type == NULL_CODEC)
+	  controller->num_frames  = 0;
   controller->picture_type    = 0;
   controller->width           = 0;
   controller->height          = 0;
@@ -177,6 +172,7 @@ C_RESULT video_codec_close ( video_controller_t* controller)
 
 C_RESULT video_codec_type_select(video_controller_t* controller, video_stream_t* stream)
 {
+    C_RESULT res = C_OK;
    uint32_t codec_type = 0;
    video_align8( stream );
    video_peek_data( stream, &codec_type, 22 );
@@ -187,10 +183,10 @@ C_RESULT video_codec_type_select(video_controller_t* controller, video_stream_t*
    {
      PRINT("VLIB new codec %d\n",codec_type);
      // video codec has changed, load a new codec
-     video_codec_open_private( controller, codec_type, TRUE );
+     res = video_codec_open_private( controller, codec_type, TRUE );
 
    }
-   return C_OK;
+   return res;
 }
 
 C_RESULT video_encode_picture( video_controller_t* controller, const vp_api_picture_t* picture, bool_t* got_image )
@@ -235,6 +231,7 @@ C_RESULT video_encode_picture( video_controller_t* controller, const vp_api_pict
 C_RESULT video_decode_picture( video_controller_t* controller, vp_api_picture_t* picture, video_stream_t* ex_stream, bool_t* got_image )
 {
   vp_api_picture_t blockline = { 0 };
+  C_RESULT decodeOk = C_OK;
 
   controller->mode  = VIDEO_DECODE; // mandatory because of video_cache_stream
 
@@ -243,18 +240,27 @@ C_RESULT video_decode_picture( video_controller_t* controller, vp_api_picture_t*
   blockline.complete          = 1;
   blockline.vision_complete   = 0;
 
-  while( VP_SUCCEEDED(video_cache_stream( controller, ex_stream )) )
+  while( VP_SUCCEEDED(video_cache_stream( controller, ex_stream )) &&
+      C_OK == decodeOk)
   {
     video_codec_type_select(controller,ex_stream); // to be verified
-    video_decode_blockline( controller, &blockline, got_image );
+    decodeOk = video_decode_blockline( controller, &blockline, got_image );
   }
 
-  return C_OK;
+  return decodeOk;
 }
 
 
 C_RESULT video_decode_blockline( video_controller_t* controller, vp_api_picture_t* blockline, bool_t* got_image )
 {
-  video_codec_type_select(controller,&controller->in_stream);
-  return controller->video_codec->decode_blockline( controller, blockline, got_image );
+  C_RESULT isCodecOK = video_codec_type_select(controller,&controller->in_stream);
+  if (C_OK == isCodecOK &&
+      NULL != controller->video_codec)
+  {
+      return controller->video_codec->decode_blockline( controller, blockline, got_image );
+  }
+  else
+  {
+      return C_FAIL;
+  }
 }

@@ -16,11 +16,11 @@ endif
 
 ifeq ($(MAKECMDGOALS),check)
   export QUIET_BUILD=no
-  export MAKEFLAGS=--no-print-directory
+##  export MAKEFLAGS+=--no-print-directory
 endif
 
 ifeq ($(QUIET_BUILD),yes)
-  export MAKEFLAGS=-s --no-print-directory
+##  export MAKEFLAGS+=-s --no-print-directory
   GENERIC_COMMAND_PREFIX:=@$(GENERIC_COMMAND_PREFIX)
   RM=@rm -rfv
 else
@@ -59,6 +59,9 @@ else
       ifeq ($(USE_ELINUX),yes)
         OS_TARGET_ID=eLinux
         TOOLCHAIN_PATH=/opt/$(TOOLCHAIN_VERSION)/bin
+        ifeq ($(TOOLCHAIN_VERSION),arm-2009q1)
+          GENERIC_COMMAND_PREFIX=$(TOOLCHAIN_PATH)/arm-none-linux-gnueabi-
+        else
         ifeq ($(TOOLCHAIN_VERSION),arm-eglibc)
           GENERIC_COMMAND_PREFIX=$(TOOLCHAIN_PATH)/arm-none-linux-gnueabi-
         else
@@ -72,22 +75,24 @@ else
         endif
         endif
         endif
+		endif
       else
         ifeq ($(USE_IPHONE),yes)
-			OS_TARGET_ID=$(IPHONE_PLATFORM)
+			OS_TARGET_ID=$(PLATFORM_NAME)
 			OS_TARGET_NAME:=$(OS_TARGET_ID)
 			OS_TARGET_NAME:=$(shell echo "$(OS_TARGET_NAME)" | sed -e "s/iphone/iPhone/g")
 			OS_TARGET_NAME:=$(shell echo "$(OS_TARGET_NAME)" | sed -e "s/os/OS/g")
 			OS_TARGET_NAME:=$(shell echo "$(OS_TARGET_NAME)" | sed -e "s/simulator/Simulator/g")
-			TOOLCHAIN_PATH=/Developer/Platforms/$(OS_TARGET_NAME).platform/Developer/usr/bin
+			TOOLCHAIN_PATH=$(PLATFORM_DEVELOPER_BIN_DIR)
 			GENERIC_COMMAND_PREFIX=$(TOOLCHAIN_PATH)/
 	else
 	     OS_TARGET_ID=$(shell uname -sor | sed -e "s/[ \/]/_/g")
         ifeq ($(USE_ANDROID),yes)
-          TOOLCHAIN_PATH=$(NDK_PATH)/build/prebuilt/linux-x86/$(TOOLCHAIN_VERSION)/bin
-          GENERIC_COMMAND_PREFIX=$(TOOLCHAIN_PATH)/arm-eabi-
+          TOOLCHAIN_PATH=$(NDK_PATH)/toolchains/$(TOOLCHAIN_VERSION)/prebuilt/linux-x86/bin
+          GENERIC_COMMAND_PREFIX=$(TOOLCHAIN_PATH)/arm-linux-androideabi-
         else
-          GENERIC_COMMAND_PREFIX=		
+	TOOLCHAIN_PATH=$(shell which gcc | sed "s:/gcc::")
+	GENERIC_COMMAND_PREFIX=$(TOOLCHAIN_PATH)/
         endif
 	endif
       endif
@@ -122,13 +127,17 @@ ifeq ($(USE_BONJOUR),yes)
   COM_TARGET_ID:=$(COM_TARGET_ID)_$(BONJOUR_TARGET_ID)
 endif
 
-ARCH_TARGET_ID=$(ARDRONE_TARGET_ARCH)
+ARCH_TARGET_ID=$(PLATFORM_PREFERRED_ARCH)
 PARROTOS_CORE_TARGET_ID:=parrotOS_core_$(COMMONSOFT_VERSION)
 PARROTOS_UTILS_TARGET_ID:=parrotOS_utils_$(COMMONSOFT_VERSION)
 PARROTOS_DRIVERS_TARGET_ID:=parrotOS_drivers_$(COMMONSOFT_VERSION)
 PARROTOS_DEVS_TARGET_ID:=parrotOS_devs_$(COMMONSOFT_VERSION)
 PARROTOS_CODEC_TARGET_ID:=parrotOS_codec_$(COMMONSOFT_VERSION)
 LIBPLF_TARGET_ID:=libplf_$(COMMONSOFT_VERSION)
+
+ifeq ($(FFMPEG_SUPPORT),yes)
+   FFMPEG_SUPPORT_TARGET_ID=ffmpeg_static_$(BUILD_MODE)
+endif
 
 ifeq ($(USE_ARDRONELIB),yes)
    ARDRONELIB_TARGET_ID=ardrone_lib_$(BUILD_MODE)
@@ -167,15 +176,11 @@ ifeq ($(USE_LIB),yes)
   LIB_TARGET_ID:=$(LIB_ID)_$(BUILD_MODE)
 endif
 
-ifeq ($(USE_FFMPEG),yes)
-  CODEC_TARGET_ID=ffmpeg_$(FF_ARCH)
-else
 ifeq ($(USE_MJPEG),yes)
   CODEC_TARGET_ID=mjpeg
 endif
 ifeq ($(USE_VLIB),yes)
   CODEC_TARGET_ID=vlib
-endif
 endif
 
 ifeq ($(USE_ARDRONELIB),yes)
@@ -250,9 +255,18 @@ ifneq ($(ARCH_TARGET_ID),)
 endif
 endif
 
-ifeq ($(USE_JPEG),yes)
-  JPEG_TARGET_ID=jpeg-6b_$(BUILD_MODE)
+ifeq ($(VIDEO_CODEC),ITTIAM_MP4ARM)
+  ITTIAM_MPEG4_TARGET_ID:=ittiam_wrapper_$(BUILD_MODE)
+ifneq ($(CODEC_TARGET_ID),)
+  ITTIAM_MPEG4_TARGET_ID:=$(ITTIAM_MPEG4_TARGET_ID)_$(CODEC_TARGET_ID)
 endif
+ifneq ($(ARCH_TARGET_ID),)
+  ITTIAM_MPEG4_TARGET_ID:=$(ITTIAM_MPEG4_TARGET_ID)_$(ARCH_TARGET_ID)
+endif
+endif
+
+
+
 
 ifeq ($(USE_SDK),yes)
 ifneq ($(COM_TARGET_ID),)
@@ -321,7 +335,7 @@ define FINALIZE_TARGET_ID
   export $(1)_TARGET_DIR
 endef
 
-TARGET_IDS:=OS APP DLL LIB SDK COM CODEC JPEG BONJOUR PARROTOS_CORE PARROTOS_UTILS PARROTOS_DRIVERS PARROTOS_DEVS PARROTOS_CODEC LIBPLF ARDRONE_VISION ARDRONE_POLARIS ARDRONE_TEST_BENCHS ARDRONE_CALIBRATION ARDRONELIB ARDRONE_VICON
+TARGET_IDS:=OS APP DLL LIB SDK COM CODEC JPEG BONJOUR PARROTOS_CORE PARROTOS_UTILS PARROTOS_DRIVERS PARROTOS_DEVS PARROTOS_CODEC LIBPLF ARDRONE_VISION ARDRONE_POLARIS ARDRONE_VICON ARDRONE_TEST_BENCHS ARDRONE_CALIBRATION ARDRONELIB ITTIAM_MPEG4 FFMPEG_SUPPORT ITTIAM_SUPPORT
 
 $(foreach id,$(filter-out OS,$(TARGET_IDS)),$(eval $(call ADD_OS_TARGET_ID,$(id))))
 $(foreach id,$(TARGET_IDS),$(eval $(call FINALIZE_TARGET_ID,$(id))))
@@ -346,7 +360,7 @@ else
       TARGET_CPU_X86=0
     else
       ifeq ($(USE_IPHONE),yes)
-  	      ifeq ($(IPHONE_PLATFORM),iphoneos)
+  	      ifeq ($(PLATFORM_NAME),iphoneos)
             TARGET_CPU_ARM=1
             TARGET_CPU_X86=0
 	      else

@@ -1,6 +1,5 @@
 #include <stdarg.h>
 #include <malloc.h>
-
 #include <VP_Os/vp_os_thread.h>
 
 typedef struct _pthread_data_t
@@ -94,17 +93,24 @@ void vp_os_thread_create(THREAD_ROUTINE entry, THREAD_PARAMS data, THREAD_HANDLE
   char* name;
   void* stack_base;
   unsigned int stack_size;
+  SUP_THREAD** thread_pointer;
   va_list va;
 
-
+#ifdef __ARMCC_VERSION
+  va_start(va, handle);
+#else
   va_start(va, (char*)handle);
+#endif
+
   priority    = va_arg(va, int32_t);
   name        = va_arg(va, char *);
   stack_base  = va_arg(va, void *);
   stack_size  = va_arg(va, unsigned int);
+  thread_pointer = va_arg(va,SUP_THREAD**);
   va_end(va);
 
   SUP_THREAD* thread = findFreeSlot();
+  (*thread_pointer) = thread;
 
   sup_thread_create(handle, thread, priority, entry, data, stack_size, name);
   sup_thread_resume(*handle);

@@ -37,6 +37,9 @@
 /*---------------------------------------------------------------------------
    								New types
  ---------------------------------------------------------------------------*/
+/*******************   WARNING   ****************************/
+/*         DONT CHANGE THE ORDER OF THIS ENUM               */
+/************************************************************/
 
 typedef enum _dictionary_value_type_ {
   INI_SECTION = 0x00,
@@ -164,7 +167,7 @@ dictionary_value* dictionary_get(dictionary * d, const char * key);
   This function returns non-zero in case of failure.
  */
 /*--------------------------------------------------------------------------*/
-dictionary_value* dictionary_set(dictionary * d, const char * key, char * val, int type, void* ptr,void (*cb)(void));
+dictionary_value* dictionary_set(dictionary * d, const char * key, const char * val, int type, void* ptr,void (*cb)(void));
 
 /*-------------------------------------------------------------------------*/
 /**

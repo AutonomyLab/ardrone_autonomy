@@ -1006,8 +1006,8 @@ C_RESULT vp_stages_yuv2rgb_stage_transform(vp_stages_yuv2rgb_config_t *cfg, vp_a
       out->numBuffers   = 1;
       out->indexBuffer  = 0;
       out->size         = width * height * bytesPerPixel;
-      out->buffers      = (int8_t **) vp_os_malloc(sizeof(int8_t *)+out->size*sizeof(int8_t));
-      out->buffers[out->indexBuffer] = (int8_t *)(out->buffers+1);
+      out->buffers      = (uint8_t **) vp_os_malloc(sizeof(uint8_t *)+out->size*sizeof(uint8_t));
+      out->buffers[out->indexBuffer] = (uint8_t *)(out->buffers+1);
       out->lineSize     = (int32_t *) vp_os_malloc(out->numBuffers * sizeof(int32_t *));
       out->lineSize[out->indexBuffer] = width*bytesPerPixel;
       vp_os_memset(out->buffers[out->indexBuffer], 0, out->size);

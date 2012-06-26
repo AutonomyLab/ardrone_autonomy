@@ -52,5 +52,5 @@ void quat_to_euler_rot_mat(matrix33_t* m, quaternion_t* q);
 //transformss a quaternion to the corrseponding euler angles
 void quat_to_euler_angles(angles_t* a, quaternion_t* q);
 
-
+void euler_angles_to_quat(angles_t* a, quaternion_t* q);
 #endif // _QUATERNIONS_H_

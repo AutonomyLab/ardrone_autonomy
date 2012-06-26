@@ -219,7 +219,7 @@ C_RESULT uvlc_decode_blockline( video_controller_t* controller, vp_api_picture_t
     controller->in_stream.length  = 32;
     //controller->num_frames++;
 
-    *got_image = TRUE;
+    *got_image = controller->last_frame_decoded;
   }
   else
   {

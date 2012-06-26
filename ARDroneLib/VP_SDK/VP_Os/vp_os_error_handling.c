@@ -24,10 +24,22 @@ static char vp_os_error_message[VP_OS_MAX_NUM_ERROR_MESSAGE_SIZE];
 
 void vp_os_install_error_handler(uint32_t signature, vp_os_error_handler_t error_handler)
 {
+  int i;
+  uint8_t signature_found = 0;
+
+  for(i=0; i<VP_OS_MAX_NUM_ERROR_HANDLERS; i++){
+    if(vp_os_error_handlers[i].signature == signature){
+      signature_found = 1;
+      break;
+    }
+  }
+
+  if(!signature_found && vp_os_num_handlers<VP_OS_MAX_NUM_ERROR_HANDLERS){
   vp_os_error_handlers[vp_os_num_handlers].signature      = signature;
   vp_os_error_handlers[vp_os_num_handlers].error_handler  = error_handler;
 
   vp_os_num_handlers ++;
+  }
 }
 
 const char* vp_os_get_error_message(uint32_t error_code)
@@ -46,7 +58,7 @@ const char* vp_os_get_error_message(uint32_t error_code)
 
   if(found)
   {
-    strcpy(vp_os_error_message, vp_os_error_handlers[i].error_handler(error_code) );
+    strncpy(vp_os_error_message, vp_os_error_handlers[i].error_handler(error_code), sizeof(vp_os_error_message)-1);
   }
   else
   {

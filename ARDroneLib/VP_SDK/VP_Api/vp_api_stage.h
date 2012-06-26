@@ -65,6 +65,9 @@ typedef struct _vp_api_stage_funcs_
 /**
  * @brief Definition of ready to use stages for vp products
  */
+
+C_RESULT vp_api_stage_empty_transform (void *cfg, struct _vp_api_io_data_ *in, struct _vp_api_io_data_ *out);
+
 extern const vp_api_stage_funcs_t vp_stages_input_file_funcs;
 extern const vp_api_stage_funcs_t vp_stages_output_file_funcs;
 
@@ -73,6 +76,7 @@ extern const vp_api_stage_funcs_t vp_stages_output_buffer_funcs;
 
 extern const vp_api_stage_funcs_t vp_stages_frame_pipe_sender_funcs;
 extern const vp_api_stage_funcs_t vp_stages_frame_pipe_receiver_funcs;
+extern const vp_api_stage_funcs_t vp_stages_frame_pipe_fetch_funcs;
 
 extern const vp_api_stage_funcs_t vp_stages_video_mixer_funcs;
 
@@ -87,16 +91,9 @@ extern const vp_api_stage_funcs_t vp_stages_output_com_funcs;
 
 extern const vp_api_stage_funcs_t vp_stages_output_console_funcs;
 
-extern const vp_api_stage_funcs_t vp_stages_output_sdl_funcs;
-
 extern const vp_api_stage_funcs_t vp_stages_output_lcd_funcs;
 
 extern const vp_api_stage_funcs_t vp_stages_yuv2rgb_funcs;
-
-#if defined(USE_JPEG) || defined(USE_JPEG_P6)
-extern const vp_api_stage_funcs_t vp_stages_encoder_jpeg_funcs;
-extern const vp_api_stage_funcs_t vp_stages_decoder_jpeg_funcs;
-#endif // > USE_JPEG
 
 #ifdef USE_PVSP
 extern const vp_api_stage_funcs_t vp_stages_pvsp_funcs;

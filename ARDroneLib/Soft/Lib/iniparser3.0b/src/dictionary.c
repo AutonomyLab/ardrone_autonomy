@@ -19,7 +19,7 @@
 /*---------------------------------------------------------------------------
    								Includes
  ---------------------------------------------------------------------------*/
-#include "dictionary.h"
+#include <iniparser3.0b/src/dictionary.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -66,6 +66,8 @@ static void * mem_double(void * ptr, int size)
   for systems that do not have it.
  */
 /*--------------------------------------------------------------------------*/
+#ifndef __XSTRDUP_DEFINED__
+#define __XSTRDUP_DEFINED__
 static char * xstrdup(const char * s)
 {
     char * t ;
@@ -77,6 +79,7 @@ static char * xstrdup(const char * s)
     }
     return t ;
 }
+#endif
 
 /*---------------------------------------------------------------------------
   							Function codes
@@ -230,7 +233,7 @@ dictionary_value* dictionary_get(dictionary * d, const char * key)
   This function returns non-zero in case of failure.
  */
 /*--------------------------------------------------------------------------*/
-dictionary_value* dictionary_set(dictionary * d, const char * key, char * val, int type, void* ptr,void (*cb)(void))
+dictionary_value* dictionary_set(dictionary * d, const char * key, const char * val, int type, void* ptr,void (*cb)(void))
 {
   int i;
   unsigned  hash;
@@ -263,7 +266,7 @@ dictionary_value* dictionary_set(dictionary * d, const char * key, char * val, i
   /* See if dictionary needs to grow */
   if (d->n==d->size) {
     /* Reached maximum size: reallocate dictionary */
-    d->values = (dictionary_value *)mem_double(d->values,  d->size * sizeof(dictionary_value*)) ;
+    d->values = (dictionary_value *)mem_double(d->values,  d->size * sizeof(dictionary_value)) ;
     d->key    = (char **)mem_double(d->key,  d->size * sizeof(char*)) ;
     d->hash   = (unsigned int *)mem_double(d->hash, d->size * sizeof(unsigned)) ;
     if ((d->values==NULL) || (d->key==NULL) || (d->hash==NULL)) {
@@ -391,12 +394,12 @@ int main(int argc, char *argv[])
 	/* Set values in dictionary */
 	printf("setting %d values...\n", NVALS);
 	for (i=0 ; i<NVALS ; i++) {
-		sprintf(cval, "%04d", i);
+		snprintf(cval, sizeof(cval), "%04d", i);
 		dictionary_set(d, cval, "salut");
 	}
 	printf("getting %d values...\n", NVALS);
 	for (i=0 ; i<NVALS ; i++) {
-		sprintf(cval, "%04d", i);
+		snprintf(cval, sizeof(cval), "%04d", i);
 		val = dictionary_get(d, cval, DICT_INVALID_KEY);
 		if (val==DICT_INVALID_KEY) {
 			printf("cannot get value for key [%s]\n", cval);
@@ -404,7 +407,7 @@ int main(int argc, char *argv[])
 	}
     printf("unsetting %d values...\n", NVALS);
 	for (i=0 ; i<NVALS ; i++) {
-		sprintf(cval, "%04d", i);
+		snprintf(cval, sizeof(cval), "%04d", i);
 		dictionary_unset(d, cval);
 	}
     if (d->n != 0) {

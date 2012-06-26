@@ -38,8 +38,11 @@
    								Macros
  ---------------------------------------------------------------------------*/
 /** For backwards compatibility only */
+#define ASCIILINESZ         	(1024)
 #define iniparser_getstr(d, k)  iniparser_getstring(d, k, NULL)
 #define iniparser_setstr        iniparser_setstring
+
+char * strlwc(const char * s);
 
 /*-------------------------------------------------------------------------*/
 /**
@@ -318,6 +321,7 @@ dictionary * iniparser_load(FILE* fp, dictionary * dict);
 /*--------------------------------------------------------------------------*/
 void iniparser_freedict(dictionary * d);
 
+void iniparser_ptr2val(dictionary_value* value);
 void iniparser_vals2ptrs(dictionary * d , int scope);
 void iniparser_ptrs2vals(dictionary * d , int scope);
 

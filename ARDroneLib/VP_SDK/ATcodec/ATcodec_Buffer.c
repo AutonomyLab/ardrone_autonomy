@@ -3,10 +3,10 @@
  * @author aurelien.morelle@parrot.fr
  * @date 2006/12/06
  */
-#include "VP_Os/vp_os_assert.h"
-#include "VP_Os/vp_os_malloc.h"
+#include <VP_Os/vp_os_assert.h>
+#include <VP_Os/vp_os_malloc.h>
 
-#include "ATcodec_Buffer.h"
+#include <ATcodec/ATcodec_Buffer.h>
 
 
 

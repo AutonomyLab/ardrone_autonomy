@@ -23,16 +23,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
+#if defined (FFMPEG_SUPPORT) && defined (RECORD_FFMPEG_VIDEO)
 #include <generated_custom.h>
 
-/*#ifndef USE_FFMPEG_RECORDER
-#define USE_FFMPEG_RECORDER
-#endif*/
-
-#ifdef USE_FFMPEG_RECORDER
-
-/* From FFMPEG example */
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -50,25 +43,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-
-
-
-/* Should be in avutil.h but Ubuntu 10.04 package is too old
- * http://cekirdek.pardus.org.tr/~ismail/ffmpeg-docs/libavutil_2avutil_8h-source.html
- * */
-#if LIBAVUTIL_VERSION_MAJOR < 50
-#define AV_PKT_FLAG_KEY   0x0001
-enum AVMediaType {
-     AVMEDIA_TYPE_UNKNOWN = -1,
-     AVMEDIA_TYPE_VIDEO,
-     AVMEDIA_TYPE_AUDIO,
-     AVMEDIA_TYPE_DATA,
-     AVMEDIA_TYPE_SUBTITLE,
-     AVMEDIA_TYPE_ATTACHMENT,
-     AVMEDIA_TYPE_NB
- };
-#endif
-
 
 #include <time.h>
 #ifndef _WIN32
@@ -93,36 +67,19 @@ enum AVMediaType {
 #include <config.h>
 #include <ardrone_tool/Video/video_stage_ffmpeg_recorder.h>
 
-/*#ifdef USE_VIDEO_YUV
-#define VIDEO_FILE_EXTENSION "yuv"
-#else
-#define VIDEO_FILE_EXTENSION "y"
-#endif
-#define  VIDEO_TIMESTAMPS_FILE_EXTENSION "time.txt"
+#define VIDEO_FILE_DEFAULT_PATH root_dir
+extern char root_dir[];
 
-#ifndef VIDEO_FILE_DEFAULT_PATH
-#ifdef USE_ELINUX
-#define VIDEO_FILE_DEFAULT_PATH "/data/video"
-#else
-#define VIDEO_FILE_DEFAULT_PATH "."
-#endif
-#endif
-*/
-#define VIDEO_FILE_DEFAULT_PATH "."
+/*- LibAVFormat variables */
+const char *filename;
+AVOutputFormat *fmt;
+AVFormatContext *oc;
+AVStream *video_st;
+double video_pts;
+int i;
 
- /*- LibAVFormat variables */
-	const char *filename;
-	AVOutputFormat *fmt;
-	AVFormatContext *oc;
-	AVStream *video_st;
-	double video_pts;
-	int i;
-
-#define STREAM_FRAME_RATE (60)
 #define STREAM_BIT_RATE_KBITS 1600
-#define STREAM_PIX_FMT PIX_FMT_YUV420P /* default pix_fmt */
-
-static int sws_flags = SWS_BICUBIC;
+static const int sws_flags = SWS_BICUBIC;
 
 AVFrame *picture_to_encode=NULL, *tmp_picture=NULL;
 uint8_t *video_outbuf=NULL;
@@ -136,37 +93,24 @@ const vp_api_stage_funcs_t video_ffmpeg_recorder_funcs = {
   (vp_api_stage_close_t) video_stage_ffmpeg_recorder_close
 };
 
-char video_filename_ffmpeg[VIDEO_FILENAME_LENGTH];
-
 struct
 {
 	int width,height;
 	char* buffer;
-	unsigned long long int timestamp_us;
 	int frame_number;
 }previous_frame;
 
 
 /******************************************************************************************************************************************/
 
-void create_video_file(const char*filename,int width,int height)
+void create_video_file(const char*filename,int width,int height,int frame_rate, enum PixelFormat pix_fmt)
 {
-/* auto detect the output format from the name. default is
-       mpeg. */
-    //fmt = av_guess_format(NULL, filename, NULL);
-
-#if (LIBAVFORMAT_VERSION_INT>=AV_VERSION_INT(52,81,0))
-	#define libavformat_guess_format av_guess_format
-#else
-	#define libavformat_guess_format guess_format
-#endif
-
-	fmt = libavformat_guess_format(NULL, filename, NULL);
+	/* auto detect the output format from the name. default is mpeg. */
+	fmt = av_guess_format(NULL, filename, NULL);
 
 	if (!fmt) {
-        printf("Could not deduce output format from file extension: using MPEG.\n");
-        //fmt = av_guess_format("mpeg", NULL, NULL);
-        fmt = libavformat_guess_format("mpeg", NULL, NULL);
+        fprintf(stderr, "Could not deduce output format from file extension: using MPEG.\n");
+        fmt = av_guess_format("mpeg", NULL, NULL);
     }
     if (!fmt) {
         fprintf(stderr, "Could not find suitable output format\n");
@@ -187,7 +131,7 @@ void create_video_file(const char*filename,int width,int height)
     video_st = NULL;
 
     if (fmt->video_codec != CODEC_ID_NONE) {
-        video_st = add_video_stream(oc, fmt->video_codec,width,height);
+        video_st = add_video_stream(oc, fmt->video_codec,width,height,frame_rate, pix_fmt);
     }
 
     /* set the output parameters (must be done even if no
@@ -197,7 +141,7 @@ void create_video_file(const char*filename,int width,int height)
         exit(1);
     }
 
-    dump_format(oc, 0, filename, 1);
+    av_dump_format(oc, 0, filename, 1);
 
     /* now that all the parameters are set, we can open the audio and
        video codecs and allocate the necessary encode buffers */
@@ -206,7 +150,7 @@ void create_video_file(const char*filename,int width,int height)
 
     /* open the output file, if needed */
     if (!(fmt->flags & AVFMT_NOFILE)) {
-        if (url_fopen(&oc->pb, filename, URL_WRONLY) < 0) {
+        if (avio_open(&oc->pb, filename, URL_WRONLY) < 0) {
             fprintf(stderr, "Could not open '%s'\n", filename);
             exit(1);
         }
@@ -237,23 +181,17 @@ void close_video_file()
 
     if (!(fmt->flags & AVFMT_NOFILE)) {
         /* close the output file */
-        url_fclose(oc->pb);
+        avio_close(oc->pb);
     }
 
     /* free the stream */
     av_free(oc);
 }
 
-
-
-
 /**************************************************************/
 /* video output */
-
-
-
 /* add a video output stream */
- AVStream *add_video_stream(AVFormatContext *oc, enum CodecID codec_id, int width, int height)
+AVStream *add_video_stream(AVFormatContext *oc, enum CodecID codec_id, int width, int height,int frame_rate, enum PixelFormat pix_fmt)
 {
     AVCodecContext *c;
     AVStream *st;
@@ -277,10 +215,10 @@ void close_video_file()
        of which frame timestamps are represented. for fixed-fps content,
        timebase should be 1/framerate and timestamp increments should be
        identically 1. */
-    c->time_base.den = STREAM_FRAME_RATE;
+    c->time_base.den = frame_rate;
     c->time_base.num = 1;
     c->gop_size = 12; /* emit one intra frame every twelve frames at most */
-    c->pix_fmt = STREAM_PIX_FMT;
+    c->pix_fmt = pix_fmt;
     if (c->codec_id == CODEC_ID_MPEG2VIDEO) {
         /* just for testing, we also add B frames */
         c->max_b_frames = 2;
@@ -352,11 +290,6 @@ void close_video_file()
 
     /* allocate the encoded raw picture */
     picture_to_encode =  avcodec_alloc_frame();
-    //alloc_picture(c->pix_fmt, c->width, c->height);
-    /*if (!picture) {
-        fprintf(stderr, "Could not allocate picture\n");
-        exit(1);
-    }*/
 
     /* if the output format is not YUV420P, then a temporary YUV420P
        picture is needed too. It is then converted to the required
@@ -444,7 +377,6 @@ void close_video_file()
         ret = av_interleaved_write_frame(oc, &pkt);
     } else {
         /* encode the image */
-    	//printf("Here1 \n");
         out_size = avcodec_encode_video(c, video_outbuf, video_outbuf_size, picture_to_encode);
         /* if zero size, it means the image was buffered */
         if (out_size > 0) {
@@ -475,7 +407,6 @@ void close_video_file()
  void close_video(AVFormatContext *oc, AVStream *st)
 {
     avcodec_close(st->codec);
-    //av_free(picture->data[0]);
     av_free(picture_to_encode);
     picture_to_encode = NULL;
     if (tmp_picture) {
@@ -491,20 +422,16 @@ void close_video_file()
 C_RESULT
 video_stage_ffmpeg_recorder_handle (video_stage_ffmpeg_recorder_config_t * cfg, PIPELINE_MSG msg_id, void *callback, void *param)
 {
-	//return (VP_SUCCESS);
-
 	printf("FFMPEG recorder message handler.\n");
 	switch (msg_id)
 	{
 		case PIPELINE_MSG_START:
-			{
-
-				if(cfg->startRec==VIDEO_RECORD_STOP)
-					cfg->startRec=VIDEO_RECORD_HOLD;
-				else
-					cfg->startRec=VIDEO_RECORD_STOP;
-			}
+			if(cfg->startRec==VIDEO_RECORD_STOP)
+				cfg->startRec=VIDEO_RECORD_HOLD;
+			else
+				cfg->startRec=VIDEO_RECORD_STOP;
 			break;
+
 		default:
 			break;
 	}
@@ -517,184 +444,166 @@ C_RESULT video_stage_ffmpeg_recorder_open(video_stage_ffmpeg_recorder_config_t *
 {
 	//return C_OK;
 
-	previous_frame.width = previous_frame.height = 0;
+	previous_frame.width = previous_frame.frame_number = previous_frame.height = 0;
 	previous_frame.buffer = NULL;
-	previous_frame.timestamp_us = 0;
-	previous_frame.frame_number =0;
-
+	cfg->flag_video_file_open = 0;
 	cfg->startRec=VIDEO_RECORD_STOP;
 
 	/* initialize libavcodec, and register all codecs and formats */
-	    av_register_all();
+	av_register_all();
 
-  return C_OK;
+	return C_OK;
 }
 
 
 /******************************************************************************************************************************************/
 C_RESULT video_stage_ffmpeg_recorder_transform(video_stage_ffmpeg_recorder_config_t *cfg, vp_api_io_data_t *in, vp_api_io_data_t *out)
 {
-	 time_t temptime;
-	 struct timeval tv;
-	 struct tm *atm;
-	 long long int current_timestamp_us;
-	 static long long int first_frame_timestamp_us=0;
-	 static int frame_counter=0;
-	 int i;
-	 int frame_size;
-	 static int flag_video_file_open=0;
-
-	 vp_os_mutex_lock( &out->lock );
-	 vp_api_picture_t* picture = (vp_api_picture_t *) in->buffers;
+	time_t temptime;
+	struct timeval tv;
+	struct tm *atm;
+	int i;
+	int frame_size;
+	vp_os_mutex_lock( &out->lock );
+	vp_api_picture_t* picture = (vp_api_picture_t *) in->buffers;
 
 	gettimeofday(&tv,NULL);
 
-	 temptime = (time_t)tv.tv_sec;
-	 atm = localtime(&temptime);  //atm = localtime(&tv.tv_sec);
+	temptime = (time_t)tv.tv_sec;
+	atm = localtime(&temptime);  //atm = localtime(&tv.tv_sec);
 
-	 current_timestamp_us = tv.tv_sec *1000000 + tv.tv_usec;
-
-
-  if( out->status == VP_API_STATUS_INIT )
-  {
-    out->numBuffers   = 1;
-    out->indexBuffer  = 0;
-    out->lineSize     = NULL;
-    //out->buffers      = (int8_t **) vp_os_malloc( sizeof(int8_t *) );
-  }
-
-  out->size     = in->size;
-  out->status   = in->status;
-  out->buffers  = in->buffers;
-
-  if( in->status == VP_API_STATUS_ENDED ) {
-    out->status = in->status;
-  }
-  else if(in->status == VP_API_STATUS_STILL_RUNNING) {
-    out->status = VP_API_STATUS_PROCESSING;
-  }
-  else {
-    out->status = in->status;
-  }
-
-
-
-	if(cfg->startRec==VIDEO_RECORD_HOLD)
+	if( out->status == VP_API_STATUS_INIT )
 	{
-		/* Create a new video file */
-
-		sprintf(video_filename_ffmpeg, "%s/video_%04d%02d%02d_%02d%02d%02d_w%i_h%i.mp4",
-				VIDEO_FILE_DEFAULT_PATH,
-				atm->tm_year+1900, atm->tm_mon+1, atm->tm_mday,
-				atm->tm_hour, atm->tm_min, atm->tm_sec,
-				picture->width,
-				picture->height);
-
-		create_video_file(video_filename_ffmpeg, picture->width,picture->height);
-		flag_video_file_open=1;
-
-		cfg->startRec=VIDEO_RECORD_START;
-
-		first_frame_timestamp_us = current_timestamp_us;
-		frame_counter=1;
+		out->numBuffers   = 1;
+		out->indexBuffer  = 0;
+		out->lineSize     = NULL;
+		out->status = VP_API_STATUS_PROCESSING;
 	}
 
-  if( out->size > 0 && out->status == VP_API_STATUS_PROCESSING && cfg->startRec==VIDEO_RECORD_START)
-  {
-	  frame_size = ( previous_frame.width * previous_frame.height )*3/2;
+	if( in->status == VP_API_STATUS_ENDED )
+		out->status = in->status;
 
-	  /* Send the previous frame to FFMPEG */
-	  if (previous_frame.buffer!=NULL)
+	out->size     = in->size;
+	out->buffers  = in->buffers;
+
+	if( out->status == VP_API_STATUS_PROCESSING)
+	{
+		if(cfg->startRec==VIDEO_RECORD_HOLD)
 		{
-		  /* Compute the number of frames to store to achieve 60 FPS
-		   * This should be computed using the timestamp of the first frame
-		   * to avoid error accumulation.
-		   */
-			int current_frame_number = (current_timestamp_us - first_frame_timestamp_us) / 16666;
-			int nb_frames_to_write = current_frame_number - previous_frame.frame_number;
+			/* Create a new video file */
+			if(strlen(cfg->video_filename) == 0)
+				sprintf(cfg->video_filename, "%s/video_%04d%02d%02d_%02d%02d%02d_w%i_h%i.mp4",
+					VIDEO_FILE_DEFAULT_PATH,
+					atm->tm_year+1900, atm->tm_mon+1, atm->tm_mday,
+					atm->tm_hour, atm->tm_min, atm->tm_sec,
+					picture->width,
+					picture->height);
 
-			if (picture_to_encode!=NULL){
-				picture_to_encode->data[0] = picture_to_encode->base[0] = picture->y_buf;
-				picture_to_encode->data[1] = picture_to_encode->base[1] = picture->cb_buf;
-				picture_to_encode->data[2] = picture_to_encode->base[2] = picture->cr_buf;
+			create_video_file(cfg->video_filename, picture->width, picture->height, picture->framerate, picture->format);
+			cfg->flag_video_file_open = 1;
+			strcpy(cfg->video_filename, "");
 
-				picture_to_encode->linesize[0] = picture->width;
-				picture_to_encode->linesize[1] = picture->width/2;
-				picture_to_encode->linesize[2] = picture->width/2;
-			}
+			if(cfg->numframes != NULL)
+				previous_frame.frame_number = *cfg->numframes;
 
-			for (i=0;i<nb_frames_to_write;i++)
+			cfg->startRec=VIDEO_RECORD_START;
+		}
+
+		if( out->size > 0 && cfg->startRec == VIDEO_RECORD_START)
+		{
+			frame_size = ( previous_frame.width * previous_frame.height ) * 3 / 2;
+
+			/* Send the previous frame to FFMPEG */
+			if (previous_frame.buffer != NULL)
 			{
-				//printf("Storing %i frames\n",nb_frames_to_write);
-				write_video_frame(oc, video_st);
+				/* Compute the number of frames to store to achieve 60 FPS
+				* This should be computed using the timestamp of the first frame
+				* to avoid error accumulation.
+				*/
+				int nb_frames_to_write = 1;
+
+				if(cfg->numframes != NULL)
+				{
+					nb_frames_to_write = *cfg->numframes - previous_frame.frame_number;
+					previous_frame.frame_number = *cfg->numframes;
+				}
+
+				if (picture_to_encode!=NULL)
+				{
+					picture_to_encode->data[0] = picture_to_encode->base[0] = picture->y_buf;
+					picture_to_encode->data[1] = picture_to_encode->base[1] = picture->cb_buf;
+					picture_to_encode->data[2] = picture_to_encode->base[2] = picture->cr_buf;
+
+					picture_to_encode->linesize[0] = picture->width;
+					picture_to_encode->linesize[1] = picture->width/2;
+					picture_to_encode->linesize[2] = picture->width/2;
+				}
+
+				printf("Storing %i frames\n",nb_frames_to_write);
+				for (i = 0 ; i < nb_frames_to_write ; i++)
+				{
+					write_video_frame(oc, video_st);
+				}
 			}
 
-			/* Pass infos to next iteration */
-			previous_frame.frame_number = current_frame_number;
+			/* Create a buffer to hold the current frame */
+			if (previous_frame.buffer!=NULL && (previous_frame.width!=picture->width || previous_frame.height!=picture->height))
+			{
+				vp_os_free(previous_frame.buffer);
+				previous_frame.buffer=NULL;
+			}
+
+			if (previous_frame.buffer==NULL)
+			{
+				previous_frame.width = picture->width;
+				previous_frame.height = picture->height;
+				frame_size = ( previous_frame.width * previous_frame.height )*3/2;
+				printf("Allocating previous frame.\n");
+				previous_frame.buffer=vp_os_malloc( frame_size );
+			}
+
+			/* Copy the current frame in a buffer so it can be encoded at next stage call */
+			if (previous_frame.buffer!=NULL)
+			{
+				char * dest = previous_frame.buffer;
+				int size = picture->width*picture->height;
+				vp_os_memcpy(dest,picture->y_buf,size);
+
+				dest+=size;
+				size /= 4;
+				vp_os_memcpy(dest,picture->cb_buf,size);
+
+				dest+=size;
+				vp_os_memcpy(dest,picture->cr_buf,size);
+			}
 		}
-
-	  /* Create a buffer to hold the current frame */
-		//if (0)
+		else
 		{
-	  if (previous_frame.buffer!=NULL && (previous_frame.width!=picture->width || previous_frame.height!=picture->height))
-		{
-			vp_os_free(previous_frame.buffer);
-			previous_frame.buffer=NULL;
-		}
-		if (previous_frame.buffer==NULL)
-		{
-			previous_frame.width = picture->width;
-			previous_frame.height = picture->height;
-			frame_size = ( previous_frame.width * previous_frame.height )*3/2;
-			printf("Allocating previous frame.\n");
-			previous_frame.buffer=vp_os_malloc( frame_size );
-		}
-
-	/* Copy the current frame in a buffer so it can be encoded at next stage call */
-		if (previous_frame.buffer!=NULL)
-		{
-			char * dest = previous_frame.buffer;
-			int size = picture->width*picture->height;
-			vp_os_memcpy(dest,picture->y_buf,size);
-
-			dest+=size;
-			size /= 4;
-			vp_os_memcpy(dest,picture->cb_buf,size);
-
-			dest+=size;
-			vp_os_memcpy(dest,picture->cr_buf,size);
-		}
-		}
-  }
-
-
-  else
-	{
-		if(cfg->startRec==VIDEO_RECORD_STOP && flag_video_file_open)
-		{
-			close_video_file();
-			flag_video_file_open=0;
+			if(cfg->flag_video_file_open && cfg->startRec == VIDEO_RECORD_STOP)
+			{
+				close_video_file();
+				cfg->flag_video_file_open=0;
+			}
 		}
 	}
 
-  vp_os_mutex_unlock( &out->lock );
+	vp_os_mutex_unlock( &out->lock );
 
-  return C_OK;
+	return C_OK;
 }
-
-
 
 /******************************************************************************************************************************************/
 
 
 C_RESULT video_stage_ffmpeg_recorder_close(video_stage_ffmpeg_recorder_config_t *cfg)
 {
-  if( cfg->fp != NULL )
-    fclose( cfg->fp );
+	if(cfg->flag_video_file_open)
+	{
+		close_video_file();
+		cfg->flag_video_file_open=0;
+	}
 
-  return C_OK;
+	return C_OK;
 }
-
-
 
 #endif

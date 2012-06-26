@@ -42,8 +42,8 @@ typedef struct _AT_CODEC_FUNCTIONS_PTRS_
   AT_CODEC_ERROR_CODE (*enable)   (void);
   AT_CODEC_ERROR_CODE (*open)     (void);
   AT_CODEC_ERROR_CODE (*close)    (void);
-  AT_CODEC_ERROR_CODE (*write)    (int8_t *buffer, int32_t *len);
-  AT_CODEC_ERROR_CODE (*read)     (int8_t *buffer, int32_t *len);
+  AT_CODEC_ERROR_CODE (*write)    (uint8_t *buffer, int32_t *len);
+  AT_CODEC_ERROR_CODE (*read)     (uint8_t *buffer, int32_t *len);
 }
 AT_CODEC_FUNCTIONS_PTRS;
 

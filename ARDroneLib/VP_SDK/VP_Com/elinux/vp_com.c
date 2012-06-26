@@ -1,3 +1,4 @@
+#include <time.h>
 #include <VP_Os/vp_os_malloc.h>
 #include <VP_Os/vp_os_signal.h>
 #include <VP_Os/vp_os_assert.h>
@@ -7,8 +8,8 @@
 #include <VP_Com/vp_com_error.h>
 #include <VP_Api/vp_api_error.h>
 
-#include "vp_com_bluetooth.h"
 #include "vp_com_wifi.h"
+#include "vp_com_bluetooth.h"
 #include "vp_com_serial.h"
 #include "vp_com_wired.h"
 

@@ -20,7 +20,23 @@
 #include <VP_Os/vp_os_malloc.h>
 #include <VP_Os/vp_os_assert.h>
 #include <VP_Os/vp_os_print.h>
+#ifdef USE_ELINUX
+#include <VP_Os/elinux/vp_os_ltt.h>
+#endif
 
+const vp_api_resolution_wh_t VP_API_RESOLUTION_WH [VP_API_RES_UB]={
+		/* VP_API_RES_LB    */ {0,0},
+		/* VP_API_RES_SQCIF */ {128,96},
+		/* VP_API_RES_QCIF */ {176,144},
+		/* VP_API_RES_QVGA  */ {320,240},
+		/* VP_API_RES_CIF   */ {352,288},
+		/* VP_API_RES_VGA   */ {640,480},
+		/* VP_API_RES_QQCIF */ {88,72},
+		/* VP_API_RES_TWEAKY_QQVGA */ {160,120},
+		/* VP_API_RES_hdtv360P */  {640,360},
+ 		/* VP_API_RES_hdtv720P */  {1280,720},
+ 		/* VP_API_RES_hdtv1080P */ {1920,1080}
+};
 ///////////////////////////////////////////////
 // STATICS
 
@@ -204,7 +220,21 @@ vp_api_iteration(vp_api_io_pipeline_t *pipeline, vp_api_io_stage_t* previousStag
 
   vp_os_mutex_unlock(&stage->data.lock);
   RTMON_USTART(SDK_STAGE_TRANSFORM_UEVENT);
+#ifdef USE_ELINUX
+  if(stage->name != NULL)
+    LTT_WRITEF("stage %s ->",stage->name);
+
+  if(stage->disabled)
+  {
+   res = vp_api_stage_empty_transform(stage->cfg, previousData, &stage->data);
+  }
+  else
+#endif
   res = stage->funcs.transform(stage->cfg, previousData, &stage->data);
+#ifdef USE_ELINUX
+  if(stage->name != NULL)
+    LTT_WRITEF("stage %s <-",stage->name);
+#endif
   RTMON_USTOP(SDK_STAGE_TRANSFORM_UEVENT);
 
   if(stage->data.status == VP_API_STATUS_STILL_RUNNING)

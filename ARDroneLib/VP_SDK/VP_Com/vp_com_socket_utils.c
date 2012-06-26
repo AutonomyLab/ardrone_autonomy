@@ -1,3 +1,7 @@
+#ifdef __ARMCC_VERSION
+#define _SYS_STAT_H
+#endif
+
 #include <VP_Com/vp_com_socket.h>
 #include <VP_Com/vp_com_error.h>
 
@@ -8,7 +12,7 @@
 #include <fcntl.h>
 #include <errno.h>
 
-#ifdef __linux__
+#if defined(__linux__) || defined (__elinux__)
 #include <sys/socket.h>
 #include <sys/ioctl.h>
 #include <netinet/in.h>
@@ -83,6 +87,7 @@ C_RESULT vp_com_client_open_socket(vp_com_socket_t* server_socket, vp_com_socket
 
   vp_os_memcpy( client_socket, server_socket, sizeof(vp_com_socket_t) );
 
+  /* Warn the socket manager that a client is trying to connect ... */
   res = server_socket->select( server_socket, client_socket, VP_COM_SOCKET_SELECT_ENABLE, write );
 
   if( SUCCEED(res) )
@@ -90,10 +95,11 @@ C_RESULT vp_com_client_open_socket(vp_com_socket_t* server_socket, vp_com_socket
     if( server_socket->protocol == VP_COM_TCP )
     {
       client_socket->priv = (void*)accept( s, (struct sockaddr*)&raddr, &l );
+      /* Warn the socket manager that the client is now connected. */
+      res = server_socket->select( server_socket, client_socket, VP_COM_SOCKET_SELECT_CONNECTED, write );
     }
 
     DEBUG_PRINT_SDK("[VP_COM_SERVER] Opening socket for server %d\n", (int)s);
-
     client_socket->server  = server_socket;
   }
   else
@@ -108,8 +114,8 @@ C_RESULT vp_com_client_open_socket(vp_com_socket_t* server_socket, vp_com_socket
 void vp_com_client_receive( vp_com_socket_t *client_socket )
 {
 
-  static int8_t *local_buffer=NULL ;//[VP_COM_THREAD_LOCAL_BUFFER_MAX_SIZE];
-  static int8_t *new_buffer=NULL;
+  static uint8_t *local_buffer=NULL ;//[VP_COM_THREAD_LOCAL_BUFFER_MAX_SIZE];
+  static uint8_t *new_buffer=NULL;
   static int32_t local_buffer_length=0;
 
   struct sockaddr_in from;
@@ -127,7 +133,7 @@ void vp_com_client_receive( vp_com_socket_t *client_socket )
 
 	  /* Resize the buffer */
 	  if (local_buffer==NULL || local_buffer_length<VP_COM_THREAD_LOCAL_BUFFER_SIZE)	  {
-		  new_buffer=(int8_t *)vp_os_realloc(local_buffer,VP_COM_THREAD_LOCAL_BUFFER_SIZE);
+		  new_buffer=(uint8_t *)vp_os_realloc(local_buffer,VP_COM_THREAD_LOCAL_BUFFER_SIZE);
 		  if (new_buffer==NULL) { PRINT("Not enough memory to store TCP data.\n"); return;  }
 		  local_buffer = new_buffer;
 		  local_buffer_length = VP_COM_THREAD_LOCAL_BUFFER_SIZE;
@@ -140,7 +146,7 @@ void vp_com_client_receive( vp_com_socket_t *client_socket )
 	  /* We close the socket if an error occurred */
 	  if( received <= 0)
 	   {
-	 	 PRINT("\nClosing socket on port %i.\n",client_socket->port);
+		  DEBUG_PRINT("\nClosing socket on port %i.\n",client_socket->port);
 	     client_socket->select( client_socket->server, client_socket, VP_COM_SOCKET_SELECT_DISABLE, (Write) vp_com_write_socket );
 	     close( s );
 	     vp_os_memset( client_socket, 0, sizeof(vp_com_socket_t) );
@@ -167,7 +173,7 @@ void vp_com_client_receive( vp_com_socket_t *client_socket )
 				  PRINT("UDP packet is bigger than maximum authorized size. Dropping packet.\n"); return;
 			  }
 			  if (local_buffer==NULL || local_buffer_length<available)	  {
-				  new_buffer=(int8_t *)vp_os_realloc(local_buffer,available);
+				  new_buffer=(uint8_t *)vp_os_realloc(local_buffer,available);
 				  if (new_buffer==NULL) {
 					  PRINT("UDP packet is bigger than available memory. Dropping packet.\n"); return;
 				  }
@@ -182,7 +188,7 @@ void vp_com_client_receive( vp_com_socket_t *client_socket )
 	  /* Closes the socket if an error occurred on an UDP socket   */
 		  if( received < 0 )
 		  {
-			PRINT("\nClosing socket on port %i.\n",client_socket->port);
+			DEBUG_PRINT("\nClosing socket on port %i.\n",client_socket->port);
 			client_socket->select( client_socket->server, client_socket, VP_COM_SOCKET_SELECT_DISABLE, (Write) vp_com_write_socket );
 			close( s );
 			vp_os_memset( client_socket, 0, sizeof(vp_com_socket_t) );

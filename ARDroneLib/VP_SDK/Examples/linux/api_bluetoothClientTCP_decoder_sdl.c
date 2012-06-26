@@ -14,7 +14,7 @@
 #include <VP_Os/vp_os_malloc.h>
 
 
-#ifdef USE_FFMPEG
+#ifdef FFMPEG_SUPPORT
 #define NB_STAGES 3
 #else
 #define NB_STAGES 1
@@ -83,7 +83,7 @@ PROTO_THREAD_ROUTINE(app,nomParams)
   stages[0].type      = VP_API_INPUT_SOCKET;
   stages[0].cfg       = (void *)&icc;
   stages[0].funcs     = vp_stages_input_com_funcs;
-#ifdef USE_FFMPEG
+#ifdef FFMPEG_SUPPORT
   stages[1].type      = VP_API_FILTER_DECODER;
   stages[1].cfg       = (void *)&dfc;
   stages[1].funcs     = vp_stages_decoder_filter_funcs;

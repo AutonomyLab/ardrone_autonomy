@@ -1,3 +1,7 @@
+#ifdef __ARMCC_VERSION
+#define _SYS_STAT_H
+#endif
+
 #include <VP_Com/vp_com_socket.h>
 #include <VP_Com/vp_com_error.h>
 
@@ -8,12 +12,13 @@
 #include <fcntl.h>
 #include <errno.h>
 
-#ifdef __linux__
+#if defined(__linux__) || defined (__elinux__) || defined(TARGET_OS_ANDROID)
 #include <sys/socket.h>
 #include <sys/ioctl.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <unistd.h>
+#include <arpa/inet.h>
 
 #define CYGPKG_NET 1
 #endif
@@ -27,9 +32,11 @@
 
 #ifdef CYGPKG_NET
 
-#ifndef USE_MINGW32
+#if !defined(USE_MINGW32) && !defined(__linux__)&& !defined(__elinux__)
 extern int inet_addr(const char *);
 #endif
+
+
 
 C_RESULT vp_com_open_socket(vp_com_socket_t* sck, Read* read, Write* write)
 {
@@ -92,7 +99,11 @@ C_RESULT vp_com_open_socket(vp_com_socket_t* sck, Read* read, Write* write)
           break;
         }
 
+#ifdef USE_ANDROID
+		__u32 multicast_address, drone_address;
+#else
         in_addr_t multicast_address, drone_address;
+#endif        
         vp_com_wifi_config_t *wifi_cfg = (vp_com_wifi_config_t*) wifi_config();
 
         // compute remote address according to local address
@@ -447,7 +458,8 @@ C_RESULT vp_com_read_socket(vp_com_socket_t* socket, int8_t* buffer, int32_t* si
     *size = recv(s, buffer, *size, flags);
     if(*size < 0)
     {
-      if( errno == EAGAIN )
+      if( errno == EAGAIN ||
+          errno == EWOULDBLOCK )
       {
         *size = 0;
       }

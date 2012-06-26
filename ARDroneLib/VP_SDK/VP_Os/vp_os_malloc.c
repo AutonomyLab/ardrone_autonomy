@@ -5,14 +5,16 @@
  */
 
 #include "VP_Os/vp_os_malloc.h"
-
+#ifdef USE_ELINUX
+#include "config.h"
+#endif
+#include <stdio.h>
 
 #undef calloc
 #undef malloc
 #undef memset
 #undef free
 #undef realloc
-
 
 void *
 vp_os_calloc(size_t nmemb, size_t size)
@@ -67,6 +69,7 @@ vp_os_sfree(void **ptr)
   *ptr=NULL;
 }
 
+#if !defined(CARD_VERSION) || CARD_VERSION>=0x20
 // align_size has to be a power of two !!!
 //
 // The basic working of this algorithm is to allocate a bigger chunk of data than requested.
@@ -160,6 +163,26 @@ vp_os_aligned_realloc(void* ptr, size_t size, size_t align_size)
 
   return ptr_ret;
 }
+#else
+#include "dma_malloc.h"
+// On P6, we need to use dma_alloc instead of vp_os_alligned_malloc.
+void* vp_os_aligned_malloc(size_t size, size_t __attribute__((unused)) align_size)
+{
+	return dma_malloc(size);
+}
+
+void vp_os_aligned_free(void *ptr)
+{
+		dma_free(ptr);
+}
+
+void*
+vp_os_aligned_realloc(void* ptr, size_t size, size_t __attribute__((unused)) align_size)
+{
+	return dma_realloc(ptr, size);
+}
+
+#endif
 
 void*
 vp_os_realloc(void *ptr, size_t size)

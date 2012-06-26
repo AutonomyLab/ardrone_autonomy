@@ -58,23 +58,22 @@ include sysvar.makefile
 #	(c) SDK_TARGET_DIR
 
 
-                               ##############################                              
 ###########################################################################################
 # Main rules
 ###########################################################################################
 
-TARGETS=vlib parrotOS_core parrotOS_utils parrotOS_drivers parrotOS_devs parrotOS_codec libplf sdk lib app
 
-define ADD_RULE_TEMPLATE
-  ifeq ($$(USE_$(shell echo $(1) | tr "a-z" "A-Z")),yes)
-    TO_BUILD+=build_$(1)
-  endif
-endef
+# If we are building a library, just build this library.
+# If we are building an application that depends on some Parrot libraries (USE_xxx=yes), then build these dependencies too.
+ifeq ($(USE_LIB),yes)
+    TO_BUILD+=build_lib
+endif
 
-# Add rule for each target
-$(foreach target,$(TARGETS),$(eval $(call ADD_RULE_TEMPLATE,$(target))))
+ifeq ($(USE_APP),yes)
+    TO_BUILD+=build_app
+endif
 
-.PHONY: $(foreach target,$(TARGETS),build_$(target) clean_$(target))
+.PHONY: $(foreach target,$(TARGETS),build_$(target) clean_$(target)) 
 
 all $(MAKECMDGOALS): $(TO_BUILD)
 	@if [ $(MAKECMDGOALS) ] && [ $(MAKECMDGOALS) = check ] ; then $(SDK_SOURCE_DIR)/Build/cvsstatus.sh $(SDK_SOURCE_DIR)/Build END ; fi
@@ -82,10 +81,77 @@ all $(MAKECMDGOALS): $(TO_BUILD)
 before_check:
 	@if [ $(MAKECMDGOALS) ] && [ $(MAKECMDGOALS) = check ] ; then rm -rf *.log ; fi
 
+
+#------------------------------------------------------------------------------------------------------------------------
+TARGETS=vlib parrotOS_core parrotOS_utils parrotOS_drivers parrotOS_devs parrotOS_codec libplf sdk lib app
+
+# When building on Ubuntu, only the final application (USE_APP) depends on the above-mentioned libraries.
+# The iPhone applications do not use USE_APP; the above-mentioned libraries must therefore be built
+#  when the iPhone makefile builds itself.
+
+define ADD_RULE_TEMPLATE
+  ifneq ($(1),app)
+  ifeq ($$(USE_$(shell echo $(1) | tr "a-z" "A-Z")),yes)
+     build_app: build_$(1)
+  endif
+  endif
+
+  ifneq ($(1),app)
+  ifneq ($(1),lib)
+  ifeq ($$(USE_$(shell echo $(1) | tr "a-z" "A-Z")),yes)
+  ifeq ($(IPHONE_MODE),yes)
+     build_lib: build_$(1)
+  endif
+  ifeq ($(USE_ANDROID),yes)
+     build_lib: build_$(1)
+  endif
+  endif
+  endif
+  endif
+endef
+
+# Make 'app' dependant on all above-mentioned 'TARGETS'
+$(foreach target,$(TARGETS),$(eval $(call ADD_RULE_TEMPLATE,$(target))))
+#------------------------------------------------------------------------------------------------------------------------
+
+
+
+makefileverbose:
+	@echo "Dump compilation flags:"
+	@echo "GENERIC_CFLAGS : $(GENERIC_CFLAGS)"
+	@echo "GENERIC_LIBS : $(GENERIC_LIBS)"
+	@echo "GENERIC_LIB_PATHS : $(GENERIC_LIB_PATHS)"
+	@echo "GENERIC_INCLUDES : $(GENERIC_INCLUDES)"
+	@echo "GENERIC_BINARIES_SOURCE_DIR : $(GENERIC_BINARIES_SOURCE_DIR)"
+	@echo "GENERIC_BINARIES_COMMON_SOURCE_FILES : $(GENERIC_BINARIES_COMMON_SOURCE_FILES)"
+	@echo "GENERIC_TARGET_BINARIES_PREFIX : $(GENERIC_TARGET_BINARIES_PREFIX)"
+	@echo "GENERIC_TARGET_BINARIES_DIR : $(GENERIC_TARGET_BINARIES_DIR)"
+	@echo "GENERIC_BINARIES_SOURCE_ENTRYPOINTS : $(GENERIC_BINARIES_SOURCE_ENTRYPOINTS)"
+	@echo "TMP_SDK_FLAGS: $(TMP_SDK_FLAGS)"
+	@echo "SDK_FLAGS: $(SDK_FLAGS)"
+	@echo "Make cmd goals: $(MAKECMDGOALS)"
+
+##
+## To prevent conflicts during parallel builds, locks are used when building standard blocks like AR.Drone SDK, VLib, etc.
+## This is necessary because all libraries linked against these blocks trigger the blocks Makefile
+## For example, building two independant libraries which both use the SDK would trigger the SDK makefile twice at the same time.
+##
+## The targets 'lib' and 'app' used to build a new library or application are considered parallel-safe.
+## The master Makefile is supposed to correctly handle dependencies between these libraries/applications.
+##
+## 'setlock' is standard on Ubuntu, not on MacOSX
+
+
 define GENERIC_RULES_TEMPLATE
   ifneq ($(1),dll)
     build_$(1): before_check
-	@$(MAKE) -f $(1).makefile $(MAKECMDGOALS)
+#		@echo "\nCalling mkfile for $(1)..."
+   ifeq ("$$(VPSDK_PARALLEL_BUILD)","yes")
+		@setlock /tmp/$(1).lock $$(MAKE) -f $(1).makefile $$(MAKECMDGOALS)
+   else
+		@$$(MAKE) -f $(1).makefile $$(MAKECMDGOALS)
+   endif
+#		@echo "...$(1) done.\n"
   endif
 endef
 
@@ -95,6 +161,7 @@ build_dll: before_check
 
 # Build rules for each target
 $(foreach target,$(TARGETS),$(eval $(call GENERIC_RULES_TEMPLATE,$(target))))
+
 ###########################################################################################
                                ##############################                              
 
@@ -108,7 +175,7 @@ ifneq ($(USE_RTMON),yes)
   FLAGS_FILTER_OUT+=-g
 endif
 
-DEFINE_FLAGS=USE_WIFI USE_CAMIF USE_BASEBAND NO_COM USE_SERIAL USE_VLIB USE_MINGW32 USE_DLL USE_LINUX USE_ELINUX USE_PARROTOS_CORE USE_PARROTOS_UTILS USE_PARROTOS_DRIVERS USE_PARROTOS_DEVS USE_PARROTOS_CODEC USE_LIBPLF USE_BROADCOM USE_IWLIB USE_ANDROID
+DEFINE_FLAGS=USE_WIFI USE_CAMIF USE_BASEBAND NO_COM USE_SERIAL USE_VLIB USE_MINGW32 USE_DLL USE_LINUX USE_ELINUX USE_PARROTOS_CORE USE_PARROTOS_UTILS USE_PARROTOS_DRIVERS USE_PARROTOS_DEVS USE_PARROTOS_CODEC USE_LIBPLF USE_BROADCOM USE_IWLIB USE_ANDROID FFMPEG_SUPPORT ITTIAM_SUPPORT USE_VIDEO_TCP USE_VIDEO_HD
 
 
 ifeq ($(USE_ELINUX),yes)
@@ -156,24 +223,20 @@ else
     ifeq ($(USE_ELINUX),yes)    
       GENERIC_CFLAGS+=-D_ELINUX=$(USE_ELINUX) -D__elinux__ -D__ELINUX__ -DPARROT5
       ifeq ($(PROCESSOR),ARM_CORTEX_A8)
-    	## Check http://processors.wiki.ti.com/index.php/Cortex-A8	
-      	GENERIC_CFLAGS+=-march=armv7-a -mtune=cortex-a8 -mfpu=neon -ftree-vectorize -mfloat-abi=softfp
+## Check http://processors.wiki.ti.com/index.php/Cortex-A8	
+	GENERIC_CFLAGS+=-march=armv7-a -mtune=cortex-a8 -mfpu=neon -ftree-vectorize -mfloat-abi=softfp
       endif
       ifeq ($(PROCESSOR),ARM_926EJS)
-    	## Check http://www.codesourcery.com/sgpp/lite/arm/portal/kbentry26
-      	GENERIC_CFLAGS+=-mcpu=arm926ej-s
+## Check http://www.codesourcery.com/sgpp/lite/arm/portal/kbentry26
+	GENERIC_CFLAGS+=-mcpu=arm926ej-s
       endif
     else
 	     ifneq ($(USE_MINGW32),yes)
 		     GENERIC_CFLAGS+=-D__linux__
-		
+
            ifeq ($(USE_IPHONE),yes)
 		        GENERIC_CFLAGS+=-D__MACOSX__ -std=gnu99
-		        ifeq ($(IPHONE_PLATFORM),iphoneos)
-		           GENERIC_CFLAGS+=-arch $(ARDRONE_TARGET_ARCH)
-		        else  
-		           GENERIC_CFLAGS+=-arch i386
-		        endif
+	            GENERIC_CFLAGS+=-arch $(PLATFORM_PREFERRED_ARCH)
 		     else  
 		        ifeq ($(USE_LINUX), yes)        
 			       GENERIC_CFLAGS+=-D__LINUX__

@@ -1,3 +1,8 @@
+#ifdef __ARMCC_VERSION
+#define _SYS_STAT_H
+#endif
+
+#include <time.h>
 #include <VP_Os/vp_os_malloc.h>
 #include <VP_Os/vp_os_print.h>
 

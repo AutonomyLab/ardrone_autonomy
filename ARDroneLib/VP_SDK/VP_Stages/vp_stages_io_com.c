@@ -61,8 +61,8 @@ vp_stages_input_com_stage_transform(vp_stages_input_com_config_t *cfg, vp_api_io
   {
     out->numBuffers = 1;
     out->size = cfg->buffer_size;
-    out->buffers = (int8_t **) vp_os_malloc (sizeof(int8_t *)+out->size*sizeof(int8_t));
-    out->buffers[0] = (int8_t *)(out->buffers+1);
+    out->buffers = (uint8_t **) vp_os_malloc (sizeof(uint8_t *)+out->size*sizeof(uint8_t));
+    out->buffers[0] = (uint8_t *)(out->buffers+1);
     out->indexBuffer = 0;
     // out->lineSize not used
 

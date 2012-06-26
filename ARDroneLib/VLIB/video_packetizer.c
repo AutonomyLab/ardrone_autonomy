@@ -21,9 +21,12 @@ C_RESULT video_packetizer_init( video_controller_t* controller )
 
 C_RESULT video_packetizer_close( video_controller_t* controller )
 {
+    if(controller->in_stream.bytes != NULL)
+    {    
   vp_os_free( controller->in_stream.bytes );
-
   controller->in_stream.bytes   = NULL;
+    }
+    
   controller->in_stream.used    = 0;
   controller->in_stream.size    = 0;
   controller->in_stream.index   = 0;

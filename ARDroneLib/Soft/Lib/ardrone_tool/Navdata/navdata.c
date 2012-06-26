@@ -77,6 +77,7 @@ C_RESULT ardrone_navdata_unpack_all(navdata_unpacked_t* navdata_unpacked, navdat
 
   vp_os_memset( navdata_unpacked, 0, sizeof(*navdata_unpacked) );
 
+  navdata_unpacked->nd_seq   = navdata->sequence;
   navdata_unpacked->ardrone_state   = navdata->ardrone_state;
   navdata_unpacked->vision_defined  = navdata->vision_defined;
 
@@ -130,7 +131,7 @@ C_RESULT ardrone_navdata_unpack_all(navdata_unpacked_t* navdata_unpacked, navdat
 
 
         default:
-          //PRINT("Tag %d is an unknown navdata option tag\n", (int) navdata_option_ptr->tag);
+          PRINT("Tag %d is an unknown navdata option tag\n", (int) navdata_option_ptr->tag);
           navdata_option_ptr = (navdata_option_t *)(((uint32_t)navdata_option_ptr) + navdata_option_ptr->size);
           break;
       }

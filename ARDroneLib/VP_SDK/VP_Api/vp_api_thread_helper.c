@@ -40,7 +40,7 @@ C_RESULT vp_api_start_thread_tab(thread_table_entry_t* tab,int32_t idx,THREAD_PA
 
   PRINT("Starting thread %s\n", tab[idx].name);
 
-  if( parameters == NO_PARAM )
+  if( parameters == THREAD_NO_PARAM )
     parameters = tab[idx].parameters;
 
   vp_os_thread_create(tab[idx].routine,

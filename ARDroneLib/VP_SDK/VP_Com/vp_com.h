@@ -75,7 +75,8 @@ typedef enum _VP_COM_SOCKET_PROTOCOL_
 {
   VP_COM_RFCOMM,                                            /// Rfcomm (RS232 emulation available only in bluetooth mode)
   VP_COM_TCP,                                               /// TCP/IP
-  VP_COM_UDP                                                /// UDP/IP
+  VP_COM_UDP,                                               /// UDP/IP
+  VP_COM_PROBE
 } VP_COM_SOCKET_PROTOCOL;
 
 typedef enum _VP_COM_SOCKET_OPTIONS_
@@ -93,7 +94,8 @@ typedef enum _VP_COM_WIFI_EVENTS_
 
 typedef enum _VP_COM_SOCKET_STATE_ {
   VP_COM_SOCKET_SELECT_ENABLE = 0,
-  VP_COM_SOCKET_SELECT_DISABLE  = 1
+  VP_COM_SOCKET_SELECT_DISABLE  = 1,
+  VP_COM_SOCKET_SELECT_CONNECTED =2
 } VP_COM_SOCKET_STATE;
 
 typedef enum _vp_com_autoip_t {
@@ -138,6 +140,8 @@ typedef struct _vp_com_wifi_config_t
   char        country[4];                                   /// Wifi country code. See Broadcom BCM4318 SDIO Country Code
 
 } vp_com_wifi_config_t;
+
+vp_com_config_t* wifi_config(void);
 
 typedef struct _vp_com_bluetooth_config_t
 {
@@ -191,7 +195,7 @@ typedef struct _vp_com_wired_connection_t
   uint32_t    is_up;                                        /// == 1 if connection is up. 0 otherwise
 } vp_com_wired_connection_t;
 
-typedef C_RESULT (*Read_from)  (void* s, int8_t* buffer, int32_t* size, uint32_t from_ip);
+typedef C_RESULT (*Read_from)  (void* s, uint8_t* buffer, int32_t* size, uint32_t from_ip);
 
 
 /**

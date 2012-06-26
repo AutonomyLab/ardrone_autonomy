@@ -32,10 +32,10 @@ extern "C"
   };
 
 #define THREAD_TABLE_ENTRY(name, priority) \
-  { #name, priority, 0, 0, NO_PARAM, thread_##name, 0, DECLARE_CYG_THREAD },
+  { #name, priority, 0, 0, THREAD_NO_PARAM, thread_##name, 0, DECLARE_CYG_THREAD },
 
 #define THREAD_TABLE_ENTRY_STACK(name, priority) \
-  { #name, priority, sizeof stack_##name, stack_##name, NO_PARAM, thread_##name, 0, DECLARE_CYG_THREAD },
+  { #name, priority, sizeof stack_##name, stack_##name, THREAD_NO_PARAM, thread_##name, 0, DECLARE_CYG_THREAD },
 
 #define THREAD_TABLE_ENTRY_STACK_PARAM(name, priority, params) \
   { #name, priority, sizeof stack_##name, stack_##name, params, thread_##name, 0, DECLARE_CYG_THREAD },
@@ -73,7 +73,7 @@ extern "C"
 
 #define SUSPEND_THREAD(name) suspend_thread(get_thread_idx(#name))
 
-#define NO_PARAM        (0)
+#define THREAD_NO_PARAM        (0)
 
 typedef struct
 {

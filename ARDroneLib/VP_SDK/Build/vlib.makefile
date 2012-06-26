@@ -60,7 +60,7 @@ GENERIC_LIBRARY_SOURCE_FILES+=			\
 endif
 
 ifeq ($(USE_IPHONE),yes)
-  ifeq ($(IPHONE_PLATFORM),iphoneos)
+  ifeq ($(PLATFORM_NAME),iphoneos)
 	GENERIC_LIBRARY_SOURCE_FILES+=			\
 		Platform/arm11/video_utils.c		\
 		Platform/arm11/UVLC/uvlc_codec.c

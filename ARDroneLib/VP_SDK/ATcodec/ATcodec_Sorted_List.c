@@ -3,11 +3,11 @@
  * @author aurelien.morelle@parrot.fr
  * @date 2007/01/30
  */
-#include "VP_Os/vp_os_assert.h"
-#include "VP_Os/vp_os_malloc.h"
-#include "VP_Os/vp_os_types.h"
+#include <VP_Os/vp_os_assert.h>
+#include <VP_Os/vp_os_malloc.h>
+#include <VP_Os/vp_os_types.h>
 
-#include "ATcodec_Sorted_List.h"
+#include <ATcodec/ATcodec_Sorted_List.h>
 
 
 #define ATCODEC_MAGIC_NUMBER 0xA7C00DEC

@@ -15,7 +15,7 @@
 */
 /*---------------------------- Includes ------------------------------------*/
 #include <ctype.h>
-#include "iniparser.h"
+#include <iniparser3.0b/src/iniparser.h>
 
 #include <VP_Os/vp_os_print.h>
 
@@ -31,7 +31,6 @@
 #include <config_keys.h>
 
 /*---------------------------- Defines -------------------------------------*/
-#define ASCIILINESZ         (1024)
 #define INI_INVALID_KEY     ((char*)-1)
 
 /*---------------------------------------------------------------------------
@@ -61,7 +60,7 @@ typedef enum _line_status_ {
   allocated, it will be modified at each function call (not re-entrant).
  */
 /*--------------------------------------------------------------------------*/
-static char * strlwc(const char * s)
+char * strlwc(const char * s)
 {
     static char l[ASCIILINESZ+1];
     int i ;
@@ -100,7 +99,7 @@ static char * strstrip(char * s)
 
 	while (isspace((int)*s) && *s) s++;
 	memset(l, 0, ASCIILINESZ+1);
-	strcpy(l, s);
+	strncpy(l, s, sizeof(l)-1);
 	last = l + strlen(l);
 	while (last > l) {
 		if (!isspace((int)*(last-1)))
@@ -192,6 +191,9 @@ char * iniparser_getsecname(dictionary * d, int n)
   for systems that do not have it.
  */
 /*--------------------------------------------------------------------------*/
+
+#ifndef __XSTRDUP_DEFINED__
+#define __XSTRDUP_DEFINED__
 static char * xstrdup(const char * s)
 {
     char * t ;
@@ -203,6 +205,7 @@ static char * xstrdup(const char * s)
     }
     return t ;
 }
+#endif
 
 void iniparser_ptr2val(dictionary_value* value)
 {
@@ -613,7 +616,7 @@ int iniparser_alias_ex(dictionary * d, const char* kkey, int type, void* ptr, vo
       value->rw = rw;
       value->scope = scope;
 
-			if(rw & 1<<2)
+			if(rw & K_NOBIND)
 			{
 				iniparser_ptr2val(value);
 			}
@@ -893,10 +896,10 @@ static line_status iniparser_line(
     char * value)
 {
     line_status sta ;
-    char        line[ASCIILINESZ+1];
+    char        line[ASCIILINESZ+1] = { 0 };
     int         len ;
 
-    strcpy(line, strstrip(input_line));
+    strncpy(line, strstrip(input_line), sizeof(line)-1);
     len = (int)strlen(line);
 
     sta = LINE_UNPROCESSED ;

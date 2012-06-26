@@ -18,7 +18,7 @@
 typedef void THREAD_RET;
 typedef void *THREAD_PARAMS;
 
-#define THREAD_RETURN(value)
+#define THREAD_RETURN(value) return ((THREAD_RET)value)
 
 #endif // ! _THREAD_INCLUDE_OS_DEP_
 

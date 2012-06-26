@@ -41,6 +41,7 @@ PARROTOS_CODEC_INCLUDE_DIR=$(COMMONSOFT)/ParrotOS/codec
 LIBPLF_SOURCE_DIR=$(COMMONSOFT)/libplf/src
 LIBPLF_INCLUDE_DIR=$(COMMONSOFT)/libplf/include
 else
+SDK_PATH:=../..
 SDK_SOURCE_DIR=../
 VLIB_SOURCE_DIR=../../VLIB
 endif
@@ -70,24 +71,39 @@ endif
 
 # Include paths
 ########################
+ifeq ($(FFMPEG_SUPPORT),yes)
+	GENERIC_INCLUDES+=	\
+		-I$(SDK_PATH)/FFMPEG/Includes
+endif
+
+ifeq ($(ITTIAM_SUPPORT),yes)
+	GENERIC_INCLUDES+= \
+		-I$(SDK_PATH)/ITTIAM/avc_decoder/includes \
+                -I$(SDK_PATH)/ITTIAM/m4v_decoder/includes
+endif
+
 ifeq ($(USE_ANDROID),yes)
-GENERIC_INCLUDES+=   \
-     -I$(NDK_PATH)/build/platforms/$(NDK_PLATFORM_VERSION)/arch-arm/usr/include
+GENERIC_INCLUDES+=-I$(NDK_PATH)/platforms/$(NDK_PLATFORM_VERSION)/arch-arm/usr/include
 endif
 
 ifeq ($(USE_IPHONE),yes)
   GENERIC_INCLUDES+=					\
-	-isysroot $(IPHONE_SDK_PATH) \
-	-I$(IPHONE_SDK_PATH)/usr/include/gcc/darwin/4.2
+	-isysroot $(SDKROOT) 				\
+	-I$(SDKROOT)/usr/include
 endif
 
 ifeq ($(USE_ELINUX),yes)
   GENERIC_INCLUDES+=					\
+    -I$(SDK_PATH) \
 	-I$(ALL_SOURCES)/linux/$(ELINUX_VERSION)/Linux/lucie/build/staging-dir_$(BOARD_CPU)_$(BOARD_NAME)/usr/include	\
 	-I$(ALL_SOURCES)/linux/$(ELINUX_VERSION)/Linux/lucie/build/staging-dir_$(BOARD_CPU)_$(BOARD_NAME)/usr/include/linux	\
 	-I$(ALL_SOURCES)/linux/$(ELINUX_VERSION)/Linux/kernel/linux/include	\
 	-I$(ALL_SOURCES)/linux/$(ELINUX_VERSION)/Linux/kernel/linux/drivers	\
 	-I$(ALL_SOURCES)/linux/$(ELINUX_VERSION)/Linux/packages/drivers
+
+    GENERIC_LIB_PATHS+=		\
+	-L$(ALL_SOURCES)/linux/$(ELINUX_VERSION)/Linux/lucie/build/staging-dir_$(BOARD_CPU)_$(BOARD_NAME)/lib	\
+ 	-L$(ALL_SOURCES)/linux/$(ELINUX_VERSION)/Linux/lucie/build/staging-dir_$(BOARD_CPU)_$(BOARD_NAME)/usr/lib 
 	
   ifeq ($(USE_WIFI),yes)
   GENERIC_INCLUDES+=					\
@@ -152,13 +168,6 @@ ifeq ($(NO_COM),no)
 endif
 endif
 
-  GENERIC_INCLUDES+=					\
-	-I$(PFFMPEG_SOURCE_DIR)/specific
-
-ifeq ($(USE_JPEG_P6),yes)
-     GENERIC_INCLUDES+=                  			\
-	-I$(ALL_SOURCES)/linux/$(ELINUX_VERSION)/Linux/lucie/build/build_$(BOARD_CPU)_$(BOARD_NAME)/jpeg-6b
-endif
 ifeq ($(USE_BONJOUR),yes)
   GENERIC_INCLUDES+=-I$(BONJOUR_SOURCE_DIR)
 endif
@@ -210,12 +219,28 @@ ifeq ($(USE_PARROTOS_CORE),yes)
 		$(PARROTOS_DEVS_TARGET_DIR)/libparrotOS_devs.a
 endif
 
+ifeq ($(FFMPEG_SUPPORT),yes)
+    GENERIC_LIB_PATHS+=		\
+		-L$(FFMPEG_SUPPORT_TARGET_DIR)
+  	GENERIC_LIBS+=	\
+  		-lswscale 	\
+  		-lavformat 	\
+  		-lavcodec 	\
+  		-lavutil
+endif
+
+ifeq ($(ITTIAM_SUPPORT),yes)
+	GENERIC_LIB_PATHS+=	\
+		-L$(SDK_PATH)/ITTIAM/avc_decoder/libs
+	GENERIC_LIBS+=		\
+		-lbuf_api_lib	\
+		-lcncl			\
+		-lh264_dec_lib	\
+		-lsys_utils
+endif
+
 ifeq ($(USE_VLIB),yes)
    ifeq ($(USE_ELINUX),yes)
-
-    GENERIC_LIB_PATHS+=		\
-	-L$(ALL_SOURCES)/linux/$(ELINUX_VERSION)/Linux/lucie/build/staging-dir_$(BOARD_CPU)_$(BOARD_NAME)/lib	\
- 	-L$(ALL_SOURCES)/linux/$(ELINUX_VERSION)/Linux/lucie/build/staging-dir_$(BOARD_CPU)_$(BOARD_NAME)/usr/lib 
     
     GENERIC_LIBS+=					\
     -luiomap -ldma_alloc
@@ -253,10 +278,6 @@ else
             GENERIC_LIBS+=					\
 	            -liw
          endif
-        GENERIC_LIBS+=					\
-	       -lSDL						\
-	       -lGL						\
-	       -lGLU
       endif
     endif
 endif
@@ -270,17 +291,6 @@ ifeq ($(USE_ELINUX),yes)
       GENERIC_LIBS+=-liw
     endif
   endif
-  ifeq ($(USE_JPEG_P6),yes)
-    
-    GENERIC_LIB_PATHS+= 				\
-	-L$(ALL_SOURCES)/linux/$(ELINUX_VERSION)/Linux/lucie/build/build_$(BOARD_CPU)_$(BOARD_NAME)/jpeg-6b  \
-	-L$(ALL_SOURCES)/linux/$(ELINUX_VERSION)/Linux/lucie/build/staging-dir_$(BOARD_CPU)_$(BOARD_NAME)/usr/lib
-
-    GENERIC_LIBS+= \
-    -ljpeg \
-    -ldma_alloc \
-    -luiomap
-  endif
 endif
 
 ifeq ($(USE_ARDRONELIB),yes)
@@ -291,6 +301,11 @@ endif
 ifeq ($(USE_ARDRONE_VISION),yes)
 GENERIC_LIB_PATHS+= 					\
 	-L$(ARDRONE_VISION_TARGET_DIR)
+endif
+
+ifeq ($(VIDEO_CODEC),ITTIAM_MP4ARM)
+GENERIC_LIB_PATHS+= 					\
+	-L$(ITTIAM_MPEG4_TARGET_DIR)
 endif
 
 ifeq ($(USE_ARDRONE_POLARIS),yes)

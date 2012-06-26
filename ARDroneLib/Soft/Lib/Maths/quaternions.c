@@ -1,7 +1,7 @@
 /**
  *  \file     quaternions.c
  *  \brief    Quaternions library used by Mykonos
- *  \author   Fran�ois Callou <francois.callou@parrot.com>
+ *  \author   Francois Callou <francois.callou@parrot.com>
  *  \version  1.0
  */
 
@@ -20,7 +20,7 @@ void mul_quat( quaternion_t* out, quaternion_t* q1, quaternion_t* q2)
   VP_OS_ASSERT( out != q2 );
 
   // scalar result
-  out->a = q1->a*q2->a - (q1->v.x*q2->v.x + q1->v.y*q2->v.y + q1->v.z*q2->v.z); 
+  out->a = q1->a*q2->a - (q1->v.x*q2->v.x + q1->v.y*q2->v.y + q1->v.z*q2->v.z);
   
   // pure quaternion result
   cross_vec( &out->v , &q1->v,  &q2->v );
@@ -108,7 +108,7 @@ void quat_to_euler_angles(angles_t* a, quaternion_t* q)
 	//to use with normalised quaternion
 	float32_t sqvx = q->v.x*q->v.x;
 	float32_t sqvy = q->v.y*q->v.y;
-  float32_t sqvz = q->v.z*q->v.z;
+  	float32_t sqvz = q->v.z*q->v.z;
 
  /* if ( f_is_zero(test -0.5) ) { // singularity at north pole
 		a->psi   = 2 * atan2(q->a,q->v.z);
@@ -123,7 +123,20 @@ void quat_to_euler_angles(angles_t* a, quaternion_t* q)
 		return;
 	}*/
   
-	a->phi   = atan2(2*q->v.y*q->v.z+2*q->a*q->v.x , 1 - 2*sqvx - 2*sqvy);
-	a->theta = asin(2*(q->a*q->v.y - q->v.x*q->v.z ));
-	a->psi   = atan2(2*q->v.x*q->v.y+2*q->a*q->v.z , 1 - 2*sqvy - 2*sqvz);
+	a->phi   = atan2f(2*q->v.y*q->v.z+2*q->a*q->v.x , 1 - 2*sqvx - 2*sqvy);
+	a->theta = asinf(2*(q->a*q->v.y - q->v.x*q->v.z ));
+	a->psi   = atan2f(2*q->v.x*q->v.y+2*q->a*q->v.z , 1 - 2*sqvy - 2*sqvz);
+}
+
+void euler_angles_to_quat(angles_t* a, quaternion_t* q)
+{
+	float32_t cphi_2, sphi_2, cthe_2, sthe_2, cpsi_2, spsi_2;
+	sincosf((a->phi)*0.5f,  &sphi_2, &cphi_2);
+	sincosf((a->theta)*0.5f,  &sthe_2, &cthe_2);
+	sincosf((a->psi)*0.5f,  &spsi_2, &cpsi_2);
+
+	q->a   = cphi_2*cthe_2*cpsi_2 + sphi_2*sthe_2*spsi_2;
+	q->v.x = sphi_2*cthe_2*cpsi_2 - cphi_2*sthe_2*spsi_2;
+	q->v.y = cphi_2*sthe_2*cpsi_2 + sphi_2*cthe_2*spsi_2;
+	q->v.z = cphi_2*cthe_2*spsi_2 - sphi_2*sthe_2*cpsi_2;
 }

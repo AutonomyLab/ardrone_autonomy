@@ -16,8 +16,6 @@
 #define INIT_CHAR_COUNT             128
 #define INIT_SON_COUNT              1
 #define INTERNAL_BUFFER_SIZE        1024
-#define ATCODEC_SERVER_YIELD_DELAY  5
-
 
 // For *_sprintf and *_sscanf debug
 //#define AT_CODEC_DEBUG

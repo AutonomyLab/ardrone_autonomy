@@ -13,6 +13,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <arpa/inet.h>
 
 #include <VP_Os/vp_os_thread.h>
 #include <VP_Os/vp_os_malloc.h>
@@ -33,7 +34,7 @@
 #else // Release options
 #define _FTP_DEBUG (0)
 #define _FTP_VERBOSE (0)
-#define _FTP_ERRORS_PRINT (1)
+#define _FTP_ERRORS_PRINT (0)
 #endif
 
 #define FTP_PREFIX "FTP : "
@@ -46,26 +47,34 @@
     {                                                                   \
       fprintf (stderr, "Error in function %s at line %d : ", __FUNCTION__, __LINE__); \
       fprintf (stderr, __VA_ARGS__);                                    \
-      char errorBuffer [512] = {0};                                     \
-      snprintf (errorBuffer, sizeof (errorBuffer)-1, __VA_ARGS__);      \
-      FTPlastErrorMessageSize = strlen (errorBuffer) + 1;               \
-      FTPlastErrorMessage = vp_os_realloc (FTPlastErrorMessage, FTPlastErrorMessageSize); \
-      if (NULL != FTPlastErrorMessage)                                  \
+      char *errorBuffer = vp_os_calloc (COMMAND_BUFFER_SIZE, 1);        \
+      if (NULL != errorBuffer)                                          \
         {                                                               \
-          strncpy (FTPlastErrorMessage, errorBuffer, FTPlastErrorMessageSize); \
+          snprintf (errorBuffer, COMMAND_BUFFER_SIZE-1, __VA_ARGS__);   \
+          FTPlastErrorMessageSize = strlen (errorBuffer) + 1;           \
+          FTPlastErrorMessage = vp_os_realloc (FTPlastErrorMessage, FTPlastErrorMessageSize); \
+          if (NULL != FTPlastErrorMessage)                              \
+            {                                                           \
+              strncpy (FTPlastErrorMessage, errorBuffer, FTPlastErrorMessageSize); \
+            }                                                           \
+          vp_os_free (errorBuffer);                                     \
         }                                                               \
     } while (0)
 #else
 #define FTP_ERROR(...)                                                  \
   do                                                                    \
     {                                                                   \
-      char errorBuffer [512] = {0};                                     \
-      snprintf (errorBuffer, sizeof (errorBuffer)-1, __VA_ARGS__);      \
-      FTPlastErrorMessageSize = strlen (errorBuffer) + 1;               \
-      FTPlastErrorMessage = vp_os_realloc (FTPlastErrorMessage, FTPlastErrorMessageSize); \
-      if (NULL != FTPlastErrorMessage)                                  \
+      char *errorBuffer = vp_os_calloc (COMMAND_BUFFER_SIZE, 1);        \
+      if (NULL != errorBuffer)                                          \
         {                                                               \
-          strncpy (FTPlastErrorMessage, errorBuffer, FTPlastErrorMessageSize); \
+          snprintf (errorBuffer, COMMAND_BUFFER_SIZE-1, __VA_ARGS__);   \
+          FTPlastErrorMessageSize = strlen (errorBuffer) + 1;           \
+          FTPlastErrorMessage = vp_os_realloc (FTPlastErrorMessage, FTPlastErrorMessageSize); \
+          if (NULL != FTPlastErrorMessage)                              \
+            {                                                           \
+              strncpy (FTPlastErrorMessage, errorBuffer, FTPlastErrorMessageSize); \
+            }                                                           \
+          vp_os_free (errorBuffer);                                     \
         }                                                               \
     } while (0)
 #endif
@@ -96,6 +105,9 @@
 
 #ifndef MAX_SIZE_MSG
 #define MAX_SIZE_MSG 32768
+#endif
+#ifndef COMMAND_BUFFER_SIZE
+#define COMMAND_BUFFER_SIZE 512
 #endif
 #define IP_STRING_SIZE 16 // IP strings goes from 8 ("w.x.y.z\0") to 16 ("www.xxx.yyy.zzz\0") chars
 #define LIST_BUFFER_BLOCKSIZE 1024
@@ -162,10 +174,6 @@ DEFINE_THREAD_ROUTINE (ftpGet, param);
 DEFINE_THREAD_ROUTINE (ftpPut, param);
 DEFINE_THREAD_ROUTINE (ftpList, param);
 
-/* GLOBAL CALLBACK RESULT */
-_ftp_status lastStatusFromEmptyCallback = FTP_FAIL;
-char *lastFileListFromEmptyCallback = NULL;
-
 /* FUNCTIONS IMPLEMENTATION */
 
 void
@@ -178,18 +186,25 @@ emptyCallback (_ftp_status status, void *arg, _ftp_t *callingFtp)
       FTP_PRINT ("Trying float arg : %f\n", (NULL != arg) ? *(float *)arg : -1.0);
     }
 #endif
-  lastStatusFromEmptyCallback = status;
-  if(FTP_SUCCESS == status && NULL != arg)
+  if (NULL != callingFtp)
     {
-      lastFileListFromEmptyCallback = (char *)arg;
+      callingFtp->lastStatus = status;
+      if(FTP_SUCCESS == status && NULL != arg)
+        {
+          callingFtp->lastFileList = (char *)arg;
+        }
     }
 }
 
-#define FTP_MAX_NUM_RETRIES 5
+#define FTP_MAX_NUM_RETRIES 10
 _ftp_status
 waitFor226Answer (_ftp_t *ftp)
 {
-  char srvMsg[MAX_SIZE_MSG] = {0};
+  char *srvMsg = vp_os_calloc (MAX_SIZE_MSG, 1);
+  if (NULL == srvMsg)
+    {
+      return FTP_FAIL;
+    }
   int repCode = 0;
   int numretries = FTP_MAX_NUM_RETRIES;
 
@@ -197,12 +212,10 @@ waitFor226Answer (_ftp_t *ftp)
   while (226 != repCode && 0 < numretries)
     {
       ftp_result = ftpRecv (ftp, srvMsg, MAX_SIZE_MSG-1);
-      if (FTP_FAILED (ftp_result))
-        {
-          numretries--;
-        }
+      numretries--;
       repCode = getResponseCode (srvMsg);
     }
+  vp_os_free (srvMsg);
   return ftp_result;
 }
 
@@ -246,12 +259,17 @@ setSockTimeout (int socket, int timeoutSec, int timeoutUsec)
 _ftp_status
 goToBinaryMode (_ftp_t *ftp)
 {
-  char ftpAnswer[256] = {0};
-  _ftp_status ftp_result = ftpTransfert (ftp, "TYPE I\r\n\0", ftpAnswer, 255);
+  char *ftpAnswer = vp_os_calloc (COMMAND_BUFFER_SIZE, 1);
+  if (NULL == ftpAnswer)
+    {
+      return FTP_FAIL;
+    }
+  _ftp_status ftp_result = ftpTransfert (ftp, "TYPE I\r\n\0", ftpAnswer, COMMAND_BUFFER_SIZE-1);
   if (FTP_FAILED (ftp_result))
     {
       FTP_ERROR ("Unable to go to binary mode\n");
     }
+  vp_os_free (ftpAnswer);
   return ftp_result;
 }
 
@@ -264,14 +282,14 @@ flushFtp (_ftp_t *ftp)
   int flushedBytes = 0;
   VP_COM_SOCKET_BLOCKING_OPTIONS oldOptions = ftp->socket->block;
   ftp->socket->block = VP_COM_DONTWAIT;
-  C_RESULT vp_result = ftp->readSock (ftp->socket, (int8_t *)&c, &bytes);
+  C_RESULT vp_result = ftp->readSock (ftp->socket, (uint8_t *)&c, &bytes);
   while (0 < bytes && VP_SUCCEEDED (vp_result))
     {
       flushedBytes++;
 #if _FTP_DEBUG
       printf ("%c", c);
 #endif
-      vp_result = ftp->readSock (ftp->socket, (int8_t *)&c, &bytes);
+      vp_result = ftp->readSock (ftp->socket, (uint8_t *)&c, &bytes);
     }
   FTP_DEBUG ("Flushed %d bytes\n", flushedBytes);
   ftp->socket->block = oldOptions;
@@ -280,18 +298,28 @@ flushFtp (_ftp_t *ftp)
 int
 getFileSize (_ftp_t *ftp, const char *distPath)
 {
-  char ftpCommand[256] = {0};
-  snprintf (ftpCommand, sizeof (ftpCommand)-1, "SIZE %s\r\n", distPath);
-  char ftpAnswer[256] = {0};
-  _ftp_status ftp_result = ftpTransfert (ftp, ftpCommand, ftpAnswer, sizeof (ftpAnswer)-1);
+  char *ftpCommand = vp_os_calloc (COMMAND_BUFFER_SIZE, 1);
+  char *ftpAnswer = vp_os_calloc (COMMAND_BUFFER_SIZE, 1);
+  if (NULL == ftpCommand || NULL == ftpAnswer)
+    {
+      vp_os_free (ftpCommand);
+      vp_os_free (ftpAnswer);
+      return -1;
+    }
+  snprintf (ftpCommand, COMMAND_BUFFER_SIZE-1, "SIZE %s\r\n", distPath);
+  _ftp_status ftp_result = ftpTransfert (ftp, ftpCommand, ftpAnswer, COMMAND_BUFFER_SIZE-1);
   if (FTP_FAILED (ftp_result))
     {
       FTP_ERROR ("Unable to get file size\n");
+      vp_os_free (ftpCommand);
+      vp_os_free (ftpAnswer);
       return -1;
     }
   int size = -1;
   int repCode = 0;
   sscanf (ftpAnswer, "%d %d", &repCode, &size);
+  vp_os_free (ftpCommand);
+  vp_os_free (ftpAnswer);
   return size;
 }
 
@@ -368,7 +396,7 @@ ftpSend (_ftp_t *ftp, const char *message)
   FTP_DEBUG ("Sending %sto FTP at %s:%d\n", message, ftp->socket->serverHost, ftp->socket->port);
 
   int bytes = strlen (message);
-  C_RESULT vp_result = ftp->writeSock (ftp->socket, (int8_t *)message, &bytes);
+  C_RESULT vp_result = ftp->writeSock (ftp->socket, (uint8_t *)message, &bytes);
   if (VP_FAILED (vp_result))
     {
       FTP_ERROR ("Error while sending data\n");
@@ -396,7 +424,7 @@ ftpRecv (_ftp_t *ftp, char *answer, int answSize)
   do
     {
       int bytes = 1;
-      C_RESULT vp_result = ftp->readSock (ftp->socket, (int8_t *)(&answer [index]), &bytes);
+      C_RESULT vp_result = ftp->readSock (ftp->socket, (uint8_t *)(&answer [index]), &bytes);
       if (VP_FAILED (vp_result))
         {
           FTP_ERROR ("Error while reading data\n");
@@ -428,9 +456,9 @@ ftpClose (_ftp_t **ftp)
           if (1 == (*ftp)->connected)
             {
               if (FTP_SUCCESS == ftpAbort ((*ftp))) // An operation was in progress, abort and let time to cleanup.
-              {
-                usleep (100000); // 100ms
-              }
+                {
+                  usleep (100000); // 100ms
+                }
               ftpSend ((*ftp), "QUIT\r\n\0");
               (*ftp)->connected = 0;
             }
@@ -448,8 +476,8 @@ ftpClose (_ftp_t **ftp)
 _ftp_t *
 ftpConnectFromName (const char *name, int port, const char *username, const char *password, _ftp_status *status)
 {
-	struct hostent *hostent = gethostbyname(name);
-	return ftpConnect(inet_ntoa( *( struct in_addr*)( hostent->h_addr)), port, username, password, status);
+  struct hostent *hostent = gethostbyname(name);
+  return ftpConnect(inet_ntoa( *( struct in_addr*)( hostent->h_addr)), port, username, password, status);
 }
 
 _ftp_t *
@@ -481,6 +509,9 @@ ftpConnect (const char *ip, int port, const char *username, const char *password
       FTP_ERROR ("Unable to allocate a ftp structure\n");
       return NULL;
     }
+  retFtp->lastStatus = FTP_SUCCESS;
+  retFtp->lastFileList = NULL;
+
   retFtp->socket = vp_os_malloc (sizeof (vp_com_socket_t));
   if (NULL == retFtp->socket)
     {
@@ -505,7 +536,7 @@ ftpConnect (const char *ip, int port, const char *username, const char *password
       ftpClose (&retFtp);
       return NULL;
     }
-  
+
   int result = setSockTimeout ((int)retFtp->socket->priv, SOCK_TO_SEC, SOCK_TO_USEC);
   if (0 > result)
     {
@@ -514,11 +545,18 @@ ftpConnect (const char *ip, int port, const char *username, const char *password
       return NULL;
     }
 
-  char srvMsg[MAX_SIZE_MSG] = {0};
+  char *srvMsg = vp_os_calloc (MAX_SIZE_MSG, 1);
+  if (NULL == srvMsg)
+    {
+      FTP_ERROR ("Unable to allocate buffer\n");
+      ftpClose (&retFtp);
+      return NULL;
+    }
   if (FTP_FAILED (ftpRecv (retFtp, srvMsg, MAX_SIZE_MSG-1)))
     {
       FTP_ERROR ("Unable to recieve data from server\n");
       ftpClose (&retFtp);
+      vp_os_free (srvMsg);
       return NULL;
     }
 
@@ -527,23 +565,32 @@ ftpConnect (const char *ip, int port, const char *username, const char *password
     {
       FTP_ERROR ("Bad response from server (%d, expected 220)\n", repCode);
       ftpClose (&retFtp);
+      vp_os_free (srvMsg);
       return NULL;
     }
 
-
-  char buffer[256] = {0};
+  char *buffer = vp_os_calloc (COMMAND_BUFFER_SIZE, 1);
+  if (NULL == buffer)
+    {
+      FTP_ERROR ("Unable to allocate buffer\n");
+      ftpClose (&retFtp);
+      vp_os_free (srvMsg);
+      return NULL;
+    }
   if (1 == isAnonymous)
     {
-      snprintf (buffer, sizeof (buffer)-1, "USER anonymous\r\n");
+      snprintf (buffer, COMMAND_BUFFER_SIZE-1, "USER anonymous\r\n");
     }
   else
     {
-      snprintf (buffer, sizeof (buffer)-1, "USER %s\r\n", username);
+      snprintf (buffer, COMMAND_BUFFER_SIZE-1, "USER %s\r\n", username);
     }
   if (FTP_FAILED (ftpTransfert (retFtp, buffer, srvMsg, MAX_SIZE_MSG-1)))
     {
       FTP_ERROR ("Error while sending command\n");
       ftpClose (&retFtp);
+      vp_os_free (srvMsg);
+      vp_os_free (buffer);
       return NULL;
     }
   repCode = getResponseCode (srvMsg);
@@ -556,17 +603,21 @@ ftpConnect (const char *ip, int port, const char *username, const char *password
     {
       FTP_ERROR ("Bad response from server (%d, expected %d)\n", repCode, goodRepCode);
       ftpClose (&retFtp);
+      vp_os_free (srvMsg);
+      vp_os_free (buffer);
       return NULL;
     }
 
   if (0 == isAnonymous)
     {
-      vp_os_memset (buffer, 0x0, sizeof (buffer));
-      snprintf (buffer, sizeof (buffer)-1, "PASS %s\r\n", password);
+      vp_os_memset (buffer, 0x0, COMMAND_BUFFER_SIZE);
+      snprintf (buffer, COMMAND_BUFFER_SIZE-1, "PASS %s\r\n", password);
       if (FTP_FAILED (ftpTransfert (retFtp, buffer, srvMsg, MAX_SIZE_MSG-1)))
         {
           FTP_ERROR ("Error while sending command\n");
           ftpClose (&retFtp);
+          vp_os_free (srvMsg);
+          vp_os_free (buffer);
           return NULL;
         }
       repCode = getResponseCode (srvMsg);
@@ -574,6 +625,8 @@ ftpConnect (const char *ip, int port, const char *username, const char *password
         {
           FTP_ERROR ("Bad response from server (%d, expected 230)\n", repCode);
           ftpClose (&retFtp);
+          vp_os_free (srvMsg);
+          vp_os_free (buffer);
           return NULL;
         }
     }
@@ -582,6 +635,8 @@ ftpConnect (const char *ip, int port, const char *username, const char *password
   retFtp->connected = 1;
   retFtp->opInProgress = 0;
   retFtp->abortCurrentOp = 0;
+  vp_os_free (srvMsg);
+  vp_os_free (buffer);
   return retFtp;
 }
 
@@ -592,7 +647,10 @@ ftpConnect (const char *ip, int port, const char *username, const char *password
 #define CLEAN_PARAMS_WITH_ARG(status,arg)       \
   do                                            \
     {                                           \
-      params->ftp->opInProgress = 0;            \
+      if (NULL != params->ftp)                  \
+        {                                       \
+          params->ftp->opInProgress = 0;        \
+        }                                       \
       CLEAN_PARAMS_ABORT (status,arg);          \
     } while (0)
 #undef CLEAN_PARAMS_ABORT
@@ -601,6 +659,9 @@ ftpConnect (const char *ip, int port, const char *username, const char *password
     {                                                                   \
       _ftp_status locStat = (status);                                   \
       if (NULL != localFile) fclose (localFile);                        \
+      if (NULL != srvMsg) vp_os_free (srvMsg);                          \
+      if (NULL != buffer) vp_os_free (buffer);                          \
+      if (NULL != filePart) vp_os_free (filePart);                      \
       if (NULL != dataSocket)                                           \
         {                                                               \
           vp_com_close_socket (dataSocket);                             \
@@ -641,6 +702,9 @@ ftpConnect (const char *ip, int port, const char *username, const char *password
 
 DEFINE_THREAD_ROUTINE (ftpList, param)
 {
+  char *srvMsg = NULL;
+  char *buffer = NULL; // Compatibility with macros
+  char *filePart = NULL; // Compatibility with macros
   FILE *localFile = NULL; // Compatibilty with macros
   vp_com_socket_t *dataSocket = NULL;
   Read dataRead = NULL;
@@ -653,7 +717,13 @@ DEFINE_THREAD_ROUTINE (ftpList, param)
     }
   flushFtp (params->ftp);
   
-  char srvMsg [MAX_SIZE_MSG] = {0};
+  srvMsg = vp_os_calloc (MAX_SIZE_MSG, 1);
+  if (NULL == srvMsg)
+    {
+      FTP_ERROR ("Unable to allocate buffer\n");
+      CLEAN_PARAMS (FTP_FAIL);
+    }
+
   _ftp_status ftp_result = ftpTransfert (params->ftp, "PASV\r\n\0", srvMsg, MAX_SIZE_MSG-1);
   if (FTP_FAILED (ftp_result))
     {
@@ -712,7 +782,7 @@ DEFINE_THREAD_ROUTINE (ftpList, param)
   char ftpData [2] = {0};
   int bytes = 1, totalBytes;
   vp_os_memset (params->fileList, 0x0, params->listSize);
-  vp_result = dataRead (dataSocket, (int8_t *)ftpData, &bytes);
+  vp_result = dataRead (dataSocket, (uint8_t *)ftpData, &bytes);
   if (VP_FAILED (vp_result))
     {
       FTP_ERROR ("Unable to receive data\n");
@@ -743,7 +813,7 @@ DEFINE_THREAD_ROUTINE (ftpList, param)
       CHECK_ABORT;
       ftpData [0] = 0;
       bytes = 1;
-      vp_result = dataRead (dataSocket, (int8_t *)ftpData, &bytes);
+      vp_result = dataRead (dataSocket, (uint8_t *)ftpData, &bytes);
       if (VP_FAILED (vp_result))
         {
           FTP_ERROR ("Unable to receive data\n");
@@ -797,15 +867,18 @@ DEFINE_THREAD_ROUTINE (ftpList, param)
       vp_os_free (dataSocket);
       dataSocket = NULL;
     }
-  waitFor226Answer (params->ftp);
+  _ftp_status loc226Status = waitFor226Answer (params->ftp);
   flushFtp (params->ftp);
 
 
-  CLEAN_PARAMS_WITH_ARG (FTP_SUCCESS, (void *)params->fileList);
+  CLEAN_PARAMS_WITH_ARG (loc226Status, (void *)params->fileList);
 }
 
 DEFINE_THREAD_ROUTINE (ftpGet, param)
 {
+  char *srvMsg = NULL;
+  char *buffer = NULL;
+  char *filePart = NULL;
   vp_com_socket_t *dataSocket = NULL;
   Read dataRead = NULL;
   Write dataWrite = NULL;
@@ -819,9 +892,19 @@ DEFINE_THREAD_ROUTINE (ftpGet, param)
     }
   flushFtp (params->ftp);
 
-  char buffer[512] = {0};
-  char srvMsg[MAX_SIZE_MSG] = {0};
-  snprintf (buffer, sizeof (buffer)-1, "PASV\r\n");
+  buffer = vp_os_calloc (COMMAND_BUFFER_SIZE, 1);
+  if (NULL == buffer)
+    {
+      FTP_ERROR ("Unable to alloc buffer\n");
+      CLEAN_PARAMS (FTP_FAIL);
+    } 
+  srvMsg = vp_os_calloc (MAX_SIZE_MSG, 1);
+  if (NULL == srvMsg)
+    {
+      FTP_ERROR ("Unable to alloc buffer\n");
+      CLEAN_PARAMS (FTP_FAIL);
+    }
+  snprintf (buffer, COMMAND_BUFFER_SIZE-1, "PASV\r\n");
   _ftp_status ftp_result = ftpTransfert (params->ftp, buffer, srvMsg, MAX_SIZE_MSG-1);
   if (FTP_FAILED (ftp_result))
     {
@@ -835,6 +918,10 @@ DEFINE_THREAD_ROUTINE (ftpGet, param)
       CLEAN_PARAMS (FTP_FAIL);
     }
 
+  char dataIp [IP_STRING_SIZE] = {0};
+  int dataPort = 0;
+  getPassiveIpAndPort (srvMsg, dataIp, &dataPort, IP_STRING_SIZE);
+ 
   ftp_result = goToBinaryMode (params->ftp);
   if (FTP_FAILED (ftp_result))
     {
@@ -871,11 +958,9 @@ DEFINE_THREAD_ROUTINE (ftpGet, param)
         }
       sizeToGet = fileSize - localFileSize;
 
-      char buffer[50] = {0};
       appendOffset = fileSize - sizeToGet;
-      snprintf (buffer, sizeof (buffer)-1, "REST %d\r\n", appendOffset);
-      char srvAnsw[MAX_SIZE_MSG] = {0};
-      _ftp_status ftp_result = ftpTransfert (params->ftp, buffer, srvAnsw, MAX_SIZE_MSG-1);
+      snprintf (buffer, COMMAND_BUFFER_SIZE-1, "REST %d\r\n", appendOffset);
+      _ftp_status ftp_result = ftpTransfert (params->ftp, buffer, srvMsg, MAX_SIZE_MSG-1);
       if (FTP_FAILED (ftp_result))
         {
           FTP_ERROR ("Unable to set server offset\n");
@@ -883,10 +968,6 @@ DEFINE_THREAD_ROUTINE (ftpGet, param)
         }
     }
 
-  char dataIp [IP_STRING_SIZE] = {0};
-  int dataPort = 0;
-  getPassiveIpAndPort (srvMsg, dataIp, &dataPort, IP_STRING_SIZE);
- 
   FTP_DEBUG ("Thread will connect to %s:%d\n", dataIp, dataPort);
   dataSocket = vp_os_malloc (sizeof (vp_com_socket_t));
   if (NULL == dataSocket)
@@ -917,8 +998,8 @@ DEFINE_THREAD_ROUTINE (ftpGet, param)
 
   CHECK_ABORT;
 
-  vp_os_memset (buffer, 0x0, sizeof (buffer));
-  snprintf (buffer, sizeof (buffer)-1, "RETR %s\r\n", params->remoteName);
+  vp_os_memset (buffer, 0x0, COMMAND_BUFFER_SIZE);
+  snprintf (buffer, COMMAND_BUFFER_SIZE-1, "RETR %s\r\n", params->remoteName);
   ftp_result = ftpSend (params->ftp, buffer);
   if (FTP_FAILED (ftp_result))
     {
@@ -930,8 +1011,12 @@ DEFINE_THREAD_ROUTINE (ftpGet, param)
   float percentGot = (sizeGot * 100.0) / (fileSize *1.0);
   params->callback (FTP_PROGRESS, (void *)&percentGot, params->ftp);
   
-  char filePart [MAX_SIZE_MSG] = {0};
-
+  filePart = vp_os_calloc (MAX_SIZE_MSG, 1);
+  if (NULL == filePart)
+    {
+      FTP_ERROR ("Unable to alloc buffer\n");
+      CLEAN_PARAMS (FTP_FAIL);
+    }
 
   if (1 == appendToFile)
     {
@@ -950,7 +1035,7 @@ DEFINE_THREAD_ROUTINE (ftpGet, param)
     {
       CHECK_ABORT;
       int bytes = MAX_SIZE_MSG-1;
-      C_RESULT vp_result = dataRead (dataSocket, (int8_t *)filePart, &bytes);
+      C_RESULT vp_result = dataRead (dataSocket, (uint8_t *)filePart, &bytes);
       if (VP_FAILED (vp_result))
         {
           FTP_ERROR ("Error while receiving data\n");
@@ -990,14 +1075,17 @@ DEFINE_THREAD_ROUTINE (ftpGet, param)
       vp_os_free (dataSocket);
       dataSocket = NULL;
     }
-  waitFor226Answer (params->ftp);
+  _ftp_status loc226Status = waitFor226Answer (params->ftp);
   flushFtp (params->ftp);
 
-  CLEAN_PARAMS (FTP_SUCCESS);
+  CLEAN_PARAMS (loc226Status);
 }
 
 DEFINE_THREAD_ROUTINE (ftpPut, param)
 {
+  char *srvMsg = NULL;
+  char *buffer = NULL;
+  char *filePart = NULL;
   vp_com_socket_t *dataSocket = NULL;
   Read dataRead = NULL;
   Write dataWrite = NULL;
@@ -1011,9 +1099,20 @@ DEFINE_THREAD_ROUTINE (ftpPut, param)
     }
   flushFtp (params->ftp);
 
-  char buffer[512] = {0};
-  char srvMsg[MAX_SIZE_MSG] = {0};
-  snprintf (buffer, sizeof (buffer)-1, "PASV\r\n");
+  buffer = vp_os_calloc (COMMAND_BUFFER_SIZE, 1);
+  if (NULL == buffer)
+    {
+      FTP_ERROR ("Unable to alloc buffer\n");
+      CLEAN_PARAMS (FTP_FAIL);
+    } 
+  srvMsg = vp_os_calloc (MAX_SIZE_MSG, 1);
+  if (NULL == srvMsg)
+    {
+      FTP_ERROR ("Unable to alloc buffer\n");
+      CLEAN_PARAMS (FTP_FAIL);
+    }
+
+  snprintf (buffer, COMMAND_BUFFER_SIZE-1, "PASV\r\n");
   _ftp_status ftp_result = ftpTransfert (params->ftp, buffer, srvMsg, MAX_SIZE_MSG-1);
   if (FTP_FAILED (ftp_result))
     {
@@ -1026,6 +1125,10 @@ DEFINE_THREAD_ROUTINE (ftpPut, param)
       FTP_ERROR ("Bad response from server (%d, expected 227)\n", repCode);
       CLEAN_PARAMS (FTP_FAIL);
     }
+
+  char dataIp [IP_STRING_SIZE] = {0};
+  int dataPort = 0;
+  getPassiveIpAndPort (srvMsg, dataIp, &dataPort, IP_STRING_SIZE);
 
   ftp_result = goToBinaryMode (params->ftp);
   if (FTP_FAILED (ftp_result))
@@ -1063,21 +1166,15 @@ DEFINE_THREAD_ROUTINE (ftpPut, param)
         }
       sizeToPut = localFileSize - fileSize;
 
-      char buffer [50] = {0};
       appendOffset = localFileSize - sizeToPut;
-      snprintf (buffer, sizeof (buffer)-1, "REST %d\r\n", appendOffset);
-      char srvAnswer[MAX_SIZE_MSG] = {0};
-      ftp_result = ftpTransfert (params->ftp, buffer, srvAnswer, MAX_SIZE_MSG-1);
+      snprintf (buffer, COMMAND_BUFFER_SIZE-1, "REST %d\r\n", appendOffset);
+      ftp_result = ftpTransfert (params->ftp, buffer, srvMsg, MAX_SIZE_MSG-1);
       if (FTP_FAILED (ftp_result))
         {
           FTP_ERROR ("Unable to set server offset\n");
           CLEAN_PARAMS (ftp_result);
         }
     }
-
-  char dataIp [IP_STRING_SIZE] = {0};
-  int dataPort = 0;
-  getPassiveIpAndPort (srvMsg, dataIp, &dataPort, IP_STRING_SIZE);
 
   FTP_DEBUG ("Thread will connect to %s:%d\n", dataIp, dataPort);
   dataSocket = vp_os_malloc (sizeof (vp_com_socket_t));
@@ -1109,8 +1206,8 @@ DEFINE_THREAD_ROUTINE (ftpPut, param)
 
   CHECK_ABORT;
 
-  vp_os_memset (buffer, 0x0, sizeof (buffer));
-  snprintf (buffer, sizeof (buffer)-1, "STOR %s\r\n", params->remoteName);
+  vp_os_memset (buffer, 0x0, COMMAND_BUFFER_SIZE);
+  snprintf (buffer, COMMAND_BUFFER_SIZE-1, "STOR %s\r\n", params->remoteName);
   ftp_result = ftpTransfert (params->ftp, buffer, srvMsg, MAX_SIZE_MSG-1);
   if (FTP_FAILED (ftp_result))
     {
@@ -1130,7 +1227,12 @@ DEFINE_THREAD_ROUTINE (ftpPut, param)
 
   int numberOfFullSendNeeded = (sizeToPut / (MAX_SIZE_MSG-1));
   int partialSendNeeded = (sizeToPut % (MAX_SIZE_MSG-1)); // Zero if not needed, non-zero if needed
-  char filePart [MAX_SIZE_MSG] = {0};
+  filePart = vp_os_calloc (MAX_SIZE_MSG, 1);
+  if (NULL == filePart)
+    {
+      FTP_ERROR ("Unable to alloc buffer \n");
+      CLEAN_PARAMS (FTP_FAIL);
+    }
 
   localFile = fopen (params->localName, "rb");
   if (NULL == localFile)
@@ -1145,13 +1247,12 @@ DEFINE_THREAD_ROUTINE (ftpPut, param)
     {
       CHECK_ABORT;
       int bytes = fread (filePart, 1, MAX_SIZE_MSG-1, localFile);
-      if (0 > bytes)
+      if (MAX_SIZE_MSG-1 != bytes)
         {
           FTP_ERROR ("Unable to read from file\n");
           CLEAN_PARAMS (FTP_FAIL);
         }
-      bytes = MAX_SIZE_MSG-1;
-      C_RESULT vp_result = dataWrite (dataSocket, (int8_t *)filePart, &bytes);
+      C_RESULT vp_result = dataWrite (dataSocket, (uint8_t *)filePart, &bytes);
       if (VP_FAILED (vp_result))
         {
           FTP_ERROR ("Unable to send data\n");
@@ -1162,7 +1263,7 @@ DEFINE_THREAD_ROUTINE (ftpPut, param)
           FTP_ERROR ("Send timeout\n");
           CLEAN_PARAMS (FTP_TIMEOUT);
         }
-      sizeSent += MAX_SIZE_MSG-1;
+      sizeSent += bytes;
       percentSend = (sizeSent * 100.0) / (localFileSize * 1.0);
       params->callback (FTP_PROGRESS, (void *)&percentSend, params->ftp);
     }
@@ -1179,7 +1280,7 @@ DEFINE_THREAD_ROUTINE (ftpPut, param)
           CLEAN_PARAMS (FTP_FAIL);
         }
       int sendBytes = bytes;
-      C_RESULT vp_result = dataWrite (dataSocket, (int8_t *)filePart, &sendBytes);
+      C_RESULT vp_result = dataWrite (dataSocket, (uint8_t *)filePart, &sendBytes);
       if (VP_FAILED (vp_result))
         {
           FTP_ERROR ("Unable to send data\n");
@@ -1195,6 +1296,7 @@ DEFINE_THREAD_ROUTINE (ftpPut, param)
       params->callback (FTP_PROGRESS, (void *)&percentSend, params->ftp);
     }
 
+  
   /* Cleaning FTP */
   if (NULL != dataSocket)
     {
@@ -1202,10 +1304,10 @@ DEFINE_THREAD_ROUTINE (ftpPut, param)
       vp_os_free (dataSocket);
       dataSocket = NULL;
     }
-  waitFor226Answer (params->ftp);
+  _ftp_status loc226Status = waitFor226Answer (params->ftp);
   flushFtp (params->ftp);
 
-  CLEAN_PARAMS (FTP_SUCCESS);
+  CLEAN_PARAMS (loc226Status);
 }
 
 
@@ -1251,7 +1353,7 @@ ftpPut (_ftp_t *ftp, const char *localName, const char *remoteName, int useResum
   if (NULL == callback)
     {
       vp_os_thread_join (putThread);
-      threadReturn = lastStatusFromEmptyCallback;
+      threadReturn = ftp->lastStatus;
     }
 
   return threadReturn; 
@@ -1299,7 +1401,7 @@ ftpGet (_ftp_t *ftp, const char *remoteName, const char *localName, int useResum
   if (NULL == callback)
     {
       vp_os_thread_join (getThread);
-      threadReturn = lastStatusFromEmptyCallback;
+      threadReturn = ftp->lastStatus;
     }
 
   return threadReturn;
@@ -1357,11 +1459,11 @@ ftpList (_ftp_t *ftp, char **fileList,  ftp_callback callback)
   if (NULL == callback)
     {
       vp_os_thread_join (listThread);
-      threadReturn = lastStatusFromEmptyCallback;
+      threadReturn = ftp->lastStatus;
       if (FTP_SUCCESS == threadReturn)
         {
-          *fileList = lastFileListFromEmptyCallback;
-          lastFileListFromEmptyCallback = NULL;
+          *fileList = ftp->lastFileList;
+          ftp->lastFileList = NULL;
         }
     }
 
@@ -1372,8 +1474,7 @@ _ftp_status
 ftpRemove (_ftp_t *ftp, const char *remoteName)
 {
   _ftp_status ftp_result = FTP_FAIL;
-  char buffer [256] = {0};
-  char srvMsg [MAX_SIZE_MSG] = {0};
+
   if (NULL == remoteName)
     {
       FTP_ERROR ("remoteName must not be a NULL pointer\n");
@@ -1384,11 +1485,24 @@ ftpRemove (_ftp_t *ftp, const char *remoteName)
       FTP_ERROR ("FTP not open\n");
       return FTP_FAIL;
     }
-  snprintf (buffer, sizeof (buffer)-1, "DELE %s\r\n", remoteName);
+
+  char *buffer = vp_os_calloc (COMMAND_BUFFER_SIZE, 1);
+  char *srvMsg = vp_os_calloc (MAX_SIZE_MSG, 1);
+  if (NULL == buffer || NULL == srvMsg)
+    {
+      FTP_ERROR ("Unable to alloc buffer\n");
+      vp_os_free (buffer);
+      vp_os_free (srvMsg);
+      return FTP_FAIL;
+    }
+
+  snprintf (buffer, COMMAND_BUFFER_SIZE-1, "DELE %s\r\n", remoteName);
   ftp_result = ftpTransfert (ftp, buffer, srvMsg, MAX_SIZE_MSG-1);
   if (FTP_FAILED (ftp_result))
     {
       FTP_ERROR ("Error while sending the delete command\n");
+      vp_os_free (buffer);
+      vp_os_free (srvMsg);
       return ftp_result;
     }
   int repCode = getResponseCode (srvMsg);
@@ -1397,6 +1511,8 @@ ftpRemove (_ftp_t *ftp, const char *remoteName)
       FTP_ERROR ("Bad response from server (%d, expected 250 or 550)\n", repCode);
       ftp_result = FTP_FAIL;
     }
+  vp_os_free (buffer);
+  vp_os_free (srvMsg);
   return ftp_result;
 }
 
@@ -1404,8 +1520,7 @@ _ftp_status
 ftpRename (_ftp_t *ftp, const char *origin, const char *dest)
 {
   _ftp_status ftp_result = FTP_FAIL;
-  char buffer [256] = {0};
-  char srvMsg [MAX_SIZE_MSG] = {0};
+
   if (NULL == origin ||
       NULL == dest)
     {
@@ -1417,28 +1532,46 @@ ftpRename (_ftp_t *ftp, const char *origin, const char *dest)
       FTP_ERROR ("FTP not open\n");
       return FTP_FAIL;
     }
-  snprintf (buffer, sizeof (buffer)-1, "RNFR %s\r\n", origin);
+
+  char *buffer = vp_os_calloc (COMMAND_BUFFER_SIZE, 1);
+  char *srvMsg = vp_os_calloc (MAX_SIZE_MSG, 1);
+  if (NULL == buffer || NULL == srvMsg)
+    {
+      FTP_ERROR ("Unable to alloc buffer\n");
+      vp_os_free (buffer);
+      vp_os_free (srvMsg);
+      return FTP_FAIL;
+    }
+
+  snprintf (buffer, COMMAND_BUFFER_SIZE-1, "RNFR %s\r\n", origin);
   ftp_result = ftpTransfert (ftp, buffer, srvMsg, MAX_SIZE_MSG-1);
   if (FTP_FAILED (ftp_result))
     {
       FTP_ERROR ("Error while sending the RNFR command\n");
+      vp_os_free (buffer);
+      vp_os_free (srvMsg);
       return ftp_result;
     }
   int repCode = getResponseCode (srvMsg);
   if (350 != repCode)
     {
       FTP_ERROR ("Bad response from server (%d, expected 350)\n", repCode);
+      vp_os_free (buffer);
+      vp_os_free (srvMsg);
       ftp_result = FTP_FAIL;
+      return ftp_result;
     }
   
-  vp_os_memset (buffer, 0x0, sizeof (buffer));
-  vp_os_memset (srvMsg, 0x0, sizeof (srvMsg));
+  vp_os_memset (buffer, 0x0, COMMAND_BUFFER_SIZE);
+  vp_os_memset (srvMsg, 0x0, MAX_SIZE_MSG);
   
-  snprintf (buffer, sizeof (buffer)-1, "RNTO %s\r\n", dest);
+  snprintf (buffer, COMMAND_BUFFER_SIZE-1, "RNTO %s\r\n", dest);
   ftp_result = ftpTransfert (ftp, buffer, srvMsg, MAX_SIZE_MSG-1);
   if (FTP_FAILED (ftp_result))
     {
       FTP_ERROR ("Error while sending the RNTO command\n");
+      vp_os_free (buffer);
+      vp_os_free (srvMsg);
       return ftp_result;
     }
   repCode = getResponseCode (srvMsg);
@@ -1456,6 +1589,8 @@ ftpRename (_ftp_t *ftp, const char *origin, const char *dest)
       FTP_ERROR ("Bad response from server (%d, expected 250 or 550)\n", repCode);
       ftp_result = FTP_FAIL;
     }
+  vp_os_free (buffer);
+  vp_os_free (srvMsg);
   return ftp_result;
 }
 
@@ -1463,8 +1598,7 @@ _ftp_status
 ftpCd (_ftp_t *ftp, const char *nextDir)
 {
   _ftp_status ftp_result = FTP_FAIL;
-  char buffer [256] = {0};
-  char srvMsg [MAX_SIZE_MSG] = {0};
+
   if (NULL == nextDir)
     {
       FTP_ERROR ("nextDir must not be NULL\n");
@@ -1475,11 +1609,24 @@ ftpCd (_ftp_t *ftp, const char *nextDir)
       FTP_ERROR ("FTP not open\n");
       return FTP_FAIL;
     }
-  snprintf (buffer, sizeof (buffer)-1, "CWD %s\r\n", nextDir);
+
+  char *buffer = vp_os_calloc (COMMAND_BUFFER_SIZE, 1);
+  char *srvMsg = vp_os_calloc (MAX_SIZE_MSG, 1);
+  if (NULL == buffer || NULL == srvMsg)
+    {
+      FTP_ERROR ("Unable to alloc buffer\n");
+      vp_os_free (buffer);
+      vp_os_free (srvMsg);
+      return FTP_FAIL;
+    }
+  
+  snprintf (buffer, COMMAND_BUFFER_SIZE-1, "CWD %s\r\n", nextDir);
   ftp_result = ftpTransfert (ftp, buffer, srvMsg, MAX_SIZE_MSG-1);
   if (FTP_FAILED (ftp_result))
     {
       FTP_ERROR ("Error while sending the CWD command\n");
+      vp_os_free (buffer);
+      vp_os_free (srvMsg);
       return ftp_result;
     }
   int repCode = getResponseCode (srvMsg);
@@ -1488,6 +1635,8 @@ ftpCd (_ftp_t *ftp, const char *nextDir)
       FTP_ERROR ("Bad response from server (%d, expected 250)\n", repCode);
       ftp_result = FTP_FAIL;
     }
+  vp_os_free (buffer);
+  vp_os_free (srvMsg);
   return ftp_result;
 }
 
@@ -1495,7 +1644,7 @@ _ftp_status
 ftpPwd (_ftp_t *ftp, char *workingDir, int wdLen)
 {
   _ftp_status ftp_result = FTP_FAIL;
-  char srvMsg [MAX_SIZE_MSG] = {0};
+
   if (NULL == workingDir)
     {
       FTP_ERROR ("workingDir must not be NULL\n");
@@ -1506,10 +1655,19 @@ ftpPwd (_ftp_t *ftp, char *workingDir, int wdLen)
       FTP_ERROR ("FTP not open\n");
       return FTP_FAIL;
     }
+
+  char *srvMsg = vp_os_calloc (MAX_SIZE_MSG, 1);
+  if (NULL == srvMsg)
+    {
+      FTP_ERROR ("Unable to alloc buffer\n");
+      return FTP_FAIL;
+    }
+  
   ftp_result = ftpTransfert (ftp, "PWD\r\n\0", srvMsg, MAX_SIZE_MSG-1);
   if (FTP_FAILED (ftp_result))
     {
       FTP_ERROR ("Error while sending the CWD command\n");
+      vp_os_free (srvMsg);
       return ftp_result;
     }
   int repCode = getResponseCode (srvMsg);
@@ -1538,6 +1696,7 @@ ftpPwd (_ftp_t *ftp, char *workingDir, int wdLen)
           FTP_DEBUG ("PWD is %s\n", workingDir);
         }
     }
+  vp_os_free (srvMsg);
   return ftp_result;
 }
 
@@ -1545,8 +1704,7 @@ _ftp_status
 ftpMkdir (_ftp_t *ftp, const char *dirName)
 {
   _ftp_status ftp_result = FTP_FAIL;
-  char buffer [256] = {0};
-  char srvMsg [MAX_SIZE_MSG] = {0};
+
   if (NULL == dirName)
     {
       FTP_ERROR ("dirName must not be NULL\n");
@@ -1557,11 +1715,24 @@ ftpMkdir (_ftp_t *ftp, const char *dirName)
       FTP_ERROR ("FTP not open\n");
       return FTP_FAIL;
     }
-  snprintf (buffer, sizeof (buffer)-1, "MKD %s\r\n", dirName);
+
+  char *buffer = vp_os_calloc (COMMAND_BUFFER_SIZE, 1);
+  char *srvMsg = vp_os_calloc (MAX_SIZE_MSG, 1);
+  if (NULL == buffer || NULL == srvMsg)
+    {
+      FTP_ERROR ("Unable to alloc buffer\n");
+      vp_os_free (buffer);
+      vp_os_free (srvMsg);
+      return FTP_FAIL;
+    }
+
+  snprintf (buffer, COMMAND_BUFFER_SIZE-1, "MKD %s\r\n", dirName);
   ftp_result = ftpTransfert (ftp, buffer, srvMsg, MAX_SIZE_MSG-1);
   if (FTP_FAILED (ftp_result))
     {
       FTP_ERROR ("Error while sending the MKD command\n");
+      vp_os_free (buffer);
+      vp_os_free (srvMsg);
       return ftp_result;
     }
   int repCode = getResponseCode (srvMsg);
@@ -1570,6 +1741,8 @@ ftpMkdir (_ftp_t *ftp, const char *dirName)
       FTP_ERROR ("Bad response from server (%d, expected 257)\n", repCode);
       ftp_result = FTP_FAIL;
     }
+  vp_os_free (buffer);
+  vp_os_free (srvMsg);
   return ftp_result;
 }
 
@@ -1577,8 +1750,7 @@ _ftp_status
 ftpRmdir (_ftp_t *ftp, const char *dirName)
 {
   _ftp_status ftp_result = FTP_FAIL;
-  char buffer [256] = {0};
-  char srvMsg [MAX_SIZE_MSG] = {0};
+
   if (NULL == dirName)
     {
       FTP_ERROR ("dirName must not be NULL\n");
@@ -1589,11 +1761,24 @@ ftpRmdir (_ftp_t *ftp, const char *dirName)
       FTP_ERROR ("FTP not open\n");
       return FTP_FAIL;
     }
-  snprintf (buffer, sizeof (buffer)-1, "RMD %s\r\n", dirName);
+
+  char *buffer = vp_os_calloc (COMMAND_BUFFER_SIZE, 1);
+  char *srvMsg = vp_os_calloc (MAX_SIZE_MSG, 1);
+  if (NULL == buffer || NULL == srvMsg)
+    {
+      FTP_ERROR ("Unable to alloc buffer\n");
+      vp_os_free (buffer);
+      vp_os_free (srvMsg);
+      return FTP_FAIL;
+    }
+
+  snprintf (buffer, COMMAND_BUFFER_SIZE-1, "RMD %s\r\n", dirName);
   ftp_result = ftpTransfert (ftp, buffer, srvMsg, MAX_SIZE_MSG-1);
   if (FTP_FAILED (ftp_result))
     {
       FTP_ERROR ("Error while sending the RMD command\n");
+      vp_os_free (buffer);
+      vp_os_free (srvMsg);
       return ftp_result;
     }
   int repCode = getResponseCode (srvMsg);
@@ -1612,6 +1797,8 @@ ftpRmdir (_ftp_t *ftp, const char *dirName)
       FTP_ERROR ("Bad response from server (%d, expected 250 or 550)\n", repCode);
       ftp_result = FTP_FAIL;
     }
+  vp_os_free (buffer);
+  vp_os_free (srvMsg);
   return ftp_result;
 }
 

@@ -55,6 +55,26 @@ typedef enum _VP_API_IO_TYPES_
   VP_API_PIPE
 }
 VP_API_IO_TYPE;
+typedef enum _VP_API_RESOLUTION
+{
+	  VP_API_RES_LB=0,
+
+	  VP_API_RES_SQCIF,
+	  VP_API_RES_QCIF,
+	  VP_API_RES_QVGA,
+	  VP_API_RES_CIF,
+	  VP_API_RES_VGA,
+	  VP_API_RES_QQCIF,
+	  VP_API_RES_TWEAKY_QQVGA,
+	  VP_API_RES_hdtv360P,
+	  VP_API_RES_hdtv720P,
+	  VP_API_RES_hdtv1080P,
+	  VP_API_RES_UB
+} VP_API_RESOLUTION;
+
+typedef struct { int w,h; } vp_api_resolution_wh_t;
+
+extern const vp_api_resolution_wh_t VP_API_RESOLUTION_WH [VP_API_RES_UB];
 
 /**
  * @enum  _VP_API_IO_STATUS_
@@ -78,7 +98,7 @@ VP_API_IO_STATUS;
 typedef struct _vp_api_io_data_
 {
   uint32_t         numBuffers;
-  int8_t         **buffers;
+  uint8_t         **buffers;
   uint32_t         indexBuffer;
 
   int32_t          size;
@@ -89,7 +109,6 @@ typedef struct _vp_api_io_data_
   vp_os_mutex_t    lock;
 }
 vp_api_io_data_t;
-
 
 /**
  * @struct _vp_api_io_stage_
@@ -104,6 +123,10 @@ typedef struct _vp_api_io_stage_
   void                 *cfg;
   vp_api_stage_funcs_t  funcs;
   vp_api_io_data_t      data;
+#if defined(USE_ELINUX) || defined(USE_LINUX)
+  const char * name;
+  uint8_t      disabled;
+#endif
 }
 vp_api_io_stage_t;
 
@@ -116,6 +139,7 @@ vp_api_io_stage_t;
  */
 typedef struct _vp_api_io_pipeline_
 {
+  char * name;
   uint32_t                nb_stages;
   vp_api_io_stage_t      *stages;
   vp_api_handle_msg_t     handle_msg;

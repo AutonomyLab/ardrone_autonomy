@@ -42,7 +42,7 @@ C_RESULT vp_stages_buffer_to_picture_transform(vp_stages_buffer_to_picture_confi
   if(out->status == VP_API_STATUS_INIT)
   {
     out->numBuffers   = 1;
-    out->buffers      = (int8_t**)(int8_t*) cfg->picture;
+    out->buffers      = (uint8_t**) &cfg->picture;
     out->indexBuffer  = 0;
     out->lineSize     = 0;
 
@@ -197,11 +197,11 @@ C_RESULT vp_stages_picture_to_buffer_transform(vp_stages_picture_to_buffer_confi
     c_size  = cfg->luma_only ? 0 : y_size / 4;
 
     // We alloc an array big enough to hold all ours data
-    out->buffers      = (int8_t**) vp_os_malloc( (y_size+2*c_size+cfg->custom_data_size)*sizeof(int8_t) + sizeof(int8_t*));
+    out->buffers      = (uint8_t**) vp_os_malloc( (y_size+2*c_size+cfg->custom_data_size)*sizeof(uint8_t) + sizeof(uint8_t*));
     out->indexBuffer  = 0;
     out->status       = VP_API_STATUS_PROCESSING;
 
-    out->buffers[0]   = (int8_t *)(out->buffers+1);
+    out->buffers[0]   = (uint8_t *)(out->buffers+1);
   }
   else
   {

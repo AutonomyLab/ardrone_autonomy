@@ -14,11 +14,13 @@
 
 /*--- Libraries --------------------------------------------------------------*/
 
+#include <sys/time.h>
+
 #include <ardrone_common_config.h>
 #include <ATcodec/ATcodec_api.h>
+#include <VP_Os/vp_os_malloc.h>
 #include <navdata_common.h>
 #include <vision_common.h>
-#include <VP_Os/vp_os_malloc.h>
 #include <Maths/quaternions.h>
 
 /** @def API_WEAK
@@ -45,7 +47,7 @@
  *  particular drone configuration value.
  * **/
 //Deprecated - no ack method - #define ARDRONE_CONFIGURATION_SET(NAME, VALUE) 		     ARDRONE_CONFIGURATION_SET_FUNCTION(NAME)(VALUE)
-#define ARDRONE_CONFIGURATION_SET_FUNCTION(NAME)			ardrone_at_configuration_set_##NAME
+#define ARDRONE_CONFIGURATION_SET_FUNCTION(NAME)	ardrone_at_configuration_set_##NAME
 #define ARDRONE_CONFIGURATION_PROTOTYPE(NAME) 		C_RESULT ARDRONE_CONFIGURATION_SET_FUNCTION(NAME)(void* value, char* ses_id, char* usr_id, char* app_id)
 
 /**
@@ -67,7 +69,7 @@ enum
   ALTITUDE_CONTROL                     = 1,
   ALTITUDE_VISION_CONTROL              = 2,
   ALTITUDE_VISION_CONTROL_TAKEOFF_TRIM = 3,
-  MULTICONFIGURATION		           = 1024
+  MULTICONFIGURATION                   = 1024
 };
 
 
@@ -77,11 +79,9 @@ enum
 typedef enum
 {
   NO_CONTROL_MODE = 0,          /*<! Doing nothing */
-  ARDRONE_UPDATE_CONTROL_MODE,  /*<! Deprecated - Ardrone software update reception (update is done next run) */
-                                /*<! After event completion, card should power off */
-  PIC_UPDATE_CONTROL_MODE,      /*<! Ardrone PIC software update reception (update is done next run) */
-                                /*<! After event completion, card should power off */
-  LOGS_GET_CONTROL_MODE,        /*<! Send previous run's logs */
+  ARDRONE_UPDATE_CONTROL_MODE,  /*<! Not used */
+  PIC_UPDATE_CONTROL_MODE,      /*<! Not used */
+  LOGS_GET_CONTROL_MODE,        /*<! Not used */
   CFG_GET_CONTROL_MODE,         /*<! Send active configuration file to a client through the 'control' socket UDP 5559 */
   ACK_CONTROL_MODE,             /*<! Reset command mask in navdata */
   CUSTOM_CFG_GET_CONTROL_MODE   /*<! Requests the list of custom configuration IDs */
@@ -120,6 +120,9 @@ typedef enum
   CAD_TYPE_STRIPE_V,
   CAD_TYPE_MULTIPLE_DETECTION_MODE,  /* The drone uses several detections at the same time */
   CAD_TYPE_CAP,                      /*<! Detects a Cap orange and green in front of the drone */
+  CAD_TYPE_ORIENTED_COCARDE_BW,      /*<! Detects the black and white roundel */
+  CAD_TYPE_VISION_V2,                /*<! Detects 2nd version of shell/tag in front of the drone */
+  CAD_TYPE_TOWER_SIDE,               /*<! Detect a tower side with the front camera */
   CAD_TYPE_NUM,                      /*<! Number of possible values for CAD_TYPE */
 } CAD_TYPE;
 
@@ -131,10 +134,13 @@ typedef enum
   TAG_TYPE_SHELL_TAG        ,
   TAG_TYPE_ROUNDEL          ,
   TAG_TYPE_ORIENTED_ROUNDEL ,
-  TAG_TYPE_STRIPE,
-  TAG_TYPE_CAP,
+  TAG_TYPE_STRIPE           ,
+  TAG_TYPE_CAP              ,
+  TAG_TYPE_SHELL_TAG_V2     ,
+  TAG_TYPE_TOWER_SIDE       ,
+  TAG_TYPE_BLACK_ROUNDEL    ,
   TAG_TYPE_NUM
-}TAG_TYPE;
+} TAG_TYPE;
 
 #define TAG_TYPE_MASK(tagtype) (  ((tagtype)==0)? 0 : (1<<((tagtype)-1)) )
 
@@ -144,7 +150,7 @@ typedef enum
   DETECTION_SOURCE_CAMERA_VERTICAL,       /*<! Tag was detected on the vertical camera picture at full speed */
   DETECTION_SOURCE_CAMERA_VERTICAL_HSYNC, /*<! Tag was detected on the vertical camera picture inside the horizontal pipeline */
   DETECTION_SOURCE_CAMERA_NUM,
-}DETECTION_SOURCE_CAMERA;
+} DETECTION_SOURCE_CAMERA;
 
 #define DETECTION_MAKE_TYPE(source,tag) ( ((source)<<16) | (tag) )
 #define DETECTION_EXTRACT_SOURCE(type)  ( ((type)>>16) & 0x0FF )
@@ -165,11 +171,11 @@ typedef enum
  */
 typedef enum
 {
-	ARDRONE_DETECTION_COLOR_ORANGE_GREEN = 1,    /*!< Cameras detect orange-green-orange tags */
-	ARDRONE_DETECTION_COLOR_ORANGE_YELLOW,       /*!< Cameras detect orange-yellow-orange tags*/
-	ARDRONE_DETECTION_COLOR_ORANGE_BLUE,          /*!< Cameras detect orange-blue-orange tags */
-	ARDRONE_DETECTION_COLOR_ARRACE_FINISH_LINE=0x10,
-	ARDRONE_DETECTION_COLOR_ARRACE_DONUT=0x11
+  ARDRONE_DETECTION_COLOR_ORANGE_GREEN = 1,    /*!< Cameras detect orange-green-orange tags */
+  ARDRONE_DETECTION_COLOR_ORANGE_YELLOW,       /*!< Cameras detect orange-yellow-orange tags*/
+  ARDRONE_DETECTION_COLOR_ORANGE_BLUE,          /*!< Cameras detect orange-blue-orange tags */
+  ARDRONE_DETECTION_COLOR_ARRACE_FINISH_LINE=0x10,
+  ARDRONE_DETECTION_COLOR_ARRACE_DONUT=0x11
 } COLORS_DETECTION_TYPE, ENEMY_COLORS_TYPE;
 
 /**
@@ -199,10 +205,28 @@ typedef enum LED_ANIMATION_IDS_
   NUM_LED_ANIMATION
 } LED_ANIMATION_IDS;
 
+typedef enum
+{
+	USERBOX_CMD_STOP = 0,
+	USERBOX_CMD_START,
+	USERBOX_CMD_SCREENSHOT,
+	USERBOX_CMD_CANCEL,
+	USERBOX_CMD_MAX,
+} USERBOX_CMD;
+
+typedef enum 
+{
+	FLYING_STATE_LANDED = 0,
+	FLYING_STATE_FLYING,
+	FLYING_STATE_TAKING_OFF,
+	FLYING_STATE_LANDING,
+} FLYING_STATE;
+
 typedef enum ARDRONE_PROGRESSIVE_CMD_FLAG_
 {
   ARDRONE_PROGRESSIVE_CMD_ENABLE,              // 1: use progressive commands - 0: try hovering
   ARDRONE_PROGRESSIVE_CMD_COMBINED_YAW_ACTIVE, // 1: activate combined yaw - 0: Deactivate combined yaw
+  ARDRONE_MAGNETO_CMD_ENABLE,				   // 1: activate the magneto piloting mode - 0: desactivate the mode
   ARDRONE_PROGRESSIVE_CMD_MAX
 } ARDRONE_PROGRESSIVE_CMD_FLAG;
 
@@ -232,7 +256,8 @@ typedef struct _iEuler_angles_t
  * @struct _angular_rates_t
  * @brief Angular rates in float32_t format
  */
-typedef struct _angular_rates_t {
+typedef struct _angular_rates_t
+{
   float32_t p;       /*<! Drone front-back angular rate (pitch) */
   float32_t q;       /*<! Drone left-right angular rate (roll) */
   float32_t r;       /*<! Drone orientation angular rate (yaw) */
@@ -255,7 +280,8 @@ typedef struct _velocities_t {
  * @brief Deprecated - used internally by the drone - Vision params in float32_t
  */
 #ifndef DISABLE_DEPRECATED_CODE
-  typedef struct _acq_vision_t {
+  typedef struct _acq_vision_t
+  {
     float32_t tx;
     float32_t ty;
     float32_t tz;
@@ -300,6 +326,9 @@ typedef struct _api_control_gains_t
   int32_t hovering_ki;      /**<    Gain for integral correction in hovering control */
   int32_t hovering_b_kp;    /**<    Gain for proportional correction in hovering beacon control */
   int32_t hovering_b_ki;    /**<    Gain for integral correction in hovering beacon control */
+  int32_t hovering_b_kp2 ;
+  int32_t hovering_b_ki2 ;
+  int32_t hovering_b_kd2 ;
 } api_control_gains_t;
 
 /**
@@ -325,10 +354,26 @@ typedef struct _api_vision_tracker_params_t
  */
 typedef enum
 {
-  FLYING_MODE_FREE_FLIGHT=0,            /**<    Normal mode, commands are enabled */
-  FLYING_MODE_HOVER_ON_TOP_OF_ROUNDEL,  /**<    Commands are disabled, drones hovers on top of a roundel - roundel detection MUST be activated by the user with 'detect_type' configuration. */
-  FLYING_MODE_NUM
+  FLYING_MODE_FREE_FLIGHT = 0,            			/**< Normal mode, commands are enabled */
+  FLYING_MODE_HOVER_ON_TOP_OF_ROUNDEL = 1 << 0,  	/**< Commands are disabled, drones hovers on top of a roundel - roundel detection MUST be activated by the user with 'detect_type' configuration. */
+  FLYING_MODE_HOVER_ON_TOP_OF_ORIENTED_ROUNDEL = 1 << 1, /**< Commands are disabled, drones hovers on top of an oriented roundel - oriented roundel detection MUST be activated by the user with 'detect_type' configuration. */
 } FLYING_MODE;
+
+/*
+ * @enum TRAVELLING_MODE
+ * @brief Values for the CONTROL:travelling_mode configuration.
+ */
+typedef enum
+{
+  TRAVELLING_MODE_TRANSLATION = 0,  	/**< Travelling translation mode	*/
+  TRAVELLING_MODE_CIRCULAR,				/**< Travelling circular mode 		*/
+  TRAVELLING_MODE_SWING, /**/
+  TRAVELLING_MODE_WHEEL_FRONT, /**/
+  TRAVELLING_MODE_WHEEL_SIDE, /**/
+  TRAVELLING_MODE_GUSH,  /**/
+  TRAVELLING_MODE_PLANAR_WHEEL,/**/
+  TRAVELLING_MODE_NUM,
+} TRAVELLING_MODE;
 
 /**
  * @enum WIFI_MODE
@@ -336,9 +381,9 @@ typedef enum
  */
 typedef enum
 {
-  WIFI_MODE_INFRA = 0,                /**<    Access point mode  */
-  WIFI_MODE_ADHOC ,            /**<    Ad-Hoc mode        */
-  WIFI_MODE_MANAGED,              /**<    Managed mode       */
+  WIFI_MODE_INFRA = 0,        /**<    Access point mode  */
+  WIFI_MODE_ADHOC,            /**<    Ad-Hoc mode        */ 
+  WIFI_MODE_MANAGED,          /**<    Managed mode       */
   WIFI_MODE_NUM
 } WIFI_MODE;
 
@@ -352,6 +397,7 @@ typedef enum
 */
 typedef struct _navdata_unpacked_t
 {
+  uint32_t  nd_seq;
   uint32_t  ardrone_state;
   bool_t    vision_defined;
   uint32_t  last_navdata_refresh;  /*! mask showing which block was refreshed when receiving navdata */
@@ -494,7 +540,7 @@ ATCODEC_RET ardrone_at_send ( void ) API_WEAK;
  * This mask is periodically sent to the drone by ARDroneTool
  * inside an AT*REF command.
  */
-void ardrone_at_set_ui_value( uint32_t value ) API_WEAK;
+void ardrone_at_set_ui_pad_value( uint32_t value ) API_WEAK;
 
 /**
  * @brief  Used internally by Parrot - send misc. config. data.
@@ -529,9 +575,9 @@ void ardrone_at_set_ui_misc( int32_t m1, int32_t m2, int32_t m3, int32_t m4 ) AP
 /**
  * @brief  Makes the drone play a predefined movement
  * @param  type type of animation
- * @param  timeout duration of the animation in seconds
+ * @param  duration duration of the animation in seconds
  */
-void ardrone_at_set_anim( anim_mayday_t type, int32_t timeout ) API_WEAK;
+void ardrone_at_set_anim( anim_mayday_t type, int32_t duration ) API_WEAK;
 
 /**
  * @brief  Instructs the drone to use its current position
@@ -557,9 +603,15 @@ void ardrone_at_set_control_gains( api_control_gains_t* user_ctrl_gains ) API_WE
 void ardrone_at_set_vision_track_params( api_vision_tracker_params_t* params ) API_WEAK;
 
 /**
- * @fn     Start a raw capture
+ * @brief  Start/stop raw capture on the drone.
+ * @param  active : 1 for start capture, 0 to stop
  */
-void ardrone_at_start_raw_capture(void) API_WEAK;
+void ardrone_at_raw_capture( uint8_t active ) API_WEAK;
+
+/**
+ * @brief  Capture a frame in raw format on the drone.
+ */
+void ardrone_at_raw_picture(void) API_WEAK;
 
 /**
  * @brief Changes the type of object to detect
@@ -623,9 +675,9 @@ void ardrone_at_reset_com_watchdog( void ) API_WEAK;
 void ardrone_at_reset_logs( void ) API_WEAK;
 
 /**
- * @brief Asks the drone we receive a plf with a size filesize
+ * @brief Asks the drone we receive ackknowledges
  */
-void ardrone_at_update_control_mode( uint32_t what_to_do, uint32_t filesize ) API_WEAK;
+void ardrone_at_update_control_mode(ARDRONE_CONTROL_MODE control_mode) API_WEAK;
 
 /**
  * @brief Asks the drone to send control mode
@@ -639,6 +691,17 @@ void ardrone_at_custom_configuration_get_ctrl_mode(void) API_WEAK;
 void ardrone_at_configuration_ack_ctrl_mode( void ) API_WEAK;
 
 void ardrone_at_set_autonomous_flight( int32_t isActive );
+
+typedef enum
+  {
+    ARDRONE_CALIBRATION_DEVICE_MAGNETOMETER = 0,
+    ARDRONE_CALIBRATION_DEVICE_NUMBER,
+  } ardrone_calibration_device_t;
+
+/**
+ * @brief Start the calibration of the given device
+ */
+void ardrone_at_set_calibration (int32_t deviceId);
 
 /**
  * @brief Sets the drone motor command directly
@@ -654,13 +717,15 @@ void ardrone_at_set_pwm( int32_t p1, int32_t p2, int32_t p3, int32_t p4 ) API_WE
  * @param roll Front/back angle between -1 to +1 - negative values bend forward.
  * @param gaz Vertical speed - negative values make the drone go down.
  * @param yaw Angular speed - negative values make the drone spin left.
+ * @param magneto_psi floating value between -1 to +1.
+ * @param magneto_psi_accuracy floating value between -1 to +1
  * This function allows the client program to control the drone by giving it a front/back
  * and left/right bending order, a vertical speed order, and a rotation order.
  * All values are given as a percentage of the maximum bending angles (in degrees),
  * vertical speed (in millimeters per second) and angular speed (in degrees per second).
  */
-void ardrone_at_set_progress_cmd( int32_t flag, float32_t phi, float32_t theta, float32_t gaz, float32_t yaw );
-
+void ardrone_at_set_progress_cmd_with_magneto( int32_t flag, float32_t phi, float32_t theta, float32_t gaz, float32_t yaw,  float32_t magneto_psi, float32_t magneto_psi_accuracy );
+void ardrone_at_set_progress_cmd( int32_t flag, float32_t phi, float32_t theta, float32_t gaz, float32_t yaw);
 
 /*****************************************************************
 *                       AT CONFIG FUNCTIONS
@@ -728,7 +793,7 @@ typedef struct _ardrone_config_t
 {
 #include <config_keys.h>
 }
-ardrone_config_t;
+_ATTRIBUTE_PACKED_ ardrone_config_t;
 
 void reset_ardrone_config(void);
 
@@ -739,17 +804,19 @@ void reset_ardrone_config(void);
 #define SESSION_NAME_SIZE 1024
 #define USER_NAME_SIZE 1024
 #define APPLI_NAME_SIZE 1024
+#define ROOT_NAME_SIZE 256
+#define FLIGHT_NAME_SIZE 256
 
 typedef struct _ardrone_user_t
 {
-    char ident[MULTICONFIG_ID_SIZE];
-    char description[USER_NAME_SIZE];
+  char ident[MULTICONFIG_ID_SIZE];
+  char description[USER_NAME_SIZE];
 } ardrone_user_t;
 
 typedef struct _ardrone_users_t
 {
-    int userCount;
-    ardrone_user_t *userList;
+  int userCount;
+  ardrone_user_t *userList;
 } ardrone_users_t;
 
 void ardrone_refresh_user_list(void); // Ask for a userlist refresh

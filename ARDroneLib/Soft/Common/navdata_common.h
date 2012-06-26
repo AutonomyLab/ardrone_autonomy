@@ -87,7 +87,7 @@ typedef struct _velocities_t {
  *  \var     CTRL_DEFAULT_NUM_R_KI
  *  \brief   Numerator of default integral gain for yaw control loops
  */
-#define CTRL_DEFAULT_NUM_R_KI 10000
+#define CTRL_DEFAULT_NUM_R_KI 3000
 
 /**
  *  \var     CTRL_DEFAULT_DEN_W
@@ -105,17 +105,17 @@ typedef struct _velocities_t {
  *  \var     CTRL_DEFAULT_NUM_ALT_KP
  *  \brief   Numerator of default proportionnal gain for Altitude control loop
  */
-#ifdef NEW_ALT_FUSION
-#define CTRL_DEFAULT_NUM_ALT_KP 4000
+#ifdef ALT_CONTROL
+#define CTRL_DEFAULT_NUM_ALT_KP 210
 #else
-#define CTRL_DEFAULT_NUM_ALT_KP 2000
+#define CTRL_DEFAULT_NUM_ALT_KP 3000
 #endif
 /**
  *  \var     CTRL_DEFAULT_NUM_ALT_KI
  *  \brief   Numerator of default integral gain for Altitude control loop
  */
-#ifdef NEW_ALT_FUSION
-	#define CTRL_DEFAULT_NUM_ALT_KI 2000
+#ifdef ALT_CONTROL
+	#define CTRL_DEFAULT_NUM_ALT_KI 100
 #else
 	#define CTRL_DEFAULT_NUM_ALT_KI 400
 #endif
@@ -123,8 +123,12 @@ typedef struct _velocities_t {
  *  \var     CTRL_DEFAULT_NUM_ALT_KD
  *  \brief   Numerator of default derivative gain for Altitude control loop
  */
-#define CTRL_DEFAULT_NUM_VZ_KP 200
 
+#ifdef ALT_CONTROL
+	#define CTRL_DEFAULT_NUM_VZ_KP 100
+#else
+#define CTRL_DEFAULT_NUM_VZ_KP 200
+#endif
 /**
  *  \var     CTRL_DEFAULT_NUM_ALT_TD
  *  \brief   Numerator of default derivative time constant gain for Altitude control loop
@@ -171,7 +175,13 @@ typedef struct _velocities_t {
  */
 #define CTRL_DEFAULT_DEN_HOVER 32768.0 //2^15
 
+#define CTRL_DEFAULT_NUM_HOVER_B_KP2_NO_SHELL  22937
+#define CTRL_DEFAULT_NUM_HOVER_B_KI2_NO_SHELL  8192
+#define CTRL_DEFAULT_NUM_HOVER_B_KD2_NO_SHELL  8000
 
+#define CTRL_DEFAULT_NUM_HOVER_B_KP2_SHELL  22937
+#define CTRL_DEFAULT_NUM_HOVER_B_KI2_SHELL  8192
+#define CTRL_DEFAULT_NUM_HOVER_B_KD2_SHELL  8000
 /* Timeout for mayday maneuvers*/
 static const int32_t MAYDAY_TIMEOUT[ARDRONE_NB_ANIM_MAYDAY] = {
     1000,  // ARDRONE_ANIM_PHI_M30_DEG
@@ -190,6 +200,10 @@ static const int32_t MAYDAY_TIMEOUT[ARDRONE_NB_ANIM_MAYDAY] = {
     5000,  // ARDRONE_ANIM_WAVE
     5000,  // ARDRONE_ANIM_PHI_THETA_MIXED
     5000,  // ARDRONE_ANIM_DOUBLE_PHI_THETA_MIXED
+    15,  // ARDRONE_ANIM_FLIP_AHEAD
+    15,  // ARDRONE_ANIM_FLIP_BEHIND
+    15,  // ARDRONE_ANIM_FLIP_LEFT
+    15,  // ARDRONE_ANIM_FLIP_RIGHT
 };
 
 #define NAVDATA_SEQUENCE_DEFAULT  1
@@ -224,8 +238,9 @@ typedef enum _navdata_tag_t {
 typedef struct _navdata_option_t {
   uint16_t  tag;
   uint16_t  size;
-#if defined _MSC_VER
-  uint8_t   *data;
+#if defined _MSC_VER || defined (__ARMCC_VERSION)
+  /* Do not use flexible arrays (C99 feature) with these compilers */
+  uint8_t   data[1];
 #else
   uint8_t   data[];
 #endif
@@ -278,11 +293,11 @@ typedef struct _navdata_demo_t {
   vector31_t  detection_camera_trans; /*!<  Deprecated ! Don't use ! */
   uint32_t	  detection_tag_index;    /*!<  Deprecated ! Don't use ! */
 
-  uint32_t	  detection_camera_type; /*!<  Type of tag searched in detection */
+  uint32_t	  detection_camera_type;  /*!<  Type of tag searched in detection */
 
   // Camera parameters compute by drone
-  matrix33_t  drone_camera_rot;		/*!<  Deprecated ! Don't use ! */
-  vector31_t  drone_camera_trans;	/*!<  Deprecated ! Don't use ! */
+  matrix33_t  drone_camera_rot;		  /*!<  Deprecated ! Don't use ! */
+  vector31_t  drone_camera_trans;	  /*!<  Deprecated ! Don't use ! */
 }_ATTRIBUTE_PACKED_ navdata_demo_t;
 
 
@@ -325,8 +340,8 @@ typedef struct _navdata_raw_measures_t {
 
   // +12 bytes
   uint16_t  raw_accs[NB_ACCS];    // filtered accelerometers
-  uint16_t  raw_gyros[NB_GYROS];  // filtered gyrometers
-  uint16_t  raw_gyros_110[2];     // gyrometers  x/y 110 deg/s
+  int16_t   raw_gyros[NB_GYROS];  // filtered gyrometers
+  int16_t   raw_gyros_110[2];     // gyrometers  x/y 110 deg/s
   uint32_t  vbat_raw;             // battery voltage raw (mV)
   uint16_t  us_debut_echo;
   uint16_t  us_fin_echo;
@@ -336,8 +351,97 @@ typedef struct _navdata_raw_measures_t {
   uint16_t  us_courbe_valeur;
   uint16_t  us_courbe_ref;
   uint16_t  flag_echo_ini;
+  // TODO:   uint16_t  frame_number; // from ARDrone_Magneto
+  uint16_t  nb_echo;
+  uint32_t  sum_echo;
+  int32_t   alt_temp_raw;
+
+  int16_t   gradient;
 }_ATTRIBUTE_PACKED_ navdata_raw_measures_t;
 
+// split next struc into magneto_navdata_t and pressure_navdata_t
+typedef struct _navdata_pressure_raw_t {
+  uint16_t   tag;
+  uint16_t   size;
+
+  int32_t   up;
+  int16_t   ut;
+  int32_t   Temperature_meas;
+  int32_t   Pression_meas;
+}_ATTRIBUTE_PACKED_ navdata_pressure_raw_t;
+
+typedef struct _navdata_magneto_t {
+  uint16_t   tag;
+  uint16_t   size;
+
+  int16_t   	mx;
+  int16_t   	my;
+  int16_t   	mz;
+  vector31_t 	magneto_raw;       // magneto in the body frame, in mG
+  vector31_t 	magneto_rectified;
+  vector31_t 	magneto_offset;
+  float32_t 	heading_unwrapped;
+  float32_t 	heading_gyro_unwrapped;
+  float32_t 	heading_fusion_unwrapped;
+  char 			magneto_calibration_ok;
+  uint32_t      magneto_state;
+  float32_t 	magneto_radius;
+  float32_t     error_mean;
+  float32_t     error_var;
+
+}_ATTRIBUTE_PACKED_ navdata_magneto_t;
+
+typedef struct _navdata_wind_speed_t {
+  uint16_t   tag;
+  uint16_t   size;
+
+  float32_t wind_speed;
+  float32_t wind_angle;
+  float32_t wind_compensation_theta;
+  float32_t wind_compensation_phi;
+  float32_t state_x1;
+  float32_t state_x2;
+  float32_t state_x3;
+  float32_t state_x4;
+  float32_t state_x5;
+  float32_t state_x6;
+  float32_t magneto_debug1;
+  float32_t magneto_debug2;
+  float32_t magneto_debug3;
+}_ATTRIBUTE_PACKED_ navdata_wind_speed_t;
+
+typedef struct _navdata_kalman_pressure_t{
+  uint16_t   tag;
+  uint16_t   size;
+
+  float32_t offset_pressure;
+  float32_t est_z;
+  float32_t est_zdot;
+  float32_t est_bias_PWM;
+  float32_t est_biais_pression;
+  float32_t offset_US;
+  float32_t prediction_US;
+  float32_t cov_alt;
+  float32_t cov_PWM;
+  float32_t cov_vitesse;
+  bool_t    bool_effet_sol;
+  float32_t somme_inno;
+  bool_t    flag_rejet_US;
+  float32_t u_multisinus;
+  float32_t gaz_altitude;
+  bool_t    Flag_multisinus;
+  bool_t    Flag_multisinus_debut;
+}_ATTRIBUTE_PACKED_ navdata_kalman_pressure_t;
+
+// TODO: depreciated struct ? remove it ?
+typedef struct navdata_zimmu_3000_t {
+uint16_t   tag;
+uint16_t   size;
+
+	int32_t vzimmuLSB;
+	float32_t vzfind;
+
+}_ATTRIBUTE_PACKED_ navdata_zimmu_3000_t;
 
 typedef struct _navdata_phys_measures_t {
   uint16_t   tag;
@@ -382,6 +486,23 @@ typedef struct _navdata_references_t {
   int32_t   ref_roll;
   int32_t   ref_yaw;
   int32_t   ref_psi;
+
+  float32_t vx_ref;
+	float32_t vy_ref;
+	float32_t theta_mod;
+	float32_t phi_mod;
+
+	float32_t k_v_x;
+	float32_t k_v_y;
+	uint32_t  k_mode;
+
+	float32_t ui_time;
+	float32_t ui_theta;
+	float32_t ui_phi;
+	float32_t ui_psi;
+	float32_t ui_psi_accuracy;
+	int32_t ui_seq;
+
 }_ATTRIBUTE_PACKED_ navdata_references_t;
 
 
@@ -418,8 +539,8 @@ typedef struct _navdata_pwm_t {
   uint8_t	  sat_motor2;
   uint8_t	  sat_motor3;
   uint8_t	  sat_motor4;
-  int32_t     gaz_feed_forward;
-  int32_t     gaz_altitude;
+  float32_t   gaz_feed_forward;
+  float32_t   gaz_altitude;
   float32_t   altitude_integral;
   float32_t   vz_ref;
   int32_t     u_pitch;
@@ -434,6 +555,9 @@ typedef struct _navdata_pwm_t {
   uint16_t    current_motor2;
   uint16_t    current_motor3;
   uint16_t    current_motor4;
+	//WARNING: new navdata (FC 26/07/2011)
+	float32_t 	altitude_prop;
+	float32_t 	altitude_der;
 }_ATTRIBUTE_PACKED_ navdata_pwm_t;
 
 
@@ -446,12 +570,12 @@ typedef struct _navdata_altitude_t {
   int32_t   altitude_ref;
   int32_t   altitude_raw;
 
-	float32_t	obs_accZ;
-	float32_t obs_alt;
-	vector31_t obs_x;
-	uint32_t 	obs_state;
+	float32_t		obs_accZ;
+	float32_t 	obs_alt;
+	vector31_t 	obs_x;
+	uint32_t 		obs_state;
 	vector21_t	est_vb;
-	uint32_t 	est_state ;
+	uint32_t 		est_state ;
 
 }_ATTRIBUTE_PACKED_ navdata_altitude_t;
 
@@ -533,6 +657,9 @@ typedef struct _navdata_vision_detect_t {
   uint32_t   height[NB_NAVDATA_DETECTION_RESULTS];
   uint32_t   dist[NB_NAVDATA_DETECTION_RESULTS];
   float32_t  orientation_angle[NB_NAVDATA_DETECTION_RESULTS];
+  matrix33_t rotation[NB_NAVDATA_DETECTION_RESULTS];
+  vector31_t translation[NB_NAVDATA_DETECTION_RESULTS];
+  uint32_t   camera_source[NB_NAVDATA_DETECTION_RESULTS];
 }_ATTRIBUTE_PACKED_ navdata_vision_detect_t;
 
 typedef struct _navdata_vision_of_t {
@@ -571,7 +698,46 @@ typedef struct _navdata_video_stream_t {
   uint32_t	atcmd_mean_ref_gap;	// mean time between two consecutive atcmd_ref (ms)
   float32_t atcmd_var_ref_gap;
   uint32_t	atcmd_ref_quality; // estimator of atcmd link quality
+
+  // drone2
+  uint32_t  out_bitrate;     // measured out throughput from the video tcp socket
+  uint32_t  desired_bitrate; // last frame size generated by the video encoder
+
+  // misc temporary data
+  int32_t  data1;
+  int32_t  data2;
+  int32_t  data3;
+  int32_t  data4;
+  int32_t  data5;
+
+  // queue usage
+  uint32_t tcp_queue_level;
+  uint32_t fifo_queue_level;
+
 }_ATTRIBUTE_PACKED_ navdata_video_stream_t;
+
+typedef enum
+{
+	NAVDATA_HDVIDEO_STORAGE_FIFO_IS_FULL = (1<<0),
+	NAVDATA_HDVIDEO_USBKEY_IS_PRESENT   = (1<<8),
+	NAVDATA_HDVIDEO_USBKEY_IS_RECORDING = (1<<9),
+	NAVDATA_HDVIDEO_USBKEY_IS_FULL      = (1<<10)
+}_navdata_hdvideo_states_t;
+
+
+typedef struct _navdata_hdvideo_stream_t {
+  uint16_t  tag;
+  uint16_t  size;
+
+  uint32_t hdvideo_state;
+  uint32_t storage_fifo_nb_packets;
+  uint32_t storage_fifo_size;
+  uint32_t usbkey_size;         /*! USB key in kbytes - 0 if no key present */
+  uint32_t usbkey_freespace;    /*! USB key free space in kbytes - 0 if no key present */
+  uint32_t frame_number;        /*! 'frame_number' PaVE field of the frame starting to be encoded for the HD stream */
+  uint32_t usbkey_remaining_time; /*! time in seconds */
+
+}_ATTRIBUTE_PACKED_ navdata_hdvideo_stream_t;
 
 
 typedef struct _navdata_games_t {
@@ -580,6 +746,12 @@ typedef struct _navdata_games_t {
   uint32_t  double_tap_counter;
   uint32_t  finish_line_counter;
 }_ATTRIBUTE_PACKED_ navdata_games_t;
+
+typedef struct _navdata_wifi_t {
+  uint16_t  tag;
+  uint16_t  size;
+  uint32_t link_quality;
+}_ATTRIBUTE_PACKED_  navdata_wifi_t;
 
 #if defined(_MSC_VER)
 	/* Go back to default packing policy */

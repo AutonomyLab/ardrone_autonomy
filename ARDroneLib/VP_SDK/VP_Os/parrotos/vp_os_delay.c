@@ -1,7 +1,5 @@
 #include <VP_Os/vp_os_delay.h>
 
-#undef TRUE
-#undef FALSE
 #include "parrotOS_thread.h"
 
 void vp_os_delay(uint32_t ms)

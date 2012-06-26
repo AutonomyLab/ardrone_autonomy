@@ -21,9 +21,23 @@
 #include <VP_Stages/vp_stages_buffer_to_picture.h>
 #include <VP_Stages/vp_stages_frame_pipe.h>
 
-#ifdef USE_LINUX
-#include <VP_Stages/vp_stages_o_sdl.h>
-#endif // > USE_LINUX
+///////////////////////////////////////////////
+// USEFULL FUNCTIONS
+
+/*
+ * "transparent" transform function
+ */
+C_RESULT
+vp_api_stage_empty_transform (void *cfg, struct _vp_api_io_data_ *in, struct _vp_api_io_data_ *out)
+{
+  vp_os_mutex_lock(&out->lock);
+  out->status = in->status;
+  out->size = in->size;
+  vp_os_mutex_unlock( &out->lock );
+
+  return SUCCESS;
+}
+
 
 ///////////////////////////////////////////////
 // POINTERS
@@ -76,6 +90,14 @@ const vp_api_stage_funcs_t vp_stages_frame_pipe_receiver_funcs =
   (vp_api_stage_close_t) vp_stages_frame_pipe_receiver_close
 };
 
+const vp_api_stage_funcs_t vp_stages_frame_pipe_fetch_funcs =
+{
+  NULL,
+  (vp_api_stage_open_t) vp_stages_frame_pipe_fetch_open,
+  (vp_api_stage_transform_t) vp_stages_frame_pipe_fetch_transform,
+  (vp_api_stage_close_t) vp_stages_frame_pipe_fetch_close
+};
+
 const vp_api_stage_funcs_t vp_stages_buffer_to_picture_funcs =
 {
   NULL,
@@ -116,16 +138,6 @@ const vp_api_stage_funcs_t vp_stages_output_console_funcs =
   (vp_api_stage_transform_t) vp_stages_output_console_stage_transform,
   (vp_api_stage_close_t) vp_stages_output_console_stage_close
 };
-
-#if defined(USE_LINUX)
-const vp_api_stage_funcs_t vp_stages_output_sdl_funcs =
-{
-  (vp_api_stage_handle_msg_t) NULL,
-  (vp_api_stage_open_t) vp_stages_output_sdl_stage_open,
-  (vp_api_stage_transform_t) vp_stages_output_sdl_stage_transform,
-  (vp_api_stage_close_t) vp_stages_output_sdl_stage_close
-};
-#endif // USE_LINUX
 
 const vp_api_stage_funcs_t vp_stages_yuv2rgb_funcs =
 {

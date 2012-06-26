@@ -1,15 +1,9 @@
-
 GEN_CUSTOM_HEADER:=../Common/generated_custom.h
 
 include custom.makefile 
 include config.makefile
 
 GNUTOOLS_PATH=/usr/local/$(GNUTOOLS_VERSION)/bin
-ifeq ("$(QUIET_BUILD)","yes")
-  MAKE:=@PATH=$(GNUTOOLS_PATH):$(PATH) make -s
-else
-  MAKE:=PATH=$(GNUTOOLS_PATH):$(PATH) make
-endif
 
 define ADD_RULE_TEMPLATE
   TO_BUILD+=build_$(1)
@@ -67,7 +61,17 @@ endif
 $(MAKECMDGOALS): build_libs $(TO_BUILD)
 
 checkpackages:
-	sh ./check_dependencies.sh
+ifeq ($(IPHONE_MODE),yes)
+	sh $(shell pwd)/check_dependencies.sh iphone RELEASE_BUILD=$(RELEASE_BUILD) $(MAKECMDGOALS)
+else
+ifeq ($(USE_LINUX),yes)
+	sh $(shell pwd)/check_dependencies.sh static RELEASE_BUILD=$(RELEASE_BUILD) $(MAKECMDGOALS)
+else
+ifeq ($(USE_ANDROID),yes)
+    sh $(shell pwd)/check_dependencies.sh android_no_neon RELEASE_BUILD=$(RELEASE_BUILD) $(MAKECMDGOALS)
+endif
+endif
+endif
 
 define GENERIC_RULES_TEMPLATE
 build_$(1): 
@@ -78,6 +82,7 @@ $(foreach target,$(TARGETS),$(eval $(call GENERIC_RULES_TEMPLATE,$(target))))
 
 build_libs: checkpackages
 	@$(MAKE) PC_TARGET=yes USE_ARDRONE_TOOL=yes TARGET=pc_ USE_MINGW32=no -C ../Lib/Build $(MAKECMDGOALS)
+	@$(MAKE) PC_TARGET=yes USE_ARDRONE_TOOL=no TARGET=pc_ USE_MINGW32=no -C ../Lib/Build $(MAKECMDGOALS)
 
 ifeq ("$(MINGW32_MODE)","yes")
 ifeq ($(shell which i586-mingw32msvc-gcc 2> /dev/null),)
@@ -104,4 +109,3 @@ endef
 	
 svn_update:
 	@-$(call svn_update_template,$(SDK_VERSION),ARDroneLib)
-

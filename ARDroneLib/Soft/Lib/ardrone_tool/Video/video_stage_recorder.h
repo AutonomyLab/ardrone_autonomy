@@ -23,6 +23,7 @@ typedef struct _video_stage_recorder_config_t
 	char video_filename[VIDEO_FILENAME_LENGTH];
   FILE* fp;
 	video_record_state startRec;
+	int stage;
 } video_stage_recorder_config_t;
 
 C_RESULT video_stage_recorder_handle (video_stage_recorder_config_t * cfg, PIPELINE_MSG msg_id, void *callback, void *param);

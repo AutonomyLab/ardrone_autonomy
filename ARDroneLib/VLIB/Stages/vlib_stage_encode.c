@@ -23,11 +23,7 @@ const vp_api_stage_funcs_t vlib_encoding_funcs = {
 
 C_RESULT vlib_stage_encoding_open(vlib_stage_encoding_config_t *cfg)
 {
-  video_codec_open( &cfg->controller, cfg->codec_type );
-  video_controller_set_mode( &cfg->controller, VIDEO_ENCODE );
-  video_controller_set_format( &cfg->controller, cfg->width, cfg->height );
-  video_controller_set_motion_estimation( &cfg->controller, FALSE );
-  video_controller_set_target_size( &cfg->controller, cfg->target_size );
+  video_codec_open( &cfg->controller, NULL_CODEC );
   return C_OK;
 }
 
@@ -40,7 +36,7 @@ C_RESULT vlib_stage_encoding_transform(vlib_stage_encoding_config_t *cfg, vp_api
   if( out->status == VP_API_STATUS_INIT )
   {
     out->numBuffers   = 1;
-    out->buffers      = (int8_t**)(int8_t*)&cfg->controller.in_stream.bytes;
+    out->buffers      = (uint8_t**)&cfg->controller.in_stream.bytes;
     out->indexBuffer  = 0;
 
     out->status = VP_API_STATUS_PROCESSING;

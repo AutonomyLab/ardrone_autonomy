@@ -19,8 +19,6 @@
 #include <unistd.h>
 #endif
 
-// PROTO_THREAD_ROUTINE( navdata_update , nomParams );
-
 static bool_t navdata_thread_in_pause = TRUE;
 static bool_t bContinue = TRUE;
 static uint32_t num_retries = 0; 
@@ -31,7 +29,7 @@ static vp_com_socket_t navdata_socket;
 static Read navdata_read      = NULL;
 static Write navdata_write    = NULL;
 
-static uint8_t navdata_buffer[NAVDATA_MAX_SIZE];
+uint8_t navdata_buffer[NAVDATA_MAX_SIZE];
 navdata_unpacked_t navdata_unpacked;
 
 C_RESULT ardrone_navdata_client_init(void)
@@ -40,7 +38,7 @@ C_RESULT ardrone_navdata_client_init(void)
 
   COM_CONFIG_SOCKET_NAVDATA(&navdata_socket, VP_COM_CLIENT, NAVDATA_PORT, wifi_ardrone_ip);
   navdata_socket.protocol = VP_COM_UDP;
-  navdata_socket.is_multicast = 1;      // enable multicast for Navdata
+  navdata_socket.is_multicast = 0;      // disable multicast for Navdata
   navdata_socket.multicast_base_addr = MULTICAST_BASE_ADDR;
 
   vp_os_mutex_init(&navdata_client_mutex);
@@ -82,7 +80,7 @@ C_RESULT ardrone_navdata_open_server(void)
     if (navdata_socket.is_multicast == 1)
       flag = 2;
 
-    navdata_write(&navdata_socket, (const int8_t*) &flag, &len);
+    navdata_write(&navdata_socket, (const uint8_t*) &flag, &len);
   }
 
   return C_OK;
@@ -158,8 +156,7 @@ DEFINE_THREAD_ROUTINE( navdata_update, nomParams )
 
       size = NAVDATA_MAX_SIZE;
       navdata->header = 0; // Soft reset
-      res = navdata_read( (void*)&navdata_socket, (int8_t*)&navdata_buffer[0], &size );
-
+      res = navdata_read( (void*)&navdata_socket, &navdata_buffer[0], &size );
 #ifdef _WIN32	
 	  if( size <= 0 )
 #else
@@ -218,8 +215,6 @@ DEFINE_THREAD_ROUTINE( navdata_update, nomParams )
             PRINT("[Navdata] Sequence pb : %d (distant) / %d (local)\n", navdata->sequence, sequence);
           }
 
-          // remaining = sizeof(navdata);
-
           sequence = navdata->sequence;
         }
       }
@@ -251,6 +246,10 @@ C_RESULT ardrone_navdata_client_shutdown(void)
 {
    bContinue = FALSE;
 
+   vp_os_mutex_lock(&navdata_client_mutex);
+   vp_os_cond_signal(&navdata_client_condition);
+   vp_os_mutex_unlock(&navdata_client_mutex);
+   
    return C_OK;
 }
 

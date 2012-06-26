@@ -45,6 +45,8 @@ typedef enum {
   CVAR( CTRL_TRANS_TAKEOFF ),
   CVAR( CTRL_TRANS_GOTOFIX ),
   CVAR( CTRL_TRANS_LANDING ),
+  CVAR( CTRL_TRANS_LOOPING ),
+  //CVAR( CTRL_TRANS_NO_VISION ),
 #ifndef CTRL_STATES_STRING
   CTRL_NUM_STATES
 } CTRL_STATES;
@@ -68,7 +70,9 @@ typedef enum {
   CVAR( FLYING_LOST_ALT ),
   CVAR( FLYING_LOST_ALT_GO_DOWN ),
   CVAR( FLYING_ALT_OUT_ZONE ),
-  CVAR( FLYING_COMBINED_YAW )
+  CVAR( FLYING_COMBINED_YAW ), 
+  CVAR( FLYING_BRAKE ),
+  CVAR( FLYING_NO_VISION )
   #ifndef CTRL_STATES_STRING
 } FLYING_STATES;
 #else
@@ -98,7 +102,9 @@ typedef enum {
   CVAR( HOVERING_LOST_COM ),
   CVAR( LOST_COM_LOST_ALT ),
   CVAR( LOST_COM_LOST_ALT_TOO_LONG ),
-  CVAR( LOST_COM_ALT_OK )
+  CVAR( LOST_COM_ALT_OK ),
+  CVAR( HOVERING_MAGNETO_CALIB ),
+  CVAR( HOVERING_DEMO )
 #ifndef CTRL_STATES_STRING
 } HOVERING_STATES;
 #else
@@ -168,6 +174,30 @@ typedef enum {
 #endif
 #endif
 
+/**
+ * \enum  TAKEOFF_TRANS_STATES
+ * \brief take off states.
+ * \brief this is one of the minor state
+*/
+#ifndef DO_NOT_INCLUDE_MINOR_CTRL_STATES
+#ifdef CTRL_STATES_STRING
+static ctrl_string_t looping_trans_states[] = {
+#else
+typedef enum {
+#endif
+	CVARZ( LOOPING_IMPULSION),
+	CVAR( LOOPING_OPEN_LOOP_CTRL ),
+	CVAR( LOOPING_PLANIF_CTRL )
+  #ifndef CTRL_STATES_STRING
+} LOOPING_TRANS_STATES;
+#else
+};
+#endif
+#endif
+
+
+
+
 #ifdef CTRL_STATES_STRING
 #ifndef DO_NOT_INCLUDE_CTRL_STATES_LINK
 /**
@@ -183,7 +213,8 @@ static ctrl_string_t* control_states_link[] = {
   NULL,
   takeoff_trans_states,
   gotofix_trans_states,
-  landing_trans_states
+  landing_trans_states,
+  looping_trans_states
 };
 #endif
 #endif

@@ -233,8 +233,10 @@ C_RESULT uvlc_unpack_controller( video_controller_t* controller )
     {
       if( controller->blockline == 0 )
       {
+        // new picture
         uvlc_read_picture_layer( controller, stream );
-
+        controller->last_frame_decoded = TRUE;
+            
         picture_layer->gobs = (uvlc_gob_layer_t*) controller->gobs;
         gob = &picture_layer->gobs[controller->blockline];
 
@@ -255,7 +257,7 @@ C_RESULT uvlc_unpack_controller( video_controller_t* controller )
 
 C_RESULT uvlc_encode_blockline( video_controller_t* controller, const vp_api_picture_t* blockline, bool_t picture_complete )
 {
-  video_codec_t* video_codec;
+  //video_codec_t* video_codec;
   int16_t *in = NULL, *out = NULL;
   int32_t num_macro_blocks = 0;
   video_macroblock_t* macroblock = NULL;
@@ -273,7 +275,7 @@ C_RESULT uvlc_encode_blockline( video_controller_t* controller, const vp_api_pic
     stream->size += add;
   }
 
-  video_codec                   = controller->video_codec;
+  //video_codec                   = controller->video_codec;
   controller->picture_complete  = picture_complete;
   controller->blockline         = blockline->blockline;
 
@@ -397,7 +399,7 @@ C_RESULT uvlc_encode_blockline( video_controller_t* controller, const vp_api_pic
 #ifndef HAS_UVLC_DECODE_BLOCKLINE
 C_RESULT uvlc_decode_blockline( video_controller_t* controller, vp_api_picture_t* picture, bool_t* got_image )
 {
-  video_codec_t* video_codec;
+  //video_codec_t* video_codec;
   vp_api_picture_t blockline = { 0 };
   int16_t *in = NULL, *out = NULL;
   int32_t num_macro_blocks = 0;
@@ -406,7 +408,7 @@ C_RESULT uvlc_decode_blockline( video_controller_t* controller, vp_api_picture_t
   video_gob_t*  gobs;
 
   controller->mode  = VIDEO_DECODE;
-  video_codec       = controller->video_codec;
+  //video_codec       = controller->video_codec;
 
   blockline                   = *picture;
   blockline.height            = MB_HEIGHT_Y;
@@ -485,9 +487,9 @@ C_RESULT uvlc_decode_blockline( video_controller_t* controller, vp_api_picture_t
 
     controller->picture_complete  = 0;
     controller->in_stream.length  = 32;
-    controller->num_frames++;
+    //controller->num_frames++;
 
-    *got_image = TRUE;
+    *got_image = controller->last_frame_decoded;
   }
   else
   {

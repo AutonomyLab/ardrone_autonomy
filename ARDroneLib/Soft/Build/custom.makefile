@@ -14,7 +14,11 @@ ifndef USE_ANDROID
 USE_ANDROID          = no
 endif
 ifndef USE_LINUX
-USE_LINUX            = yes
+USE_LINUX            = no
+endif
+ifndef PROJECT
+# set default to ardrone2 for video TCP com.
+PROJECT              = ardrone2
 endif
 MAJOR_VERSION        = 0
 MINOR_VERSION        = 0
@@ -23,21 +27,8 @@ MODIF_VERSION        = 0
 #########################################################
 # ARDroneTool options definitions
 #########################################################
-USE_ARDRONE_MAINLOOP=yes
+USE_ARDRONE_TOOL=yes
 USE_CHECK_WIFI_CONFIG=no
-
-ifeq ($(IPHONE_MODE),yes)
-USE_ARDRONE_MAINLOOP=no
-IPHONE_SDK_PATH=/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.0
-# iphoneos or iphonesimulator
-ARDRONE_TARGET_OS=iphoneos
-ARDRONE_TARGET_ARCH=armv6
-else
-   ifeq ($(USE_ANDROID),yes)
-      USE_ARDRONE_MAINLOOP=no
-   endif
-ARDRONE_TARGET_OS=Linux
-endif
 
 ################## Wifi Options ##################
 # Name of the network you want to join or create
@@ -46,10 +37,12 @@ WIFI_BROADCAST       = "192.168.1.255"
 
 ################## Video Options ##################
 # Tells if we want to record video on pc side
-RECORD_VIDEO         = yes
-FFMPEG_RECORDING_SUPPORT = yes
+RECORD_ENCODED_VIDEO     = yes
+RECORD_RAW_VIDEO         = no
+RECORD_FFMPEG_VIDEO      = no
+
 # Tells if we want to add vision data to video stream (in raw mode)
-# Vision data are saved into file only if we define RECORD_VIDEO too
+# Vision data are saved into file only if we define RECORD_RAW_VIDEO too
 RECORD_VISION_DATA   = no
 # If the yuv mode is choosen then video is displayed & recorded in color
 # Otherwise only luminances are displayed & recorded

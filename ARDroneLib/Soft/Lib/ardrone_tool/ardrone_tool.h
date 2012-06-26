@@ -2,14 +2,18 @@
 #define _ARDRONE_TOOL_H_
 
 #include <ardrone_api.h>
+#include <academy_common.h>
 #include <VP_Os/vp_os_types.h>
 #include <config.h>
+
+#define ARDRONE_IPADDRESS_SIZE	  16
 
 #define ARDRONE_REFRESH_MS        20
 
 #define MAX_NAME_LENGTH           255
 #define MAX_NUM_DEVICES           10
 #define MAX_NUM_INPUT_EVENTS      16
+#define MAX_FLIGHT_STORING_SIZE	  40
 
 #ifdef ND_WRITE_TO_FILE
 extern uint32_t num_picture_decoded;
@@ -18,6 +22,7 @@ extern float32_t wiimote_ax, wiimote_ay, wiimote_az;
 #endif
 
 extern char wifi_ardrone_ip[];
+extern char root_dir[];
 extern char app_id[];
 extern char app_name[];
 extern char usr_id[];
@@ -35,7 +40,7 @@ typedef struct _ardrone_tool_configure_data_t {
 ///
 extern ardrone_tool_configure_data_t configure_data[] WEAK;
 
-extern C_RESULT ardrone_tool_init_custom(int argc, char **argv) WEAK;
+extern C_RESULT ardrone_tool_init_custom(void) WEAK;
 extern C_RESULT ardrone_tool_update_custom( void ) WEAK;
 extern C_RESULT ardrone_tool_display_custom( void ) WEAK;
 extern C_RESULT ardrone_tool_shutdown_custom( void ) WEAK;
@@ -46,24 +51,21 @@ extern C_RESULT ardrone_tool_check_argc_custom( int32_t argc) WEAK;
 extern void ardrone_tool_display_cmd_line_custom( void ) WEAK;
 extern bool_t ardrone_tool_parse_cmd_line_custom( const char* cmd ) WEAK;
 
-// Tricky ...
-extern int custom_main(int argc, char **argv) WEAK;
-
 // This is implemented by the library
-#ifdef NO_ARDRONE_MAINLOOP
-C_RESULT ardrone_tool_init( const char* ardrone_ip, size_t n, AT_CODEC_FUNCTIONS_PTRS *ptrs, const char *appname, const char *usrname);
-#else
-C_RESULT ardrone_tool_init(int argc, char **argv);
-#endif
+int ardrone_tool_main(int argc, char**argv);
+C_RESULT ardrone_tool_init(const char* ardrone_ip, size_t n,
+		AT_CODEC_FUNCTIONS_PTRS *ptrs, const char *appname,
+		const char *usrname, const char *rootdir, const char *flightdir,
+		int flight_storing_size, academy_download_new_media academy_download_new_media_func);
 C_RESULT ardrone_tool_set_refresh_time(int refresh_time_in_ms);
-C_RESULT ardrone_tool_pause( void );
-C_RESULT ardrone_tool_resume( void );
-C_RESULT ardrone_tool_setup_com( const char* ssid );
+C_RESULT ardrone_tool_suspend(void);
+C_RESULT ardrone_tool_resume(void);
+C_RESULT ardrone_tool_setup_com(const char* ssid);
 C_RESULT ardrone_tool_update(void);
 C_RESULT ardrone_tool_shutdown(void);
 
-
-void ardrone_tool_send_com_watchdog(void);  // To send it only once
+void ardrone_tool_init_timers_and_mutex();
+void ardrone_tool_send_com_watchdog(void); // To send it only once
 int main();
 
 // There because not defined in embedded

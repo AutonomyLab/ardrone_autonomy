@@ -16,7 +16,7 @@
 #ifdef DEBUG_MODE
 #define PRINT printf
 #else
-#define PRINT
+#define PRINT(...)
 #endif // DEBUG_MODE
 #else
 #define PRINT printf

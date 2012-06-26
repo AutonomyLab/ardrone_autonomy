@@ -39,7 +39,11 @@ void ardrone_tool_reset_configuration (void)
 #undef ARDRONE_CONFIG_KEY_STR
 #define ARDRONE_CONFIG_KEY_IMM(KEY, NAME, INI_TYPE, C_TYPE, C_TYPE_PTR, RW, DEFAULT, CALLBACK) ardrone_control_config.NAME = DEFAULT;
 #define ARDRONE_CONFIG_KEY_REF(KEY, NAME, INI_TYPE, C_TYPE, C_TYPE_PTR, RW, DEFAULT, CALLBACK) ardrone_control_config.NAME = DEFAULT;
-#define ARDRONE_CONFIG_KEY_STR(KEY, NAME, INI_TYPE, C_TYPE, C_TYPE_PTR, RW, DEFAULT, CALLBACK) strncpy (ardrone_control_config.NAME, DEFAULT, sizeof (ardrone_control_config.NAME));
+#define ARDRONE_CONFIG_KEY_STR(KEY, NAME, INI_TYPE, C_TYPE, C_TYPE_PTR, RW, DEFAULT, CALLBACK) 	\
+{																								\
+	strncpy(ardrone_control_config.NAME, DEFAULT, sizeof(ardrone_control_config.NAME) - 1);		\
+	ardrone_control_config.NAME[sizeof(ardrone_control_config.NAME) - 1] = '\0';				\
+}
 #include <config_keys.h>
 }
 

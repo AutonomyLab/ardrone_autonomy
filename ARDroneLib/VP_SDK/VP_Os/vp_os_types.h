@@ -11,6 +11,7 @@
 #define _VP_SDK_TYPES_H_
 
 #include <VP_Os/vp_os.h>
+#include <stdint.h>
 
 #if defined(USE_LINUX) || defined(__ELINUX__)
 # include "vp_os_serial.h"
@@ -141,7 +142,7 @@ typedef struct _bdaddr_t
 } bdaddr_t;
 #endif // !defined(__BLUETOOTH_H)
 
-typedef C_RESULT (*Read)  (void* s, int8_t* buffer, int32_t* size);
-typedef C_RESULT (*Write) (void* s, const int8_t* buffer, int32_t* size);
+typedef C_RESULT (*Read)  (void* s, uint8_t* buffer, int32_t* size);
+typedef C_RESULT (*Write) (void* s, const uint8_t* buffer, int32_t* size);
 
 #endif // _TYPES_H_

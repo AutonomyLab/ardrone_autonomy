@@ -192,9 +192,9 @@ void integrated_gyros_matrix(float32_t delta_theta, float32_t delta_phi, float32
 
 void frame_euler_angles(vector31_t *angles, matrix33_t *R)
 {
-  angles->x = (float32_t)asin(-R->m31);
-  angles->y = (float32_t)atan2(R->m32, R->m33);
-  angles->z = (float32_t)atan2(R->m21, R->m11);
+  angles->x = (float32_t)asinf(-R->m31);
+  angles->y = (float32_t)atan2f(R->m32, R->m33);
+  angles->z = (float32_t)atan2f(R->m21, R->m11);
 
   if (angles->z < 0)
     angles->z += 2*PI;
@@ -202,9 +202,9 @@ void frame_euler_angles(vector31_t *angles, matrix33_t *R)
 
 void horizontal_frame_euler_angles(vector31_t *angles, matrix33_t *R)
 {
-  angles->x = (float32_t)asin(-R->m33);
-  angles->y = (float32_t)atan2(R->m31, R->m32);
-  angles->z = (float32_t)atan2(R->m23, R->m13);
+  angles->x = (float32_t)asinf(-R->m33);
+  angles->y = (float32_t)atan2f(R->m31, R->m32);
+  angles->z = (float32_t)atan2f(R->m23, R->m13);
 
   if (angles->z < 0)
     angles->z += 2*PI;
@@ -248,7 +248,7 @@ void vision_direction_result(vector21_t *t, screen_point_t *v, int32_t  threshol
     }
   else
     {
-      angle = (float32_t)atan2(t->y,t->x);
+      angle = (float32_t)atan2f(t->y,t->x);
       v->x = (angle >= -3*PI/8) * (angle <= 3*PI/8) - (angle <= -5*PI/8) - (angle >= 5*PI/8);
       v->y = (angle >= PI/8) * (angle <= 7*PI/8) - (angle >= - 7*PI/8) * (angle <= -PI/8);
     }
