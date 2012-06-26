@@ -105,6 +105,9 @@ define ADD_RULE_TEMPLATE
   ifeq ($(USE_ANDROID),yes)
      build_lib: build_$(1)
   endif
+  ifeq ($(USE_LINUX), yes)
+     build_lib: build_$(1)
+  endif
   endif
   endif
   endif
