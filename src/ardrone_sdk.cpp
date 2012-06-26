@@ -10,7 +10,7 @@ navdata_time_t arnavtime;
 
 extern "C" {
 
-	C_RESULT ardrone_tool_init_custom(int argc, char **argv) {
+	C_RESULT ardrone_tool_init_custom(void) {
 		ardrone_tool_input_add(&teleop);
 		START_THREAD(video_update_thread, 0);
 		return C_OK;

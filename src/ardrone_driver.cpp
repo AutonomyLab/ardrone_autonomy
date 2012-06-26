@@ -342,7 +342,8 @@ extern "C" int custom_main(int argc, char** argv)
 	}
 	else
 	{
-		ardrone_tool_init(argc, argv);
+		//ardrone_tool_init(argc, argv);
+        ardrone_tool_main(argc, argv);
 		ros::init(argc, argv, "ardrone_driver");
 
 		ARDroneDriver().run();
