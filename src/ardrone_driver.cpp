@@ -84,7 +84,7 @@ void ARDroneDriver::run()
 				ARDRONE_TOOL_CONFIGURATION_ADDEVENT (enemy_without_shell, &detect_indoor_hull, NULL);
 			}
 		}
-		if (true) //(current_frame_id != last_frame_id)
+		if (current_frame_id != last_frame_id)
 		{
 			publish_video();
 			publish_navdata();
