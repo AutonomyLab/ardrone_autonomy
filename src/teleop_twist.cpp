@@ -30,30 +30,19 @@ bool toggleNavdataDemoCallback(std_srvs::Empty::Request& request, std_srvs::Empt
 bool setCamChannelCallback(ardrone_brown::CamSelect::Request& request, ardrone_brown::CamSelect::Response& response)
 {
     cam_state = request.channel;
- #ifdef _USING_SDK_1_7_
     ARDRONE_TOOL_CONFIGURATION_ADDEVENT (video_channel, &cam_state, NULL);
     fprintf(stderr, "\nSetting camera channel to : %d.\n", cam_state);
-#else
-    ardrone_at_set_toy_configuration("video:video_channel",cam_state);
-    fprintf(stderr, "\nSetting camera channel to : %d.\n", cam_state);
-#endif
     response.result = true;
     return true;
 }
 // ros service callback function for toggling Cam
 bool toggleCamCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response)
 {
-#ifdef _USING_SDK_1_7_
-    cam_state = (cam_state + 1) % 4;
+    int _modes = (IS_ARDRONE1) ? 4 : 2;
+    cam_state = (cam_state + 1) % _modes;
     ARDRONE_TOOL_CONFIGURATION_ADDEVENT (video_channel, &cam_state, NULL);
     fprintf(stderr, "\nSetting camera channel to : %d.\n", cam_state);
-#else
-    cam_state = (cam_state + 1) % 2;
-    ardrone_at_set_toy_configuration("video:video_channel",cam_state);
-    fprintf(stderr, "\nSetting camera channel to : %d.\n", cam_state);
-#endif
-    
-  return true;
+    return true;
 }
 
 

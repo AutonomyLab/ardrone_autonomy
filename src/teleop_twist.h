@@ -7,8 +7,6 @@
 #include <std_srvs/Empty.h>
 #include <ardrone_brown/CamSelect.h>
 
-#define _USING_SDK_1_7_
-
 extern input_device_t teleop;
 
 void cmdVelCallback(const geometry_msgs::TwistConstPtr &msg);

@@ -19,21 +19,6 @@
 #include <stdint.h>
 
 extern "C" {
-//#include <VP_Api/vp_api.h>
-//#include <VP_Api/vp_api_error.h>
-//#include <VP_Api/vp_api_stage.h>
-//#include <VP_Api/vp_api_picture.h>
-//#include <VP_Stages/vp_stages_io_file.h>
-//#include <VP_Stages/vp_stages_i_camif.h>
-//
-//#include <VP_Os/vp_os_print.h>
-//#include <VP_Os/vp_os_malloc.h>
-//#include <VP_Os/vp_os_delay.h>
-//#include <VP_Stages/vp_stages_yuv2rgb.h>
-//#include <VP_Stages/vp_stages_buffer_to_picture.h>
-//#include <VLIB/Stages/vlib_stage_decode.h>
-    
-   
 
 #include <config.h>
     

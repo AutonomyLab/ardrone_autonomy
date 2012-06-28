@@ -17,14 +17,26 @@ extern "C" {
 //    }
     
 	C_RESULT ardrone_tool_init_custom(void) {
+        int _w, _h;
+        
         if (IS_ARDRONE2)
         {
             ardrone_application_default_config.video_codec = H264_360P_CODEC;
+            _w = D2_STREAM_WIDTH;
+            _h = D2_STREAM_HEIGHT;
+        }
+        else if (IS_ARDRONE1)
+        {
+            ardrone_application_default_config.video_codec = UVLC_CODEC;
+            _w = D1_STREAM_WIDTH;
+            _h = D1_STREAM_HEIGHT;
+                   
         }
         else
         {
-            ardrone_application_default_config.video_codec = UVLC_CODEC;
+            printf("Something must be really wrong with the SDK!");
         }
+        
         ardrone_application_default_config.bitrate_ctrl_mode = 1;
 		ardrone_tool_input_add(&teleop);
         uint8_t post_stages_index = 0;
@@ -36,19 +48,19 @@ extern "C" {
         vp_api_picture_t  * in_picture             = (vp_api_picture_t*) vp_os_calloc(1, sizeof(vp_api_picture_t));
         vp_api_picture_t  * out_picture            = (vp_api_picture_t*) vp_os_calloc(1, sizeof(vp_api_picture_t));
 
-        in_picture->width          = STREAM_WIDTH;
-        in_picture->height         = STREAM_HEIGHT;
+        in_picture->width          = _w;
+        in_picture->height         = _h;
 
         out_picture->framerate     = 30;
         out_picture->format        = PIX_FMT_RGB24;
-        out_picture->width         = STREAM_WIDTH;
-        out_picture->height        = STREAM_HEIGHT;
+        out_picture->width         = _w;
+        out_picture->height        = _h;
 
-        out_picture->y_buf         = (uint8_t*) vp_os_malloc( STREAM_WIDTH * STREAM_HEIGHT * 3 );
+        out_picture->y_buf         = (uint8_t*) vp_os_malloc( _w * _h * 3 );
         out_picture->cr_buf        = NULL;
         out_picture->cb_buf        = NULL;
 
-        out_picture->y_line_size   = STREAM_WIDTH * 3;
+        out_picture->y_line_size   = _w * 3;
         out_picture->cb_line_size  = 0;
         out_picture->cr_line_size  = 0;
         
@@ -98,8 +110,6 @@ extern "C" {
 
 	BEGIN_THREAD_TABLE
     THREAD_TABLE_ENTRY(video_stage, 20)
-	//THREAD_TABLE_ENTRY(video_update_thread, 20)
-    //THREAD_TABLE_ENTRY(mani, 20)
 	THREAD_TABLE_ENTRY(navdata_update, 20)
 	THREAD_TABLE_ENTRY(ATcodec_Commands_Client, 20)
 	THREAD_TABLE_ENTRY(ardrone_control, 20)
