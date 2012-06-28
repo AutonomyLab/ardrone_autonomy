@@ -45,7 +45,7 @@ const vp_api_stage_funcs_t vp_stages_export_funcs =
 
 DEFINE_THREAD_ROUTINE(video_update_thread, data)
 {
-//    PRINT("***** Starting video capture thread ...\n");
+    PRINT("***** Starting video capture thread ...\n");
 //  C_RESULT res;
 //
 //  vp_api_io_pipeline_t    pipeline;
@@ -153,6 +153,6 @@ DEFINE_THREAD_ROUTINE(video_update_thread, data)
 //    vp_api_close(&pipeline, &pipeline_handle);
 //  }
 //
-//  return (THREAD_RET)0;
+  return (THREAD_RET)0;
 }
 

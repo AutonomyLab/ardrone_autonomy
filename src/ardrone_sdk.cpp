@@ -1,4 +1,5 @@
 #include "ardrone_sdk.h"
+#include "video.h"
 #include "teleop_twist.h"
 
 navdata_demo_t navdata;
@@ -72,7 +73,7 @@ extern "C" {
         
         START_THREAD(video_stage, params);
         video_stage_init();
-		//START_THREAD(video_update_thread, 0);
+		START_THREAD(video_update_thread, 0);
         //START_THREAD(mani, 0);
 		return C_OK;
 	}
@@ -94,6 +95,7 @@ extern "C" {
 	}
 
 	BEGIN_THREAD_TABLE
+    THREAD_TABLE_ENTRY(video_stage, 20)
 	THREAD_TABLE_ENTRY(video_update_thread, 20)
     //THREAD_TABLE_ENTRY(mani, 20)
 	THREAD_TABLE_ENTRY(navdata_update, 20)

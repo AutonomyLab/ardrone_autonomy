@@ -46,8 +46,6 @@ extern "C" {
 #include <ardrone_tool/Control/ardrone_control.h>
 #include <ardrone_tool/Navdata/ardrone_navdata_client.h>
 
-#include "video.h"
-
 #include <ardrone_tool/Video/video_stage.h>
 #include <ardrone_tool/Video/video_recorder_pipeline.h>
 
