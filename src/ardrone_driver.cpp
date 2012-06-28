@@ -95,7 +95,7 @@ void ARDroneDriver::run()
 		}
 		if (true) //(current_frame_id != last_frame_id)
 		{
-			//publish_video();
+			publish_video();
 			publish_navdata();
 			last_frame_id = current_frame_id;
 		}

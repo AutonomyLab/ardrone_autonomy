@@ -16,17 +16,17 @@ extern "C" C_RESULT export_stage_open( void *cfg, vp_api_io_data_t *in, vp_api_i
 
 extern "C" C_RESULT export_stage_transform( void *cfg, vp_api_io_data_t *in, vp_api_io_data_t *out)
 {
-    
-    PRINT("In Transform before copy\n");
-    vp_os_mutex_lock(&video_update_lock);
-    /* Get a reference to the last decoded picture */
-    pixbuf_data      = (uint8_t*)in->buffers[0];
-    /* Copy the entire buffer, TODO: can we movet this to the thread to make the transform faster?*/
+//    PRINT("In Transform before copy\n");
+//    printf("The size of buffer is %d\n", in->size);
+//    vp_os_mutex_lock(&video_update_lock);
+//    /* Get a reference to the last decoded picture */
+//    pixbuf_data      = (uint8_t*)in->buffers[0];
+//    /* Copy the entire buffer, TODO: can we movet this to the thread to make the transform faster?*/
 	memcpy(buffer, in->buffers[0], STREAM_WIDTH * STREAM_HEIGHT * 3);
-    //memcpy(buffer, in->buffers[0], in->size);
-    vp_os_mutex_unlock(&video_update_lock);
-    PRINT("In Transform after copy\n");
-	current_frame_id++;
+//    //memcpy(buffer, in->buffers[0], in->size);
+//    vp_os_mutex_unlock(&video_update_lock);
+//    PRINT("In Transform after copy\n");
+//	current_frame_id++;
  	return (SUCCESS);
 }
 

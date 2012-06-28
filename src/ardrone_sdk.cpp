@@ -70,10 +70,12 @@ extern "C" {
         params->post_processing_stages_list = driver_post_stages;
         params->needSetPriority = 0;
         params->priority = 0;
-        
+        // Using the provided threaded pipeline implementation from SDK
         START_THREAD(video_stage, params);
         video_stage_init();
-		START_THREAD(video_update_thread, 0);
+        // Threads do not start automatically
+        video_stage_resume_thread();
+		//START_THREAD(video_update_thread, 0);
         //START_THREAD(mani, 0);
 		return C_OK;
 	}
@@ -96,7 +98,7 @@ extern "C" {
 
 	BEGIN_THREAD_TABLE
     THREAD_TABLE_ENTRY(video_stage, 20)
-	THREAD_TABLE_ENTRY(video_update_thread, 20)
+	//THREAD_TABLE_ENTRY(video_update_thread, 20)
     //THREAD_TABLE_ENTRY(mani, 20)
 	THREAD_TABLE_ENTRY(navdata_update, 20)
 	THREAD_TABLE_ENTRY(ATcodec_Commands_Client, 20)
