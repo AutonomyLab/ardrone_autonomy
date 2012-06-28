@@ -93,9 +93,9 @@ void ARDroneDriver::run()
 				ARDRONE_TOOL_CONFIGURATION_ADDEVENT (enemy_without_shell, &detect_indoor_hull, NULL);
 			}
 		}
-		if (current_frame_id != last_frame_id)
+		if (true) //(current_frame_id != last_frame_id)
 		{
-			publish_video();
+			//publish_video();
 			publish_navdata();
 			last_frame_id = current_frame_id;
 		}
@@ -327,7 +327,8 @@ void ARDroneDriver::publish_navdata()
 // custom_main
 ////////////////////////////////////////////////////////////////////////////////
 
-extern "C" int custom_main(int argc, char** argv)
+//extern "C" int custom_main(int argc, char** argv)
+int main(int argc, char** argv)
 {
 	int res = ardrone_tool_setup_com( NULL );
 
@@ -343,10 +344,10 @@ extern "C" int custom_main(int argc, char** argv)
 	else
 	{
 		//ardrone_tool_init(argc, argv);
-        ardrone_tool_main(argc, argv);
-		ros::init(argc, argv, "ardrone_driver");
-
+        ros::init(argc, argv, "ardrone_driver");
+        ardrone_tool_main(argc, argv, 0);
 		ARDroneDriver().run();
+        
 	}
 
 	return 0;

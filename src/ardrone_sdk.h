@@ -1,6 +1,17 @@
 #ifndef _ARDRONE_SDK_H_
 #define _ARDRONE_SDK_H_
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <ctype.h>
+#include <termios.h>
+#include <fcntl.h>
+#include <errno.h>
+#include <unistd.h>
+
+#include <sys/time.h>
+#include <time.h>
+
 extern "C" {
 #include <VP_Api/vp_api.h>
 #include <VP_Api/vp_api_error.h>
@@ -26,8 +37,9 @@ extern "C" {
 #else
 #include <VLIB/Stages/vlib_stage_decode.h>
 #endif
+#include <video_encapsulation.h>
 
-#include <ardrone_tool/ardrone_tool.h>
+#include <ardrone_tool/ardrone_version.h>
 #include <ardrone_tool/ardrone_tool_configuration.h>  
 #include <ardrone_tool/Com/config_com.h>
 #include <ardrone_tool/UI/ardrone_input.h>

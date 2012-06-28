@@ -9,10 +9,26 @@ navdata_vision_detect_t navdata_detect;
 navdata_time_t arnavtime;
 
 extern "C" {
-
+    //USE PROTO_ for defining if needed
+//    DEFINE_THREAD_ROUTINE(mani , data)
+//    {
+//        while (1) {printf("Hey ...\n");}
+//        return 0;
+//    }
+    
 	C_RESULT ardrone_tool_init_custom(void) {
+        if (IS_ARDRONE2)
+        {
+            ardrone_application_default_config.video_codec = H264_360P_CODEC;
+        }
+        else
+        {
+            ardrone_application_default_config.video_codec = UVLC_CODEC;
+        }
+        ardrone_application_default_config.bitrate_ctrl_mode = 1;
 		ardrone_tool_input_add(&teleop);
 		START_THREAD(video_update_thread, 0);
+        //START_THREAD(mani, 0);
 		return C_OK;
 	}
 
@@ -25,7 +41,6 @@ extern "C" {
 		navdata_phys = pnd->navdata_phys_measures;
 		navdata = pnd->navdata_demo;
 		arnavtime = pnd->navdata_time;
-
 		return C_OK;
 	}
 
@@ -35,6 +50,7 @@ extern "C" {
 
 	BEGIN_THREAD_TABLE
 	THREAD_TABLE_ENTRY(video_update_thread, 20)
+    //THREAD_TABLE_ENTRY(mani, 20)
 	THREAD_TABLE_ENTRY(navdata_update, 20)
 	THREAD_TABLE_ENTRY(ATcodec_Commands_Client, 20)
 	THREAD_TABLE_ENTRY(ardrone_control, 20)

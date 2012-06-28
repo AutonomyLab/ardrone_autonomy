@@ -297,7 +297,7 @@ C_RESULT ardrone_tool_shutdown()
 }
 
 #include <locale.h>
-int ardrone_tool_main(int argc, char **argv)
+int ardrone_tool_main(int argc, char **argv, int run_loop)
 {
   C_RESULT res;
   const char* old_locale;
@@ -404,13 +404,15 @@ int ardrone_tool_main(int argc, char **argv)
 		appname = &argv[0][lastSlashPos+1];
 		ardrone_gen_appid (appname, __SDK_VERSION__, app_id, app_name, sizeof (app_name));
 		res = ardrone_tool_init(wifi_ardrone_ip, strlen(wifi_ardrone_ip), NULL, appname, NULL, NULL, NULL, MAX_FLIGHT_STORING_SIZE, NULL);
+        if (run_loop == 1)
+        {
+        while( SUCCEED(res) && ardrone_tool_exit() == FALSE )
+        {
+            res = ardrone_tool_update();
+        }
 
-      while( SUCCEED(res) && ardrone_tool_exit() == FALSE )
-      {
-        res = ardrone_tool_update();
-      }
-
-      res = ardrone_tool_shutdown();
+        res = ardrone_tool_shutdown();
+        }
     }
 
   if( old_locale != NULL )

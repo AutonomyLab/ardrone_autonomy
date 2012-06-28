@@ -13,7 +13,9 @@ extern "C" C_RESULT export_stage_open( void *cfg, vp_api_io_data_t *in, vp_api_i
 
 extern "C" C_RESULT export_stage_transform( void *cfg, vp_api_io_data_t *in, vp_api_io_data_t *out)
 {
-	memcpy(buffer, in->buffers[0], STREAM_WIDTH * STREAM_HEIGHT * 3);
+    fprintf(stderr, "In Transform before copy\n");
+	//memcpy(buffer, in->buffers[0], STREAM_WIDTH * STREAM_HEIGHT * 3);
+    printf("In Transform after copy\n");
 	current_frame_id++;
  	return (SUCCESS);
 }
@@ -33,6 +35,7 @@ const vp_api_stage_funcs_t vp_stages_export_funcs =
 
 DEFINE_THREAD_ROUTINE(video_update_thread, data)
 {
+    printf("Starting video capture thread ...\n");
   C_RESULT res;
 
   vp_api_io_pipeline_t    pipeline;
