@@ -131,7 +131,7 @@ C_RESULT update_teleop(void)
 
         //ardrone_at_set_progress_cmd(1, left_right, front_back, up_down, turn);
         //printf(">>> To Send: L<%6.4f,%6.4f,%6.4f> A<%6.4f>\n", front_back, left_right, up_down, turn);
-        ardrone_tool_set_progressive_cmd(0, left_right, front_back, up_down, turn, 0.0, 0.0);
+        ardrone_tool_set_progressive_cmd(1, left_right, front_back, up_down, turn, 0.0, 0.0);
         
 //        ardrone_tool_set_progressive_cmd(1, 0.0, 0.0, 0.4, 0.0, 0.0, 0.0);
 //        if ((i++ % 100) == 0) 

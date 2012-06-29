@@ -31,6 +31,7 @@ extern "C" {
             printf("Something must be really wrong with the SDK!");
         }
         
+        //TODO: Please FIX this.
         ardrone_application_default_config.bitrate_ctrl_mode = VBC_MODE_DISABLED;
 		ardrone_tool_input_add(&teleop);
         uint8_t post_stages_index = 0;
