@@ -128,20 +128,33 @@ C_RESULT update_teleop(void)
         float front_back = (float) cmd_vel.linear.x;
         float up_down = (float) cmd_vel.linear.z;
         float turn = (float) cmd_vel.angular.z;
-
-        //ardrone_at_set_progress_cmd(1, left_right, front_back, up_down, turn);
-        //printf(">>> To Send: L<%6.4f,%6.4f,%6.4f> A<%6.4f>\n", front_back, left_right, up_down, turn);
-        ardrone_tool_set_progressive_cmd(1, left_right, front_back, up_down, turn, 0.0, 0.0);
         
-//        ardrone_tool_set_progressive_cmd(1, 0.0, 0.0, 0.4, 0.0, 0.0, 0.0);
-//        if ((i++ % 100) == 0) 
-//        {
-//            ardrone_tool_set_progressive_cmd(1, 0.0, 0.0, 0.5, 0.0, 0.0, 0.0);
-//        }
-//        else
-//        {
-//            ardrone_tool_set_progressive_cmd(1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
-//        }
+        // These lines are for testing, they should be moved to configurations
+        // Bit 0 of control_flag: should we hover?
+        // Bit 1 of control_flag: should we use combined yaw mode?
+        
+        int32_t control_flag = 0x00;
+        int32_t combined_yaw = 0x00;
+        
+        int32_t hover = (int32_t) 
+                !(
+                (fabs(left_right) < _EPS) && 
+                (fabs(front_back) < _EPS) && 
+                (fabs(up_down) < _EPS) && 
+                (fabs(turn) < _EPS)
+                );
+        control_flag |= (hover << 0);
+        control_flag |= (combined_yaw << 1);
+        //ROS_INFO (">>> Control Flag: %d", control_flag);
+        
+        if (IS_ARDRONE1)
+        {
+            ardrone_at_set_progress_cmd(control_flag, left_right, front_back, up_down, turn);
+        }
+        else if (IS_ARDRONE2)
+        {
+            ardrone_tool_set_progressive_cmd(control_flag, left_right, front_back, up_down, turn, 0.0, 0.0);
+        }
     }
     
 	return C_OK;

@@ -31,8 +31,21 @@ extern "C" {
             printf("Something must be really wrong with the SDK!");
         }
         
-        //TODO: Please FIX this.
-        ardrone_application_default_config.bitrate_ctrl_mode = VBC_MODE_DISABLED;
+        //TODO: Please FIX this to read default values from ros params
+        ardrone_application_default_config.bitrate_ctrl_mode = VBC_MODE_DYNAMIC;
+        ardrone_application_default_config.autonomous_flight = 0;
+        ardrone_application_default_config.control_level = (0 << CONTROL_LEVEL_COMBINED_YAW);
+        ardrone_application_default_config.outdoor = false;
+        ardrone_application_default_config.flight_without_shell = true;
+        ardrone_application_default_config.flying_mode = FLYING_MODE_FREE_FLIGHT;
+        ardrone_application_default_config.video_on_usb = 0;
+        ardrone_application_default_config.altitude_max = 3000;
+        ardrone_application_default_config.altitude_min = 100;
+        ardrone_application_default_config.control_vz_max = 850;
+        ardrone_application_default_config.control_yaw = (100.0 /180.0) * 3.1415;
+        ardrone_application_default_config.euler_angle_max = (12.0 / 180.0) * 3.1415;
+        
+        
 		ardrone_tool_input_add(&teleop);
         uint8_t post_stages_index = 0;
 

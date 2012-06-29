@@ -48,7 +48,7 @@ void ARDroneDriver::run()
 {
 	ros::Rate loop_rate(40);
 
-	int configWait = 250;
+	int configWait = 150;
 	bool configDone = false;
         
         //These are some extra params (experimental)

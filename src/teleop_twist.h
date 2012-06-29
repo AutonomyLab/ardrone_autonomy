@@ -7,6 +7,8 @@
 #include <std_srvs/Empty.h>
 #include <ardrone_brown/CamSelect.h>
 
+#define _EPS 1.0e-6 
+
 extern input_device_t teleop;
 
 void cmdVelCallback(const geometry_msgs::TwistConstPtr &msg);
