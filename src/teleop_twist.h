@@ -33,6 +33,8 @@ extern int32_t detect_dtype;
 extern int32_t detect_hori_type;
 extern int32_t detect_vert_type;
 extern int32_t detect_disable_placeholder;
+extern int32_t detect_enable_placeholder;
+
 
 #endif
 

@@ -8,14 +8,7 @@ navdata_vision_detect_t navdata_detect;
 
 navdata_time_t arnavtime;
 
-extern "C" {
-    //USE PROTO_ for defining if needed
-//    DEFINE_THREAD_ROUTINE(mani , data)
-//    {
-//        while (1) {printf("Hey ...\n");}
-//        return 0;
-//    }
-    
+extern "C" { 
 	C_RESULT ardrone_tool_init_custom(void) {
         int _w, _h;
         

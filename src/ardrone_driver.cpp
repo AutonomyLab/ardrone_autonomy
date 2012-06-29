@@ -80,7 +80,6 @@ void ARDroneDriver::run()
 				ARDRONE_TOOL_CONFIGURATION_ADDEVENT (detections_select_v_hsync, &detect_disable_placeholder, NULL);
 				ARDRONE_TOOL_CONFIGURATION_ADDEVENT (detections_select_h, &detect_hori_type, NULL);
 				ARDRONE_TOOL_CONFIGURATION_ADDEVENT (enemy_colors, &detect_enemy_color, NULL );
-//				ARDRONE_TOOL_CONFIGURATION_ADDEVENT (groundstripe_colors, &detect_groundstripes_color, NULL);
 				ARDRONE_TOOL_CONFIGURATION_ADDEVENT (enemy_without_shell, &detect_indoor_hull, NULL);
 			}
 		}
