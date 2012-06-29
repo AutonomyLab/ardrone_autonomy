@@ -11,6 +11,8 @@ navdata_time_t arnavtime;
 extern "C" {
  
 	C_RESULT ardrone_tool_init_custom(void) {
+        
+                
         int _w, _h;
         
         if (IS_ARDRONE2)
@@ -31,7 +33,7 @@ extern "C" {
             printf("Something must be really wrong with the SDK!");
         }
         
-        //TODO: Please FIX this to read default values from ros params
+        //TODO: Please FIX this to read default values from ros params and move them to ardrone driver
         ardrone_application_default_config.bitrate_ctrl_mode = VBC_MODE_DYNAMIC;
         ardrone_application_default_config.autonomous_flight = 0;
         ardrone_application_default_config.control_level = (0 << CONTROL_LEVEL_COMBINED_YAW);
@@ -43,8 +45,7 @@ extern "C" {
         ardrone_application_default_config.altitude_min = 100;
         ardrone_application_default_config.control_vz_max = 850;
         ardrone_application_default_config.control_yaw = (100.0 /180.0) * 3.1415;
-        ardrone_application_default_config.euler_angle_max = (12.0 / 180.0) * 3.1415;
-        
+        ardrone_application_default_config.euler_angle_max = (12.0 / 180.0) * 3.1415;        
         
 		ardrone_tool_input_add(&teleop);
         uint8_t post_stages_index = 0;
