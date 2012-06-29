@@ -3,7 +3,8 @@
 inline float max(float a, float b) { return a > b ? a : b; }
 inline float min(float a, float b) { return a < b ? a : b; }
 
-bool is_flying = false;
+bool needs_takeoff = false;
+bool needs_land = false;
 bool needs_reset = false;
 geometry_msgs::Twist cmd_vel;
 
@@ -67,28 +68,29 @@ void toggleCamCallback(const std_msgs::Empty &msg)
 
 void cmdVelCallback(const geometry_msgs::TwistConstPtr &msg)
 {
-	const float maxHorizontalSpeed = 1; // use 0.1f for testing and 1 for the real thing
+	const double maxHorizontalSpeed = 1.0; // use 0.1f for testing and 1 for the real thing
 	cmd_vel.linear.x  = max(min(-msg->linear.x, maxHorizontalSpeed), -maxHorizontalSpeed);
 	cmd_vel.linear.y  = max(min(-msg->linear.y, maxHorizontalSpeed), -maxHorizontalSpeed);
-	cmd_vel.linear.z  = max(min(msg->linear.z, 1), -1);
-	cmd_vel.angular.x = 0;
-	cmd_vel.angular.y = 0;
-	cmd_vel.angular.z = max(min(-msg->angular.z, 1), -1);
+	cmd_vel.linear.z  = max(min(msg->linear.z, 1.0), -1.0);
+	cmd_vel.angular.x = 0.0;
+	cmd_vel.angular.y = 0.0;
+	cmd_vel.angular.z = max(min(-msg->angular.z, 1.0), -1.0);
 }
 
 void landCallback(const std_msgs::Empty &msg)
-{
-	is_flying = false;
+{    
+    needs_land = true;
 }
 
 void resetCallback(const std_msgs::Empty &msg)
-{
-	needs_reset = true;
+{	
+    needs_reset = true;
 }
 
 void takeoffCallback(const std_msgs::Empty &msg)
 {
-	is_flying = true;
+    
+    needs_takeoff = true;
 }
 
 C_RESULT open_teleop(void)
@@ -100,19 +102,48 @@ C_RESULT update_teleop(void)
 {
 	// This function *toggles* the emergency state, so we only want to toggle the emergency
 	// state when we are in the emergency state (because we want to get out of it).
-	ardrone_tool_set_ui_pad_select(needs_reset);
-	needs_reset = false;
+    static int i = 0;
+    if (needs_reset)
+    {
+        ardrone_tool_set_ui_pad_select(1);
+        needs_reset = false;
+    }
+    else if (needs_takeoff)
+    {
+        ardrone_tool_set_ui_pad_start(1);
+        needs_takeoff = false;
+    }
+    else if (needs_land)
+    {
+        ardrone_tool_set_ui_pad_start(0);
+        needs_land = false;
+    }
+    else
+    {
+        // This function sets whether or not the robot should be flying.  If it is flying and you
+        // send 0, the robot will slow down the motors and slowly descend to the floor.
+        //ardrone_tool_set_ui_pad_start(is_flying);
 
-	// This function sets whether or not the robot should be flying.  If it is flying and you
-	// send 0, the robot will slow down the motors and slowly descend to the floor.
-	ardrone_tool_set_ui_pad_start(is_flying);
+        float left_right = (float) cmd_vel.linear.y;
+        float front_back = (float) cmd_vel.linear.x;
+        float up_down = (float) cmd_vel.linear.z;
+        float turn = (float) cmd_vel.angular.z;
 
-	float left_right = cmd_vel.linear.y;
-	float front_back = cmd_vel.linear.x;
-	float up_down = cmd_vel.linear.z;
-	float turn = cmd_vel.angular.z;
-
-	ardrone_at_set_progress_cmd(1, left_right, front_back, up_down, turn);
+        //ardrone_at_set_progress_cmd(1, left_right, front_back, up_down, turn);
+        //printf(">>> To Send: L<%6.4f,%6.4f,%6.4f> A<%6.4f>\n", front_back, left_right, up_down, turn);
+        ardrone_tool_set_progressive_cmd(0, left_right, front_back, up_down, turn, 0.0, 0.0);
+        
+//        ardrone_tool_set_progressive_cmd(1, 0.0, 0.0, 0.4, 0.0, 0.0, 0.0);
+//        if ((i++ % 100) == 0) 
+//        {
+//            ardrone_tool_set_progressive_cmd(1, 0.0, 0.0, 0.5, 0.0, 0.0, 0.0);
+//        }
+//        else
+//        {
+//            ardrone_tool_set_progressive_cmd(1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+//        }
+    }
+    
 	return C_OK;
 }
 

@@ -8,7 +8,8 @@ navdata_vision_detect_t navdata_detect;
 
 navdata_time_t arnavtime;
 
-extern "C" { 
+extern "C" {
+ 
 	C_RESULT ardrone_tool_init_custom(void) {
         int _w, _h;
         
@@ -30,7 +31,7 @@ extern "C" {
             printf("Something must be really wrong with the SDK!");
         }
         
-        ardrone_application_default_config.bitrate_ctrl_mode = 1;
+        ardrone_application_default_config.bitrate_ctrl_mode = VBC_MODE_DISABLED;
 		ardrone_tool_input_add(&teleop);
         uint8_t post_stages_index = 0;
 
@@ -44,7 +45,7 @@ extern "C" {
         in_picture->width          = _w;
         in_picture->height         = _h;
 
-        out_picture->framerate     = 30;
+        out_picture->framerate     = 20;
         out_picture->format        = PIX_FMT_RGB24;
         out_picture->width         = _w;
         out_picture->height        = _h;

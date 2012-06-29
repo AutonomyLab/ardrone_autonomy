@@ -4,8 +4,8 @@
 #include "ardrone_sdk.h"
 
 // The maximum memory allocation
-#define MAX_STREAM_WIDTH 1280//640
-#define MAX_STREAM_HEIGHT 720//360
+#define MAX_STREAM_WIDTH 640
+#define MAX_STREAM_HEIGHT 360
 
 /** Drone 1 */
 
