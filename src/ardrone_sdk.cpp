@@ -11,9 +11,7 @@ navdata_time_t arnavtime;
 extern "C" {
  
 	C_RESULT ardrone_tool_init_custom(void) {
-        
-                
-        int _w, _h;
+     int _w, _h;
         
         if (IS_ARDRONE2)
         {
