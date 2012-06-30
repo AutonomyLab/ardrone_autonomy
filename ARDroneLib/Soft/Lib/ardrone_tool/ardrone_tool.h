@@ -52,7 +52,7 @@ extern void ardrone_tool_display_cmd_line_custom( void ) WEAK;
 extern bool_t ardrone_tool_parse_cmd_line_custom( const char* cmd ) WEAK;
 
 // This is implemented by the library
-int ardrone_tool_main(int argc, char**argv, int run_loop);
+int ardrone_tool_main(int argc, char**argv);
 C_RESULT ardrone_tool_init(const char* ardrone_ip, size_t n,
 		AT_CODEC_FUNCTIONS_PTRS *ptrs, const char *appname,
 		const char *usrname, const char *rootdir, const char *flightdir,

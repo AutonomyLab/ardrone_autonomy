@@ -10,7 +10,6 @@
 #define USE_LINUX
 #endif
 
-
 // TODO: Research more on this issue, move the flag to CMake
 // The FFMPEG library INT macros fix
 #if defined __cplusplus
@@ -44,5 +43,6 @@ extern navdata_phys_measures_t navdata_phys;
 extern navdata_demo_t navdata;
 extern navdata_time_t arnavtime;
 
+extern int32_t should_exit;
 
 #endif

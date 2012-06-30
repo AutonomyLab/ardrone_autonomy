@@ -1,6 +1,7 @@
 #include "ardrone_driver.h"
 #include "teleop_twist.h"
 #include "video.h"
+#include <signal.h>
 
 ////////////////////////////////////////////////////////////////////////////////
 // class ARDroneDriver
@@ -21,8 +22,8 @@ ARDroneDriver::ARDroneDriver()
 
 	//int cam_state = DEFAULT_CAM_STATE; // 0 for forward and 1 for vertical, change to enum later
     //int set_navdata_demo_value = DEFAULT_NAVDATA_DEMO;  
-	ARDRONE_TOOL_CONFIGURATION_ADDEVENT (video_channel, &cam_state, NULL);
-	ARDRONE_TOOL_CONFIGURATION_ADDEVENT (navdata_demo, &set_navdata_demo_value, NULL);
+//	ARDRONE_TOOL_CONFIGURATION_ADDEVENT (video_channel, &cam_state, NULL);
+//	ARDRONE_TOOL_CONFIGURATION_ADDEVENT (navdata_demo, &set_navdata_demo_value, NULL);
 
 //	ARDRONE_TOOL_CONFIGURATION_ADDEVENT (detect_type, &detect_dtype, NULL);
 //	ARDRONE_TOOL_CONFIGURATION_ADDEVENT (detections_select_h, &detect_hori_type, NULL);
@@ -46,7 +47,7 @@ ARDroneDriver::~ARDroneDriver()
 
 void ARDroneDriver::run()
 {
-	ros::Rate loop_rate(40);
+	ros::Rate loop_rate(30);
 
 	int configWait = 150;
 	bool configDone = false;
@@ -57,7 +58,7 @@ void ARDroneDriver::run()
         //int cam_state = DEFAULT_CAM_STATE; // 0 for forward and 1 for vertical, change to enum later
         //int set_navdata_demo_value = DEFAULT_NAVDATA_DEMO;  
         
-	while (node_handle.ok())
+	while (ros::ok())//node_handle.ok())
 	{
 		// For some unknown reason, sometimes the ardrone critical configurations are not applied
 		// when the commands are being sent during SDK initialization. This is a trick to send critical 
@@ -68,6 +69,7 @@ void ARDroneDriver::run()
 			if (configWait == 0) 
 			{
 				configDone = true;
+                ardrone_at_set_flat_trim();
 				fprintf(stderr, "\nSending some critical initial configuration after some delay...\n");
                 //Ensure that the horizontal camera is running
                 ARDRONE_TOOL_CONFIGURATION_ADDEVENT (video_channel, &cam_state, NULL);
@@ -90,10 +92,13 @@ void ARDroneDriver::run()
 			last_frame_id = current_frame_id;
 		}
 
-		ardrone_tool_update();
+        // In SDK2 there is no way to do this if you use ardrone_main_tool()
+        // Becuase this function uses a blocking call
+		//ardrone_tool_update();
 		ros::spinOnce();
 		loop_rate.sleep();
 	}
+        printf("ROS loop terminated ... \n");
 }
 
 void ARDroneDriver::publish_video()
@@ -355,33 +360,27 @@ void ARDroneDriver::publish_navdata()
 	navdata_pub.publish(msg);
 }
 
+void controlCHandler (int signal)
+{
+    ros::shutdown();
+    should_exit = 1;    
+}
 ////////////////////////////////////////////////////////////////////////////////
 // custom_main
 ////////////////////////////////////////////////////////////////////////////////
 
 //extern "C" int custom_main(int argc, char** argv)
 int main(int argc, char** argv)
-{
-	int res = ardrone_tool_setup_com( NULL );
-
-	if( FAILED(res) )
-	{
-		printf("Wifi initialization failed. It means either:\n");
-		printf("\t* you're not root (it's mandatory because you can set up wifi connection only as root)\n");
-		printf("\t* wifi device is not present (on your pc or on your card)\n");
-		printf("\t* you set the wrong name for wifi interface (for example rausb0 instead of wlan0) \n");
-		printf("\t* ap is not up (reboot card or remove wifi usb dongle)\n");
-		printf("\t* wifi device has no antenna\n");
-	}
-	else
-	{
-		//ardrone_tool_init(argc, argv);
-        ros::init(argc, argv, "ardrone_driver");
-        ardrone_tool_main(argc, argv, 0);
-		ARDroneDriver().run();
+{        
+        // We need to implement our own Signal handler instead of ROS to shutdown
+        // the SDK threads correctly.
+    
+        ros::init(argc, argv, "ardrone_driver", ros::init_options::NoSigintHandler);
         
-	}
+        signal (SIGABRT, &controlCHandler);
+        signal (SIGTERM, &controlCHandler);
+        signal (SIGINT, &controlCHandler);
 
-	return 0;
+        return ardrone_tool_main(argc, argv);
 }
 

@@ -306,7 +306,6 @@ void ardrone_at_set_flat_trim(void)
 {
   if (!at_init)
      return;
-
   vp_os_mutex_lock(&at_mutex);
 	ATcodec_Queue_Message_valist( ids.AT_MSG_ATCMD_FTRIM_EXE,
                                  ++nb_sequence );

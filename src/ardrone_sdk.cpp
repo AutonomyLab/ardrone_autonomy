@@ -1,6 +1,7 @@
 #include "ardrone_sdk.h"
 #include "video.h"
 #include "teleop_twist.h"
+#include "ardrone_driver.h"
 
 navdata_demo_t navdata;
 navdata_phys_measures_t navdata_phys;
@@ -8,9 +9,24 @@ navdata_vision_detect_t navdata_detect;
 
 navdata_time_t arnavtime;
 
+ARDroneDriver* rosDriver;
+
+int32_t should_exit;
+
 extern "C" {
- 
-	C_RESULT ardrone_tool_init_custom(void) {
+
+    DEFINE_THREAD_ROUTINE(update_ros, data)
+    {
+        PRINT("Thread `update_ros` started \n ");
+        ARDroneDriver* driver = (ARDroneDriver *) data;
+        driver->run();
+        return (THREAD_RET) 0;
+    }
+    
+	 C_RESULT ardrone_tool_init_custom(void) 
+     {
+     should_exit = 0;
+     rosDriver = new ARDroneDriver();
      int _w, _h;
         
         if (IS_ARDRONE2)
@@ -32,6 +48,8 @@ extern "C" {
         }
         
         //TODO: Please FIX this to read default values from ros params and move them to ardrone driver
+        //Roadmap: We have the pointer to ARDroneDriver here, so it is doable to return back ros params
+        //using this class.
         ardrone_application_default_config.bitrate_ctrl_mode = VBC_MODE_DYNAMIC;
         ardrone_application_default_config.autonomous_flight = 0;
         ardrone_application_default_config.control_level = (0 << CONTROL_LEVEL_COMBINED_YAW);
@@ -44,6 +62,8 @@ extern "C" {
         ardrone_application_default_config.control_vz_max = 850;
         ardrone_application_default_config.control_yaw = (100.0 /180.0) * 3.1415;
         ardrone_application_default_config.euler_angle_max = (12.0 / 180.0) * 3.1415;        
+        ardrone_application_default_config.video_channel = ZAP_CHANNEL_HORI;
+        ardrone_application_default_config.navdata_demo = 0;
         
 		ardrone_tool_input_add(&teleop);
         uint8_t post_stages_index = 0;
@@ -92,13 +112,29 @@ extern "C" {
         // Using the provided threaded pipeline implementation from SDK
         START_THREAD(video_stage, params);
         video_stage_init();
+//        if (ARDRONE_VERSION() >= 2)
+//        {
+//            START_THREAD (video_recorder, NULL);
+//            video_recorder_init ();
+//            video_recorder_resume_thread();
+//        }
         // Threads do not start automatically
         video_stage_resume_thread();
-		//START_THREAD(video_update_thread, 0);
-        //START_THREAD(mani, 0);
+        ardrone_tool_set_refresh_time(30);
+		START_THREAD(update_ros, rosDriver);
 		return C_OK;
 	}
-
+    
+    C_RESULT ardrone_tool_shutdown_custom() 
+    {
+        PRINT("Shutting down ... \n ");
+        JOIN_THREAD(update_ros);
+        delete rosDriver;
+        video_stage_resume_thread();
+        ardrone_tool_input_remove(&teleop);
+        return C_OK;
+    }
+    
 	C_RESULT navdata_custom_init(void *) {
 		return C_OK;
 	}
@@ -114,9 +150,15 @@ extern "C" {
 	C_RESULT navdata_custom_release() {
 		return C_OK;
 	}
-
+    
+    bool_t ardrone_tool_exit() {
+        return (should_exit == 1);
+    }
+    
 	BEGIN_THREAD_TABLE
     THREAD_TABLE_ENTRY(video_stage, 20)
+    THREAD_TABLE_ENTRY(update_ros, 20)
+//    THREAD_TABLE_ENTRY(video_recorder, 20)
 	THREAD_TABLE_ENTRY(navdata_update, 20)
 	THREAD_TABLE_ENTRY(ATcodec_Commands_Client, 20)
 	THREAD_TABLE_ENTRY(ardrone_control, 20)
