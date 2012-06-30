@@ -147,14 +147,9 @@ C_RESULT update_teleop(void)
         control_flag |= (combined_yaw << 1);
         //ROS_INFO (">>> Control Flag: %d", control_flag);
         
-        if (IS_ARDRONE1)
-        {
-            ardrone_at_set_progress_cmd(control_flag, left_right, front_back, up_down, turn);
-        }
-        else if (IS_ARDRONE2)
-        {
-            ardrone_tool_set_progressive_cmd(control_flag, left_right, front_back, up_down, turn, 0.0, 0.0);
-        }
+
+       ardrone_tool_set_progressive_cmd(control_flag, left_right, front_back, up_down, turn, 0.0, 0.0);
+
     }
     
 	return C_OK;
