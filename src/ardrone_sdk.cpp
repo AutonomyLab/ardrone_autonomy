@@ -107,11 +107,11 @@ extern "C" {
         params->out_pic = out_picture;
         params->pre_processing_stages_list  = driver_pre_stages;
         params->post_processing_stages_list = driver_post_stages;
-        params->needSetPriority = 0;
-        params->priority = 0;
+        params->needSetPriority = 1;
+        params->priority = 31;
         // Using the provided threaded pipeline implementation from SDK
         START_THREAD(video_stage, params);
-        video_stage_init();
+//        video_stage_init();
 //        if (ARDRONE_VERSION() >= 2)
 //        {
 //            START_THREAD (video_recorder, NULL);
@@ -120,7 +120,7 @@ extern "C" {
 //        }
         // Threads do not start automatically
         video_stage_resume_thread();
-        ardrone_tool_set_refresh_time(30);
+        ardrone_tool_set_refresh_time(25);
 		START_THREAD(update_ros, rosDriver);
 		return C_OK;
 	}
@@ -156,12 +156,12 @@ extern "C" {
     }
     
 	BEGIN_THREAD_TABLE
-    THREAD_TABLE_ENTRY(video_stage, 20)
-    THREAD_TABLE_ENTRY(update_ros, 20)
+    THREAD_TABLE_ENTRY(video_stage, 31)
+    THREAD_TABLE_ENTRY(update_ros, 43)
 //    THREAD_TABLE_ENTRY(video_recorder, 20)
-	THREAD_TABLE_ENTRY(navdata_update, 20)
-	THREAD_TABLE_ENTRY(ATcodec_Commands_Client, 20)
-	THREAD_TABLE_ENTRY(ardrone_control, 20)
+	THREAD_TABLE_ENTRY(navdata_update, 31)
+//	THREAD_TABLE_ENTRY(ATcodec_Commands_Client, 43)
+	THREAD_TABLE_ENTRY(ardrone_control, 31)
 	END_THREAD_TABLE
 
 	BEGIN_NAVDATA_HANDLER_TABLE

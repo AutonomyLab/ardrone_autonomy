@@ -10,14 +10,14 @@
 ARDroneDriver::ARDroneDriver()
 	: image_transport(node_handle)
 {
-	cmd_vel_sub = node_handle.subscribe("/cmd_vel", 1, &cmdVelCallback);
+	cmd_vel_sub = node_handle.subscribe("/cmd_vel", 100, &cmdVelCallback);
 	takeoff_sub = node_handle.subscribe("/ardrone/takeoff", 1, &takeoffCallback);
 	reset_sub = node_handle.subscribe("/ardrone/reset", 1, &resetCallback);
 	land_sub = node_handle.subscribe("/ardrone/land", 1, &landCallback);
-	image_pub = image_transport.advertiseCamera("/ardrone/image_raw", 1);
-    hori_pub = image_transport.advertiseCamera("/ardrone/front/image_raw", 1);
-	vert_pub = image_transport.advertiseCamera("/ardrone/bottom/image_raw", 1);
-	navdata_pub = node_handle.advertise<ardrone_brown::Navdata>("/ardrone/navdata", 1);
+	image_pub = image_transport.advertiseCamera("/ardrone/image_raw", 10);
+    hori_pub = image_transport.advertiseCamera("/ardrone/front/image_raw", 10);
+	vert_pub = image_transport.advertiseCamera("/ardrone/bottom/image_raw", 10);
+	navdata_pub = node_handle.advertise<ardrone_brown::Navdata>("/ardrone/navdata", 10);
 	//toggleCam_sub = node_handle.subscribe("/ardrone/togglecam", 10, &toggleCamCallback);
 
 	//int cam_state = DEFAULT_CAM_STATE; // 0 for forward and 1 for vertical, change to enum later

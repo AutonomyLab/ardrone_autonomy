@@ -7,6 +7,10 @@ bool needs_takeoff = false;
 bool needs_land = false;
 bool needs_reset = false;
 geometry_msgs::Twist cmd_vel;
+float old_left_right;
+float old_front_back;
+float old_up_down;
+float old_turn;
 
 int cam_state = DEFAULT_CAM_STATE; // 0 for forward and 1 for vertical, change to enum later
 int set_navdata_demo_value = DEFAULT_NAVDATA_DEMO; 
@@ -102,7 +106,6 @@ C_RESULT update_teleop(void)
 {
 	// This function *toggles* the emergency state, so we only want to toggle the emergency
 	// state when we are in the emergency state (because we want to get out of it).
-    static int i = 0;
     if (needs_reset)
     {
         ardrone_tool_set_ui_pad_select(1);
@@ -120,14 +123,18 @@ C_RESULT update_teleop(void)
     }
     else
     {
-        // This function sets whether or not the robot should be flying.  If it is flying and you
-        // send 0, the robot will slow down the motors and slowly descend to the floor.
-        //ardrone_tool_set_ui_pad_start(is_flying);
 
         float left_right = (float) cmd_vel.linear.y;
         float front_back = (float) cmd_vel.linear.x;
         float up_down = (float) cmd_vel.linear.z;
         float turn = (float) cmd_vel.angular.z;
+        
+        bool is_changed = !(
+                (fabs(left_right - old_left_right) < _EPS) && 
+                (fabs(front_back - old_front_back) < _EPS) && 
+                (fabs(up_down - old_up_down) < _EPS) && 
+                (fabs(turn - old_turn) < _EPS)
+                );
         
         // These lines are for testing, they should be moved to configurations
         // Bit 0 of control_flag: should we hover?
@@ -147,8 +154,15 @@ C_RESULT update_teleop(void)
         control_flag |= (combined_yaw << 1);
         //ROS_INFO (">>> Control Flag: %d", control_flag);
         
-
-       ardrone_tool_set_progressive_cmd(control_flag, left_right, front_back, up_down, turn, 0.0, 0.0);
+        old_left_right = left_right;
+        old_front_back = front_back;
+        old_up_down = up_down;
+        old_turn = turn;
+        
+        if (is_changed)
+        {
+            ardrone_tool_set_progressive_cmd(control_flag, left_right, front_back, up_down, turn, 0.0, 0.0);
+        }
 
     }
     
