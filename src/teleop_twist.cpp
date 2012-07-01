@@ -7,10 +7,10 @@ bool needs_takeoff = false;
 bool needs_land = false;
 bool needs_reset = false;
 geometry_msgs::Twist cmd_vel;
-float old_left_right;
-float old_front_back;
-float old_up_down;
-float old_turn;
+float old_left_right = -10.0;
+float old_front_back = -10.0;
+float old_up_down = -10.0;
+float old_turn = -10.0;
 
 int cam_state = DEFAULT_CAM_STATE; // 0 for forward and 1 for vertical, change to enum later
 int set_navdata_demo_value = DEFAULT_NAVDATA_DEMO; 
@@ -159,7 +159,7 @@ C_RESULT update_teleop(void)
         old_up_down = up_down;
         old_turn = turn;
         
-        if (is_changed)
+        if ((is_changed) || (hover))
         {
             ardrone_tool_set_progressive_cmd(control_flag, left_right, front_back, up_down, turn, 0.0, 0.0);
         }
