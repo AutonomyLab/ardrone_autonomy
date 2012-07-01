@@ -14,6 +14,8 @@ ARDroneDriver* rosDriver;
 int32_t should_exit;
 
 extern "C" {
+    vp_stages_latency_estimation_config_t vlat;
+
 
     DEFINE_THREAD_ROUTINE(update_ros, data)
     {
@@ -50,7 +52,8 @@ extern "C" {
         //TODO: Please FIX this to read default values from ros params and move them to ardrone driver
         //Roadmap: We have the pointer to ARDroneDriver here, so it is doable to return back ros params
         //using this class.
-        ardrone_application_default_config.bitrate_ctrl_mode = VBC_MODE_DYNAMIC;
+//        ardrone_application_default_config.bitrate_ctrl_mode = VBC_MANUAL;
+//        ardrone_application_default_config.bitrate = 4000;
         ardrone_application_default_config.autonomous_flight = 0;
         ardrone_application_default_config.control_level = (0 << CONTROL_LEVEL_COMBINED_YAW);
         ardrone_application_default_config.outdoor = false;
@@ -63,7 +66,7 @@ extern "C" {
         ardrone_application_default_config.control_yaw = (100.0 /180.0) * 3.1415;
         ardrone_application_default_config.euler_angle_max = (12.0 / 180.0) * 3.1415;        
         ardrone_application_default_config.video_channel = ZAP_CHANNEL_HORI;
-        ardrone_application_default_config.navdata_demo = 0;
+        ardrone_application_default_config.navdata_demo = 1;
         
 		ardrone_tool_input_add(&teleop);
         uint8_t post_stages_index = 0;
@@ -95,6 +98,15 @@ extern "C" {
         driver_pre_stages->stages_list  = NULL;
         driver_post_stages->stages_list = (vp_api_io_stage_t*)vp_os_calloc(NB_DRIVER_POST_STAGES,sizeof(vp_api_io_stage_t));
         
+        //Fill the POST-stages------------------------------------------------------
+//        vp_os_memset (&vlat, 0x0, sizeof (vlat));
+//        vlat.state = (vp_stages_latency_estimation_state) 0;
+//        //vlat.last_decoded_frame_info= (void *)&vec;
+//        driver_post_stages->stages_list[post_stages_index].name    = "LatencyEst";
+//        driver_post_stages->stages_list[post_stages_index].type    = VP_API_FILTER_DECODER;
+//        driver_post_stages->stages_list[post_stages_index].cfg     = (void *)&vlat;
+//        driver_post_stages->stages_list[post_stages_index++].funcs = vp_stages_latency_estimation_funcs;
+    
         driver_post_stages->stages_list[post_stages_index].name    = "ExtractData";
         driver_post_stages->stages_list[post_stages_index].type    = VP_API_OUTPUT_SDL;
         driver_post_stages->stages_list[post_stages_index].cfg     = NULL;

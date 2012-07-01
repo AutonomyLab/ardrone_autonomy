@@ -54,7 +54,9 @@ void ARDroneDriver::run()
         
         //These are some extra params (experimental)
         int mCodec = P264_CODEC;
-        int vbcMode = VBC_MODE_DYNAMIC;
+        int32_t vbcMode = 0;
+        int32_t bitrate = 2000;
+        int maxbitrate = 4000;
         //int cam_state = DEFAULT_CAM_STATE; // 0 for forward and 1 for vertical, change to enum later
         //int set_navdata_demo_value = DEFAULT_NAVDATA_DEMO;  
         
@@ -73,7 +75,7 @@ void ARDroneDriver::run()
 				fprintf(stderr, "\nSending some critical initial configuration after some delay...\n");
                 //Ensure that the horizontal camera is running
                 ARDRONE_TOOL_CONFIGURATION_ADDEVENT (video_channel, &cam_state, NULL);
-                ARDRONE_TOOL_CONFIGURATION_ADDEVENT (navdata_demo, &set_navdata_demo_value, NULL);
+                //ARDRONE_TOOL_CONFIGURATION_ADDEVENT (navdata_demo, &set_navdata_demo_value, NULL);
                 //ARDRONE_TOOL_CONFIGURATION_ADDEVENT (video_codec, &mCodec, NULL);
                 //ARDRONE_TOOL_CONFIGURATION_ADDEVENT (bitrate_ctrl_mode, &vbcMode, NULL);					
 				
@@ -83,6 +85,12 @@ void ARDroneDriver::run()
 				ARDRONE_TOOL_CONFIGURATION_ADDEVENT (detections_select_h, &detect_hori_type, NULL);
 				ARDRONE_TOOL_CONFIGURATION_ADDEVENT (enemy_colors, &detect_enemy_color, NULL );
 				ARDRONE_TOOL_CONFIGURATION_ADDEVENT (enemy_without_shell, &detect_indoor_hull, NULL);
+                
+//                if (IS_ARDRONE2)
+//                {
+//                    ARDRONE_TOOL_CONFIGURATION_ADDEVENT (bitrate_ctrl_mode, &vbcMode, NULL);
+//                    ARDRONE_TOOL_CONFIGURATION_ADDEVENT (max_bitrate, &maxbitrate, NULL);
+//                }
 			}
 		}
 		if (current_frame_id != last_frame_id)
