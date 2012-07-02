@@ -10,33 +10,17 @@
 ARDroneDriver::ARDroneDriver()
 	: image_transport(node_handle)
 {
-	cmd_vel_sub = node_handle.subscribe("/cmd_vel", 100, &cmdVelCallback);
-	takeoff_sub = node_handle.subscribe("/ardrone/takeoff", 1, &takeoffCallback);
-	reset_sub = node_handle.subscribe("/ardrone/reset", 1, &resetCallback);
-	land_sub = node_handle.subscribe("/ardrone/land", 1, &landCallback);
-	image_pub = image_transport.advertiseCamera("/ardrone/image_raw", 10);
-    hori_pub = image_transport.advertiseCamera("/ardrone/front/image_raw", 10);
-	vert_pub = image_transport.advertiseCamera("/ardrone/bottom/image_raw", 10);
-	navdata_pub = node_handle.advertise<ardrone_brown::Navdata>("/ardrone/navdata", 10);
-	//toggleCam_sub = node_handle.subscribe("/ardrone/togglecam", 10, &toggleCamCallback);
-
-	//int cam_state = DEFAULT_CAM_STATE; // 0 for forward and 1 for vertical, change to enum later
-    //int set_navdata_demo_value = DEFAULT_NAVDATA_DEMO;  
-//	ARDRONE_TOOL_CONFIGURATION_ADDEVENT (video_channel, &cam_state, NULL);
-//	ARDRONE_TOOL_CONFIGURATION_ADDEVENT (navdata_demo, &set_navdata_demo_value, NULL);
-
-//	ARDRONE_TOOL_CONFIGURATION_ADDEVENT (detect_type, &detect_dtype, NULL);
-//	ARDRONE_TOOL_CONFIGURATION_ADDEVENT (detections_select_h, &detect_hori_type, NULL);
-//	ARDRONE_TOOL_CONFIGURATION_ADDEVENT (detections_select_v, &detect_vertfast_type, NULL);
-//	ARDRONE_TOOL_CONFIGURATION_ADDEVENT (detections_select_v_hsync, &detect_vert_type, NULL);
-//	ARDRONE_TOOL_CONFIGURATION_ADDEVENT (enemy_colors, &detect_enemy_color, NULL );
-//	ARDRONE_TOOL_CONFIGURATION_ADDEVENT (groundstripe_colors, &detect_groundstripes_color, NULL);
-//	ARDRONE_TOOL_CONFIGURATION_ADDEVENT (enemy_without_shell, &detect_indoor_hull, NULL);
-	
-	
-	toggleCam_service = node_handle.advertiseService("/ardrone/togglecam", toggleCamCallback);
-	toggleNavdataDemo_service = node_handle.advertiseService("/ardrone/togglenavdatademo", toggleNavdataDemoCallback);
-	setCamChannel_service = node_handle.advertiseService("/ardrone/setcamchannel",setCamChannelCallback );
+	cmd_vel_sub = node_handle.subscribe("cmd_vel", 100, &cmdVelCallback);
+	takeoff_sub = node_handle.subscribe("ardrone/takeoff", 1, &takeoffCallback);
+	reset_sub = node_handle.subscribe("ardrone/reset", 1, &resetCallback);
+	land_sub = node_handle.subscribe("ardrone/land", 1, &landCallback);
+	image_pub = image_transport.advertiseCamera("ardrone/image_raw", 10);
+    hori_pub = image_transport.advertiseCamera("ardrone/front/image_raw", 10);
+	vert_pub = image_transport.advertiseCamera("ardrone/bottom/image_raw", 10);
+	navdata_pub = node_handle.advertise<ardrone_brown::Navdata>("ardrone/navdata", 10);
+	toggleCam_service = node_handle.advertiseService("ardrone/togglecam", toggleCamCallback);
+	toggleNavdataDemo_service = node_handle.advertiseService("ardrone/togglenavdatademo", toggleNavdataDemoCallback);
+	setCamChannel_service = node_handle.advertiseService("ardrone/setcamchannel",setCamChannelCallback );
 //	setEnemyColor_service = node_handle.advertiseService("/ardrone/setenemycolor", setEnemyColorCallback);
 //	setHullType_service = node_handle.advertiseService("/ardrone/sethulltype", setHullTypeCallback);
 }
@@ -49,64 +33,27 @@ void ARDroneDriver::run()
 {
 	ros::Rate loop_rate(30);
 
-	int configWait = 150;
-	bool configDone = false;
-        
-        //These are some extra params (experimental)
-        int mCodec = P264_CODEC;
-        int32_t vbcMode = 0;
-        int32_t bitrate = 2000;
-        int maxbitrate = 4000;
-        //int cam_state = DEFAULT_CAM_STATE; // 0 for forward and 1 for vertical, change to enum later
-        //int set_navdata_demo_value = DEFAULT_NAVDATA_DEMO;  
-        
-	while (ros::ok())//node_handle.ok())
+	while (node_handle.ok())
 	{
-		// For some unknown reason, sometimes the ardrone critical configurations are not applied
-		// when the commands are being sent during SDK initialization. This is a trick to send critical 
-		// configurations sometime after SDK boots up.  
-		if (configDone == false) 
-		{
-			configWait--;
-			if (configWait == 0) 
-			{
-				configDone = true;
-                ardrone_at_set_flat_trim();
-				fprintf(stderr, "\nSending some critical initial configuration after some delay...\n");
-                //Ensure that the horizontal camera is running
-                ARDRONE_TOOL_CONFIGURATION_ADDEVENT (video_channel, &cam_state, NULL);
-                //ARDRONE_TOOL_CONFIGURATION_ADDEVENT (navdata_demo, &set_navdata_demo_value, NULL);
-                //ARDRONE_TOOL_CONFIGURATION_ADDEVENT (video_codec, &mCodec, NULL);
-                //ARDRONE_TOOL_CONFIGURATION_ADDEVENT (bitrate_ctrl_mode, &vbcMode, NULL);					
-				
-				ARDRONE_TOOL_CONFIGURATION_ADDEVENT (detect_type, &detect_dtype, NULL);
-				ARDRONE_TOOL_CONFIGURATION_ADDEVENT (detections_select_v, &detect_vert_type, NULL);
-				ARDRONE_TOOL_CONFIGURATION_ADDEVENT (detections_select_v_hsync, &detect_disable_placeholder, NULL);
-				ARDRONE_TOOL_CONFIGURATION_ADDEVENT (detections_select_h, &detect_hori_type, NULL);
-				ARDRONE_TOOL_CONFIGURATION_ADDEVENT (enemy_colors, &detect_enemy_color, NULL );
-				ARDRONE_TOOL_CONFIGURATION_ADDEVENT (enemy_without_shell, &detect_indoor_hull, NULL);
-                
-//                if (IS_ARDRONE2)
-//                {
-//                    ARDRONE_TOOL_CONFIGURATION_ADDEVENT (bitrate_ctrl_mode, &vbcMode, NULL);
-//                    ARDRONE_TOOL_CONFIGURATION_ADDEVENT (max_bitrate, &maxbitrate, NULL);
-//                }
-			}
-		}
 		if (current_frame_id != last_frame_id)
 		{
 			publish_video();
 			publish_navdata();
 			last_frame_id = current_frame_id;
 		}
-
-        // In SDK2 there is no way to do this if you use ardrone_main_tool()
-        // Becuase this function uses a blocking call
-		//ardrone_tool_update();
 		ros::spinOnce();
 		loop_rate.sleep();
 	}
         printf("ROS loop terminated ... \n");
+}
+
+double ARDroneDriver::getRosParam(char* param, double defaultVal)
+{
+    std::string name(param);
+    double res, ret;
+    ret =  (ros::param::get(name, res)) ? res : defaultVal;
+    ROS_INFO("SET %-30s: %4.2f", param, ret);
+    return ret;
 }
 
 void ARDroneDriver::publish_video()

@@ -332,11 +332,14 @@ int ardrone_tool_main(int argc, char **argv)
     argc--; argv++;
   }
 
+  // Making the driver ROS compatible
+/*
   if( show_usage || (argc != 0) )
   {
     ardrone_tool_usage( appname );
     exit(-1);
   }
+*/
   
   /* After a first analysis, the arguments are restored so they can be passed to the user-defined functions */
   argc=argc_backup;

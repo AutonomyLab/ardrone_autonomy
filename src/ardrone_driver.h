@@ -14,7 +14,7 @@ public:
 	~ARDroneDriver();
 
 	void run();
-
+    double getRosParam(char* param, double defaultVal);
 private:
 	void publish_video();
 	void publish_navdata();
