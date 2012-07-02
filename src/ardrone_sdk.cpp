@@ -64,13 +64,14 @@ extern "C" {
         ardrone_application_default_config.euler_angle_max = (float) rosDriver->getRosParam("~euler_angle_max", (12.0 / 180.0) * 3.1415);                
         ardrone_application_default_config.navdata_demo = (int) rosDriver->getRosParam("~navdata_demo", (double) 1);
         ardrone_application_default_config.detect_type = (int) rosDriver->getRosParam("~detect_type", (double) CAD_TYPE_MULTIPLE_DETECTION_MODE);
-        ardrone_application_default_config.detections_select_v_hsync = rosDriver->getRosParam("~detections_select_v_hsync", 
-                (double) TAG_TYPE_MASK(TAG_TYPE_BLACK_ROUNDEL));
-        ardrone_application_default_config.detections_select_h = rosDriver->getRosParam("~detections_select_h", 
-                (double) TAG_TYPE_MASK(TAG_TYPE_SHELL_TAG_V2));
         ardrone_application_default_config.enemy_colors = (int) rosDriver->getRosParam("~enemy_colors", (double) ARDRONE_DETECTION_COLOR_ORANGE_YELLOW);
         ardrone_application_default_config.enemy_without_shell = (bool) rosDriver->getRosParam("~enemy_without_shell", (double) 0.0);
-        
+        ardrone_application_default_config.detections_select_h = rosDriver->getRosParam("~detections_select_h", 
+                (double) TAG_TYPE_MASK(TAG_TYPE_SHELL_TAG_V2));
+        ardrone_application_default_config.detections_select_v_hsync = rosDriver->getRosParam("~detections_select_v_hsync", 
+                (double) TAG_TYPE_MASK(TAG_TYPE_BLACK_ROUNDEL));
+//        ardrone_application_default_config.detections_select_v = rosDriver->getRosParam("~detections_select_v", 
+//                (double) TAG_TYPE_MASK(TAG_TYPE_BLACK_ROUNDEL));
        
         ardrone_application_default_config.navdata_options = NAVDATA_OPTION_FULL_MASK /*&
         ~(NAVDATA_OPTION_MASK(NAVDATA_TRACKERS_SEND_TAG)
@@ -139,13 +140,13 @@ extern "C" {
         params->priority = 31;
         // Using the provided threaded pipeline implementation from SDK
         START_THREAD(video_stage, params);
-//        video_stage_init();
-//        if (ARDRONE_VERSION() >= 2)
-//        {
-//            START_THREAD (video_recorder, NULL);
-//            video_recorder_init ();
-//            video_recorder_resume_thread();
-//        }
+        video_stage_init();
+        if (ARDRONE_VERSION() >= 2)
+        {
+            START_THREAD (video_recorder, NULL);
+            video_recorder_init ();
+            video_recorder_resume_thread();
+        }
         // Threads do not start automatically
         video_stage_resume_thread();
         ardrone_tool_set_refresh_time(25);
@@ -187,7 +188,7 @@ extern "C" {
 	BEGIN_THREAD_TABLE
     THREAD_TABLE_ENTRY(video_stage, 31)
     THREAD_TABLE_ENTRY(update_ros, 43)
-//    THREAD_TABLE_ENTRY(video_recorder, 20)
+    THREAD_TABLE_ENTRY(video_recorder, 20)
 	THREAD_TABLE_ENTRY(navdata_update, 31)
 //	THREAD_TABLE_ENTRY(ATcodec_Commands_Client, 43)
 	THREAD_TABLE_ENTRY(ardrone_control, 31)
