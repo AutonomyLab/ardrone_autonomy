@@ -53,7 +53,10 @@ extern "C" {
         //Roadmap: We have the pointer to ARDroneDriver here, so it is doable to return back ros params
         //using this class.
         ardrone_application_default_config.bitrate_ctrl_mode = (int) rosDriver->getRosParam("~bitrate_ctrl_mode", (double) VBC_MODE_DISABLED);
-        ardrone_application_default_config.max_bitrate = (int) rosDriver->getRosParam("~max_bitrate", 4000.0);
+        if (IS_ARDRONE2)
+        {
+            ardrone_application_default_config.max_bitrate = (int) rosDriver->getRosParam("~max_bitrate", 4000.0);
+        }
         ardrone_application_default_config.bitrate = (int) rosDriver->getRosParam("~bitrate", 4000.0);
         ardrone_application_default_config.outdoor = (bool) rosDriver->getRosParam("~outdoor", 0.0);
         ardrone_application_default_config.flight_without_shell = (bool) rosDriver->getRosParam("~flight_without_shell", 1.0);

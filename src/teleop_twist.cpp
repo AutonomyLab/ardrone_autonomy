@@ -137,8 +137,8 @@ C_RESULT update_teleop(void)
                 );
         
         // These lines are for testing, they should be moved to configurations
-        // Bit 0 of control_flag: should we hover?
-        // Bit 1 of control_flag: should we use combined yaw mode?
+        // Bit 0 of control_flag == 0: should we hover?
+        // Bit 1 of control_flag == 1: should we use combined yaw mode?
         
         int32_t control_flag = 0x00;
         int32_t combined_yaw = 0x00;
