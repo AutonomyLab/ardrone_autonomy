@@ -18,9 +18,9 @@ SDK_FLAGS+="USE_LIB=yes"
 
 all: 
 	@$(MAKE) -C $(SDK_PATH)/Soft/Build $(TMP_SDK_FLAGS) $(SDK_FLAGS) $(MAKECMDGOALS) USE_LINUX=yes
-
 	@$(MAKE) -C $(SDK_PATH)/VP_SDK/Build $(TMP_SDK_FLAGS) $(SDK_FLAGS) $(MAKECMDGOALS) USE_LINUX=yes
 	
-	find $(SDK_PATH)/Soft/Build -type f -name '*.a' -exec cp '{}' ./lib \;
+	
+	find $(SDK_PATH)/Soft/Build -type f -name '*.a' -exec cp '{}' ./lib/ \;
 	
 	
