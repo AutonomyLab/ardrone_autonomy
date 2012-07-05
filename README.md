@@ -1,5 +1,7 @@
-ardrone_brown_mod
+ardrone_autonomy
 =================
+
+TBA.
 
 The fork of ardrone_brown ROS driver from 
 
