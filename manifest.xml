@@ -6,7 +6,7 @@
   </description>
   <author>Mani Monajjemi</author>
   <email>mmonajje@cs.sfu.ca</email>
-  <license>GPL</license>
+  <license>BSD</license>
   <review status="unreviewed" notes=""/>
   <url>TBA.</url>
   <rosdep name="libsdl-dev" />
