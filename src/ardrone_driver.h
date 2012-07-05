@@ -4,7 +4,7 @@
 #include <ros/ros.h>
 #include <image_transport/image_transport.h>
 #include <sensor_msgs/Image.h>
-#include <ardrone_brown/Navdata.h>
+#include <ardrone_autonomy/Navdata.h>
 #include "ardrone_sdk.h"
 
 class ARDroneDriver

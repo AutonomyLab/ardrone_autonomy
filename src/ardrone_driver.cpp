@@ -17,7 +17,7 @@ ARDroneDriver::ARDroneDriver()
 	image_pub = image_transport.advertiseCamera("ardrone/image_raw", 10);
     hori_pub = image_transport.advertiseCamera("ardrone/front/image_raw", 10);
 	vert_pub = image_transport.advertiseCamera("ardrone/bottom/image_raw", 10);
-	navdata_pub = node_handle.advertise<ardrone_brown::Navdata>("ardrone/navdata", 10);
+	navdata_pub = node_handle.advertise<ardrone_autonomy::Navdata>("ardrone/navdata", 10);
 	toggleCam_service = node_handle.advertiseService("ardrone/togglecam", toggleCamCallback);
 	toggleNavdataDemo_service = node_handle.advertiseService("ardrone/togglenavdatademo", toggleNavdataDemoCallback);
 	setCamChannel_service = node_handle.advertiseService("ardrone/setcamchannel",setCamChannelCallback );
@@ -264,7 +264,7 @@ void ARDroneDriver::publish_video()
 
 void ARDroneDriver::publish_navdata()
 {
-	ardrone_brown::Navdata msg;
+	ardrone_autonomy::Navdata msg;
 
 	msg.batteryPercent = navdata.vbat_flying_percentage;
     msg.state = (navdata.ctrl_state >> 16);

@@ -32,7 +32,7 @@ bool toggleNavdataDemoCallback(std_srvs::Empty::Request& request, std_srvs::Empt
 
 //ros service callback to set the camera channel
 //TODO: add input check
-bool setCamChannelCallback(ardrone_brown::CamSelect::Request& request, ardrone_brown::CamSelect::Response& response)
+bool setCamChannelCallback(ardrone_autonomy::CamSelect::Request& request, ardrone_autonomy::CamSelect::Response& response)
 {
     cam_state = request.channel;
     ARDRONE_TOOL_CONFIGURATION_ADDEVENT (video_channel, &cam_state, NULL);
