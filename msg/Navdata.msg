@@ -3,6 +3,11 @@ Header header
 # 0 means no battery, 100 means full battery
 float32 batteryPercent
 
+# 0: Unknown, 1: Init, 2: Landed, 3: Flying, 4: Hovering, 5: Test
+# 6: Taking off, 7: Goto Fix Point, 8: Landing, 9: Looping
+# Note: 3,7 seems to discriminate type of flying (isFly = 3 | 7)
+uint32 state
+
 # left/right tilt in degrees (rotation about the X axis)
 float32 rotX
 

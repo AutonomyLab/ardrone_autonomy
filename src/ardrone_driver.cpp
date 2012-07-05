@@ -267,7 +267,8 @@ void ARDroneDriver::publish_navdata()
 	ardrone_brown::Navdata msg;
 
 	msg.batteryPercent = navdata.vbat_flying_percentage;
-
+    msg.state = (navdata.ctrl_state >> 16);
+    
 	// positive means counterclockwise rotation around axis
 	msg.rotX = navdata.phi / 1000.0; // tilt left/right
 	msg.rotY = -navdata.theta / 1000.0; // tilt forward/backward
