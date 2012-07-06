@@ -11,3 +11,4 @@
 *.la
 *.a
 /nbproject/private/
+Makefile
