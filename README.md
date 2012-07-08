@@ -66,6 +66,8 @@ All the drone information will be published to the `ardrone/navdata` topic. The 
 
 The `Navdata` message also returns the special tags that are detected by the Drone's on-board vision processing system. To learn more about the system and the way it works please consult AR-Drone SDK 2.0's [developers guide](http://). These tags are being detected on both drone's video cameras on-board at 30fps. To configure (or disable) this feature look at the "Parameters" section below.
 
+[TBA]
+
 ### Cameras
 
 Both AR-Drones are equipped with two cameras. One frontal camera pointing forward and one vertical camera pointing downward. This driver will create three topics for each drone: `ardrone/image_raw`, `ardrone/front/image_raw` and `ardrone/bottom/image_raw`. Each of these three are standard [ROS camera interface](http://) and publish [image transport](http://) compatible ROS video streams. 
@@ -84,12 +86,29 @@ Drone 2 does not support PIP feature anymore, therefore only one of `ardrone/fro
 
 ## Sending Commands to AR-Drone
 
-The drone will *takeoff*, *land* or *emergency stop/reset* by Publishing an `Empty` ros messages to these topics: `ardrone/takeoff`, `ardrone/land` and `ardrone/reset`.
+The drone will *takeoff*, *land* or *emergency stop/reset* by Publishing an `Empty` ros messages to the following topics: `ardrone/takeoff`, `ardrone/land` and `ardrone/reset`.
 
+In order to fly the drone after takeoff, you can publish a message of type [`geometry_msgs::Twist`](http://TBA) to the `ardrone/cmd_vel` topic. 
+
+[TBA]
+
+The range for each component should be between -1.0 and 1.0. The maximum range can be configured using ROS parameters below. Publishing 0 values for all components will make the drone keep hovering.
 
 ## Services
 
+Calling `ardrone/togglecam` service with no parameters will change the active video camera stream.
+
 ## Parameters
+
+The parameters listed below are named according to AR-Drone's SDK 2.0 configuration. Unless you set the parameters using `rosparam` or in your `lauch` file, the default values will be used. These values are applied during driver's phase. Please refer to AR-Drone's SDK 2.0 [developer's guide](http://) for information about the valid values.
+
+* `bitrate_ctrl_mode` - default: DISABLED
+* `max_bitrate` - (AR-Drone 2.0 only) Default: 4000 Kbps
+* `bitrate` -  Default: 4000 Kbps
+* `outdoor` - Default: 0
+* `flight_without_shell` - Default: 1
+* `altitude_max`: - Default: 3000 mm
+* `altitude_min`: - Default: 100 mm
 
 ## License
 
@@ -98,7 +117,7 @@ The drone will *takeoff*, *land* or *emergency stop/reset* by Publishing an `Emp
 * Enrich `Navdata` with magneto meter and baro meter information
 * Add separate topic for drone's debug stream (`navdata_demo`)
 * Add the currently selected camera name to `Navdata`
-
+* Make the `togglecame` service accept parameter
 ## FAQ
 
 * How can I report a bug?
