@@ -100,26 +100,42 @@ Calling `ardrone/togglecam` service with no parameters will change the active vi
 
 ## Parameters
 
-The parameters listed below are named according to AR-Drone's SDK 2.0 configuration. Unless you set the parameters using `rosparam` or in your `lauch` file, the default values will be used. These values are applied during driver's phase. Please refer to AR-Drone's SDK 2.0 [developer's guide](http://) for information about the valid values.
+The parameters listed below are named according to AR-Drone's SDK 2.0 configuration. Unless you set the parameters using `rosparam` or in your `lauch` file, the default values will be used. These values are applied during driver's phase. Please refer to AR-Drone's SDK 2.0 [developer's guide](http://) for information about valid values.
 
 * `bitrate_ctrl_mode` - default: DISABLED
 * `max_bitrate` - (AR-Drone 2.0 only) Default: 4000 Kbps
 * `bitrate` -  Default: 4000 Kbps
 * `outdoor` - Default: 0
 * `flight_without_shell` - Default: 1
-* `altitude_max`: - Default: 3000 mm
-* `altitude_min`: - Default: 100 mm
+* `altitude_max` - Default: 3000 mm
+* `altitude_min` - Default: 100 mm
+* `control_vz_max` - Default: 850.0 mm/s
+* `control_yaw` - Default: 100 degrees/?
+* `euler_angle_max` - Default: 12 degrees
+* `navdata_demo` - Default: 1
+* `detect_type` - Default: `CAD_TYPE_MULTIPLE_DETECTION_MODE` (TBA)
+* `enemy_colors` - Default: `ARDRONE_DETECTION_COLOR_ORANGE_YELLOW` (TBA)
+* `enemy_without_shell` - Default: 1
+* `detections_select_h` - Default: `TAG_TYPE_MASK(TAG_TYPE_SHELL_TAG_V2)` (TBA)
+* `detections_select_v_hsync` - Default: `TAG_TYPE_MASK(TAG_TYPE_BLACK_ROUNDEL)` (TBA)
 
 ## License
+
+The Parrot's license, copyright and disclaimer for `ARDroneLib` are included with the package and can be found in `ParrotLicense.txt` and `ParrotCopyrightAndDisclaimer.txt` files respectively. The other parts of the code are subject to `BSD` license.
 
 ## TODO List
 
 * Enrich `Navdata` with magneto meter and baro meter information
 * Add separate topic for drone's debug stream (`navdata_demo`)
 * Add the currently selected camera name to `Navdata`
-* Make the `togglecame` service accept parameter
+* Make the `togglecame` service accept parameters
+
 ## FAQ
 
-* How can I report a bug?
-* Why the `ARDroneLib` has been patched?
+### How can I report a bug, submit patches or ask for a request?
 
+`github` offers a nice and convenient issue tracking and social coding platform, it can be used for bug reports and pull/feature request. This is the preferred method. You can also contact the author directly. 
+
+### Why the `ARDroneLib` has been patched?
+
+The ARDrone 2.0 SDK has been patched to 1) Enable the lib only build 2) Make its command parsing compatible with ROS and 3) To fix its weird `main()` function issue
