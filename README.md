@@ -16,21 +16,21 @@ The installation follows the same steps needed usually to compile a ROS driver.
 
 * Get the code: Clone (or download and unpack) the driver to your personal ROS stacks folder (e.g. ~/ros/stacks) and `cd` to it. Please make sure that this folder is in your `ROS_PACKAGE_PATH` environmental variable.
 
-```bash
-cd ~/ros/stacks
-git clone TBA
-rosstack profile && rospack profile
-roscd ardrone_autonomy
-```
+	```bash
+	cd ~/ros/stacks
+	git clone TBA
+	rosstack profile && rospack profile
+	roscd ardrone_autonomy
+	```
 
 * Compile the AR-Drone SDK: The driver contains a slightly patched version of AR-Drone 2.0 SDK which is located in `ARDroneLib` directory. To compile it, execute the `./build_sdk.sh`. Any system-wide dependency will be managed by the SDK's build script. You may be asked to install some packages during the installation procedure (e.g `daemontools`). You can verify the success of the SDK's build by checking the `lib` folder.
 
-```bash
-./build_sdk 
-[After a couple of minutes]
-ls ./lib
-TBA
-```
+	```bash
+	./build_sdk 
+	[After a couple of minutes]
+	ls ./lib
+	TBA
+	```
 
 * Compile the driver: You can easily compile the driver by using `rosmake ardrone_autonomy` command.
 
@@ -47,15 +47,15 @@ Information received from the drone will be published to the `ardrone/navdata` t
 * `header`: ROS message header
 * `batteryPercent`: The remaining charge of the drone's battery (%)
 * `state`: The Drone's current state: 
-** 0: Unknown
-** 1: Inited
-** 2: Landed
-** 3,7: Flying
-** 4: Hovering
-** 5: Test (?)
-** 6: Taking off
-** 8: Landing
-** 9: Looping (?)
+	* 0: Unknown
+	* 1: Inited
+	* 2: Landed
+	* 3,7: Flying
+	* 4: Hovering
+	* 5: Test (?)
+	* 6: Taking off
+	* 8: Landing
+	* 9: Looping (?)
 * `rotx`: Left/right tilt in degrees (rotation about the X axis)
 * `roty`: Forward/backward tilt in degrees (rotation about the Y axis)
 * `rotz`: Orientation in degrees (rotation about the Z axis)
