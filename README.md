@@ -2,7 +2,7 @@
 
 ## Introduction
 
-"ardrone_autonomy" is a [ROS](http://ros.org/ "Robot Operating System") driver for [Parrot AR-Drone](http://TBA) quadrocopter. This driver is based on official [AR-Drone SDK](http://TBA) version 2.0 and supports both AR-Drone 1.0 and 2.0. "ardrone_autonomy" is a fork of [AR-Drone Brown](http://TBA) driver. This package has been developed in [Autonomy Lab](http://autonomy.cs.sfu.ca) of [Simon Fraser University](http://www.sfu.ca) by [Mani Monajjemi](http://sfu.ca/~mmmonajje). 
+"ardrone_autonomy" is a [ROS](http://ros.org/ "Robot Operating System") driver for [Parrot AR-Drone](http://http://ardrone.parrot.com/parrot-ar-drone/select-site) quadrocopter. This driver is based on official [AR-Drone SDK](https://projects.ardrone.org/) version 2.0 and supports both AR-Drone 1.0 and 2.0. "ardrone_autonomy" is a fork of [AR-Drone Brown](http://code.google.com/p/brown-ros-pkg/wiki/ardrone_brown) driver. This package has been developed in [Autonomy Lab](http://autonomy.cs.sfu.ca) of [Simon Fraser University](http://www.sfu.ca) by [Mani Monajjemi](http://sfu.ca/~mmmonajje). 
 
 ## Installation
 
@@ -29,7 +29,10 @@ The installation follows the same steps needed usually to compile a ROS driver.
 	./build_sdk 
 	[After a couple of minutes]
 	ls ./lib
-	TBA
+	
+	libavcodec.a   libavformat.a    libpc_ardrone_notool.a  libvlib.a
+	libavdevice.a  libavutil.a      libsdk.a
+	libavfilter.a  libpc_ardrone.a  libswscale.a
 	```
 
 * Compile the driver: You can easily compile the driver by using `rosmake ardrone_autonomy` command.
@@ -91,15 +94,23 @@ The detected tags' type and position in Drone's camera frame will be published t
 * `tags_xc[]`, `tags_yc[]`, `tags_width[]`, `tags_height[]`: Vector of position components and size components for each tag. These numbers are expressed in numbers between [0,1000]. You need to convert them back to pixel unit using the corresponding camera's resolution (can be obtained fron `camera_info` topic). 
 * `tags_orientation[]`: For the tags that support orientation, this is the vector that contains the tag orientation expressed in degrees [0..360).
 
-By default, the driver will configure the drone to look for [oriented roundels](http://TBA) using bottom camera and 2D tags v2 on indoor shells (orange-yellow) using front camera. For information on how to extract information from `tags_type` field. Check the FAQ section in the end.
+By default, the driver will configure the drone to look for _oriented roundels_ using bottom camera and _2D tags v2_ on indoor shells (_orange-yellow_) using front camera. For information on how to extract information from `tags_type` field. Check the FAQ section in the end.
 
 ## Sending Commands to AR-Drone
 
 The drone will *takeoff*, *land* or *emergency stop/reset* by publishing an `Empty` ROS messages to the following topics: `ardrone/takeoff`, `ardrone/land` and `ardrone/reset` respectively.
 
-In order to fly the drone after takeoff, you can publish a message of type [`geometry_msgs::Twist`](http://TBA) to the `ardrone/cmd_vel` topic. 
+In order to fly the drone after takeoff, you can publish a message of type [`geometry_msgs::Twist`](http://www.ros.org/doc/api/geometry_msgs/html/msg/Twist.html) to the `ardrone/cmd_vel` topic. 
 
-[TBA]
+	-linear.x: move backward
+	+linear.x: move forward
+	-linear.y: move right
+	+linear.y: move left
+	-linear.z: move down
+	+linear.z: move up
+	
+	-angular.z: turn left
+	+angular.z: turn right
 
 The range for each component should be between -1.0 and 1.0. The maximum range can be configured using ROS parameters discussed later in this document. Publishing "0" values for all components will make the drone keep hovering.
 
@@ -109,7 +120,7 @@ Calling `ardrone/togglecam` service with no parameters will change the active vi
 
 ## Parameters
 
-The parameters listed below are named according to AR-Drone's SDK 2.0 configuration. Unless you set the parameters using `rosparam` or in your `lauch` file, the default values will be used. These values are applied during driver's initialization phase. Please refer to AR-Drone SDK 2.0's [developer's guide](http://) for information about valid values.
+The parameters listed below are named according to AR-Drone's SDK 2.0 configuration. Unless you set the parameters using `rosparam` or in your `lauch` file, the default values will be used. These values are applied during driver's initialization phase. Please refer to AR-Drone SDK 2.0's [developer's guide](https://projects.ardrone.org/projects/show/ardrone-api/) for information about valid values.
 
 * `bitrate_ctrl_mode` - default: DISABLED
 * `max_bitrate` - (AR-Drone 2.0 only) Default: 4000 Kbps
