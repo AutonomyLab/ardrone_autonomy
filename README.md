@@ -19,18 +19,18 @@ The installation follows the same steps needed usually to compile a ROS driver.
 * Get the code: Clone (or download and unpack) the driver to your personal ROS stacks folder (e.g. ~/ros/stacks) and `cd` to it. Please make sure that this folder is in your `ROS_PACKAGE_PATH` environmental variable.
 
 	```bash
-	cd ~/ros/stacks
-	git clone TBA
-	rosstack profile && rospack profile
-	roscd ardrone_autonomy
+	$ cd ~/ros/stacks
+	$ git clone https://github.com/AutonomyLab/ardrone_autonomy.git
+	$ rosstack profile && rospack profile
+	$ roscd ardrone_autonomy
 	```
 
 * Compile the AR-Drone SDK: The driver contains a slightly patched version of AR-Drone 2.0 SDK which is located in `ARDroneLib` directory. To compile it, execute the `./build_sdk.sh`. Any system-wide dependency will be managed by the SDK's build script. You may be asked to install some packages during the installation procedure (e.g `daemontools`). You can verify the success of the SDK's build by checking the `lib` folder.
 
 	```bash
-	./build_sdk 
-	[After a couple of minutes]
-	ls ./lib
+	$ ./build_sdk 
+	$ [After a couple of minutes]
+	$ ls ./lib
 	
 	libavcodec.a   libavformat.a    libpc_ardrone_notool.a  libvlib.a
 	libavdevice.a  libavutil.a      libsdk.a
@@ -71,7 +71,7 @@ Information received from the drone will be published to the `ardrone/navdata` t
 
 ### Cameras
 
-Both AR-Drone 1.0 and 2.0 are equipped with two cameras. One frontal camera pointing forward and one vertical camera pointing downward. This driver will create three topics for each drone: `ardrone/image_raw`, `ardrone/front/image_raw` and `ardrone/bottom/image_raw`. Each of these three are standard [ROS camera interface](http://) and publish messages of type [image transport](http://). 
+Both AR-Drone 1.0 and 2.0 are equipped with two cameras. One frontal camera pointing forward and one vertical camera pointing downward. This driver will create three topics for each drone: `ardrone/image_raw`, `ardrone/front/image_raw` and `ardrone/bottom/image_raw`. Each of these three are standard [ROS camera interface](http://ros.org/wiki/camera_drivers) and publish messages of type [image transport](http://www.ros.org/wiki/image_transport). 
 
 * The `ardrone/*` will always contain the selected camera's video stream and information.
 
@@ -87,7 +87,7 @@ Both AR-Drone 1.0 and 2.0 are equipped with two cameras. One frontal camera poin
 
 ### Tag Detection
 
-The `Navdata` message also returns the special tags that are detected by the Drone's on-board vision processing system. To learn more about the system and the way it works please consult AR-Drone SDK 2.0's [developers guide](http://). These tags are being detected on both drone's video cameras on-board at 30fps. To configure (or disable) this feature look at the "Parameters" section in this documentation.
+The `Navdata` message also returns the special tags that are detected by the Drone's on-board vision processing system. To learn more about the system and the way it works please consult AR-Drone SDK 2.0's [developers guide](https://projects.ardrone.org/projects/show/ardrone-api/). These tags are being detected on both drone's video cameras on-board at 30fps. To configure (or disable) this feature look at the "Parameters" section in this documentation.
 
 The detected tags' type and position in Drone's camera frame will be published to the following variables in `Navdata` message:
 
@@ -192,4 +192,4 @@ typedef enum
 * Enrich `Navdata` with magneto meter and baro meter information
 * Add separate topic for drone's debug stream (`navdata_demo`)
 * Add the currently selected camera name to `Navdata`
-* Make the `togglecame` service accept parameters
+* Make the `togglecam` service accept parameters
