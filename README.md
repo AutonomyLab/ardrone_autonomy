@@ -4,8 +4,6 @@
 
 "ardrone_autonomy" is a [ROS](http://ros.org/ "Robot Operating System") driver for [Parrot AR-Drone](http://http://ardrone.parrot.com/parrot-ar-drone/select-site) quadrocopter. This driver is based on official [AR-Drone SDK](https://projects.ardrone.org/) version 2.0 and supports both AR-Drone 1.0 and 2.0. "ardrone_autonomy" is a fork of [AR-Drone Brown](http://code.google.com/p/brown-ros-pkg/wiki/ardrone_brown) driver. This package has been developed in [Autonomy Lab](http://autonomy.cs.sfu.ca) of [Simon Fraser University](http://www.sfu.ca) by [Mani Monajjemi](http://sfu.ca/~mmmonajje). 
 
-'[[_TOC_]]
-
 ## Installation
 
 ### Pre-requirements
@@ -159,7 +157,7 @@ The ARDrone 2.0 SDK has been patched to 1) Enable the lib only build 2) Make its
 
 `tag_type` contains information for both source and type of each detected tag. In order to extract information from them you can use the following c macros and enums (taken from `ardrone_api.h`)
 
-```c
+```c++
 #define DETECTION_EXTRACT_SOURCE(type)  ( ((type)>>16) & 0x0FF )
 #define DETECTION_EXTRACT_TAG(type)     ( (type) & 0x0FF )
 
