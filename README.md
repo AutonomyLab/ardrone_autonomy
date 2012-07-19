@@ -8,7 +8,7 @@
 
 ### Pre-requirements
 
-This driver has been tested on Linux machines running Ubuntu 11.10 & 12.04 (32 bit and 64 bit). However it should also work on any other mainstream Linux distribution. Although this package has been tested using ROS "Electric" only, it should work fine with recent ROS "Feurte" as well. The ARDrone SDK has its own build system which usually handles system wide dependencies itself. The ROS package depends on these standard ROS packages: `roscpp`, `image_transport`, `sensor_msgs` and `std_srvs`. 
+This driver has been tested on Linux machines running Ubuntu 11.10 & 12.04 (32 bit and 64 bit). However it should also work on any other mainstream Linux distribution. Although this package has been tested using ROS "Electric" only, it should work fine with recent ROS "Feurte" as well. The AR-Drone SDK has its own build system which usually handles system wide dependencies itself. The ROS package depends on these standard ROS packages: `roscpp`, `image_transport`, `sensor_msgs` and `std_srvs`. 
 
 ### Installation Steps
 
@@ -39,7 +39,7 @@ The installation follows the same steps needed usually to compile a ROS driver.
 
 ## How to Run
 
-The driver's executable node is `ardrone_driver`. You can either use `rosrun ardrone_autonomy ardrone_driver` or put its name in a custom launch file.
+The driver's executable node is `ardrone_driver`. You can either use `rosrun ardrone_autonomy ardrone_driver` or put it in a custom launch file with your desired parameters.
 
 ## Reading from AR-Drone
 
@@ -152,6 +152,17 @@ The Parrot's license, copyright and disclaimer for `ARDroneLib` are included wit
 ### Why the `ARDroneLib` has been patched?
 
 The ARDrone 2.0 SDK has been patched to 1) Enable the lib only build 2) Make its command parsing compatible with ROS and 3) To fix its weird `main()` function issue
+
+### Why the wifi bandwidth usage is too much?
+
+The driver has been configured by default to use the maximum bandwidth allowed to ensure the best quality video stream possible (please take a look at default values in parameters section). That is the reason why the picture quality received from Drone 2.0 using this driver is far better than what you usually get using other softwares. If for any reason you prefer the lower quality* video stream, change `bitrate_ctrl_mode`, `max_bitrate` and `bitrate` parameters to the default values provided by the AR-Drone developer guide.
+
+(*) Please note that lower quality does not mean lower resolution. By configuring AR-Drone to use bitrate control with limits, the picture gets blury when there is a movement. 
+
+### What is the default configuration for the front camera video stream?
+
+_Drone 1_: 320x240@15fps UVLC Codec
+_Drone 2_: 640x360@20fps H264 codec with no record stream
 
 ### How can I extract camera information and tag type from `tags_type[]`?
 
