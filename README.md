@@ -133,11 +133,11 @@ The parameters listed below are named according to AR-Drone's SDK 2.0 configurat
 * `control_yaw` - Default: 100 degrees/?
 * `euler_angle_max` - Default: 12 degrees
 * `navdata_demo` - Default: 1
-* `detect_type` - Default: `CAD_TYPE_MULTIPLE_DETECTION_MODE` (TBA)
-* `enemy_colors` - Default: `ARDRONE_DETECTION_COLOR_ORANGE_YELLOW` (TBA)
+* `detect_type` - Default: `CAD_TYPE_MULTIPLE_DETECTION_MODE` 
+* `enemy_colors` - Default: `ARDRONE_DETECTION_COLOR_ORANGE_YELLOW` 
 * `enemy_without_shell` - Default: 1
-* `detections_select_h` - Default: `TAG_TYPE_MASK(TAG_TYPE_SHELL_TAG_V2)` (TBA)
-* `detections_select_v_hsync` - Default: `TAG_TYPE_MASK(TAG_TYPE_BLACK_ROUNDEL)` (TBA)
+* `detections_select_h` - Default: `TAG_TYPE_MASK(TAG_TYPE_SHELL_TAG_V2)` (The macro is defined in `ardrone_api.h`)
+* `detections_select_v_hsync` - Default: `TAG_TYPE_MASK(TAG_TYPE_BLACK_ROUNDEL)` (The macro is defined in `ardrone_api.h`)
 
 ## License
 
@@ -145,7 +145,7 @@ The Parrot's license, copyright and disclaimer for `ARDroneLib` are included wit
 
 ## FAQ
 
-### How can I report a bug, submit patches or ask for a request?
+### How can I report a bug, submit patches or ask for a feature?
 
 `github` offers a nice and convenient issue tracking and social coding platform, it can be used for bug reports and pull/feature request. This is the preferred method. You can also contact the author directly. 
 
@@ -185,7 +185,7 @@ typedef enum
 
 ```
 
-## TODO List
+## TODO 
 
 * Enrich `Navdata` with magneto meter and baro meter information
 * Add separate topic for drone's debug stream (`navdata_demo`)
