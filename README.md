@@ -129,11 +129,11 @@ Calling `ardrone/togglecam` service with no parameters will change the active vi
 
 Calling `ardrone/setledanimation` service will invoke one of 14 pre-defined LED animations for the drone. The parameters are 
 
-* `uint8 type`: The type of animation which is a number in range [0..13] (see below)
+* `uint8 type`: The type of animation which is a number in range [0..13]
 * `float32 freq`: The frequency of the animation in Hz
 * `uint8 duration`: The duration of the animation in Seconds.
 
-The `type` parameter will map to one of these animations: 
+The `type` parameter will map [in order] to one of these animations: 
 
 	BLINK_GREEN_RED, BLINK_GREEN, BLINK_RED, BLINK_ORANGE,
 	SNAKE_GREEN_RED, FIRE, STANDARD, RED, GREEN, RED_SNAKE,BLANK,
