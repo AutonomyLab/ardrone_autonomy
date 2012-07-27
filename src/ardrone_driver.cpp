@@ -1,6 +1,7 @@
 #include "ardrone_driver.h"
 #include "teleop_twist.h"
 #include "video.h"
+#include "ardrone_autonomy/LedAnim.h"
 #include <signal.h>
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -21,6 +22,7 @@ ARDroneDriver::ARDroneDriver()
 	toggleCam_service = node_handle.advertiseService("ardrone/togglecam", toggleCamCallback);
 	toggleNavdataDemo_service = node_handle.advertiseService("ardrone/togglenavdatademo", toggleNavdataDemoCallback);
 	setCamChannel_service = node_handle.advertiseService("ardrone/setcamchannel",setCamChannelCallback );
+	setLedAnimation_service = node_handle.advertiseService("ardrone/setledanimation", setLedAnimationCallback);
 //	setEnemyColor_service = node_handle.advertiseService("/ardrone/setenemycolor", setEnemyColorCallback);
 //	setHullType_service = node_handle.advertiseService("/ardrone/sethulltype", setHullTypeCallback);
 }
