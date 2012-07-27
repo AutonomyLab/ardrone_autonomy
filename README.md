@@ -4,6 +4,11 @@
 
 "ardrone_autonomy" is a [ROS](http://ros.org/ "Robot Operating System") driver for [Parrot AR-Drone](http://http://ardrone.parrot.com/parrot-ar-drone/select-site) quadrocopter. This driver is based on official [AR-Drone SDK](https://projects.ardrone.org/) version 2.0 and supports both AR-Drone 1.0 and 2.0. "ardrone_autonomy" is a fork of [AR-Drone Brown](http://code.google.com/p/brown-ros-pkg/wiki/ardrone_brown) driver. This package has been developed in [Autonomy Lab](http://autonomy.cs.sfu.ca) of [Simon Fraser University](http://www.sfu.ca) by [Mani Monajjemi](http://sfu.ca/~mmmonajje). 
 
+### Updates
+
+- July 27 2012: LED Animation Support added to the driver as a service 
+- July 19 2012: Initial Public Release
+
 ## Installation
 
 ### Pre-requirements
@@ -116,7 +121,25 @@ The range for each component should be between -1.0 and 1.0. The maximum range c
 
 ## Services
 
+### Toggle AR-Drone's Camera
+
 Calling `ardrone/togglecam` service with no parameters will change the active video camera stream.
+
+### LED Animations
+
+Calling `ardrone/setledanimation` service will invoke one of 14 pre-defined LED animations for the drone. The parameters are 
+
+* `uint8 type`: The type of animation which is a number in range [0..13] (see below)
+* `float32 freq`: The frequency of the animation in Hz
+* `uint8 duration`: The duration of the animation in Seconds.
+
+The `type` parameter will map to one of these animations: 
+
+	BLINK_GREEN_RED, BLINK_GREEN, BLINK_RED, BLINK_ORANGE,
+	SNAKE_GREEN_RED, FIRE, STANDARD, RED, GREEN, RED_SNAKE,BLANK,
+	LEFT_GREEN_RIGHT_RED, LEFT_RED_RIGHT_GREEN, BLINK_STANDARD`
+
+You can test these animations in command line using commands like `rosservice call /ardrone/setledanimation 1 4 5`
 
 ## Parameters
 
