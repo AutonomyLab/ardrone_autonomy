@@ -59,6 +59,12 @@ double ARDroneDriver::getRosParam(char* param, double defaultVal)
 
 void ARDroneDriver::publish_video()
 {
+	if (image_pub.getNumSubscribers() == 0)
+        return;
+    if (hori_pub.getNumSubscribers() == 0)
+        return;
+	if (vert_pub.getNumSubscribers() == 0)
+        return;
     if (IS_ARDRONE1)
     {
         /*
@@ -229,6 +235,8 @@ void ARDroneDriver::publish_video()
      */
     if (IS_ARDRONE2)
     {
+        if (hori_pub.getNumSubscribers() == 0 || vert_pub.getNumSubscribers() == 0)
+            return;
         sensor_msgs::Image image_msg;
         sensor_msgs::CameraInfo cinfo_msg;
         sensor_msgs::Image::_data_type::iterator _it;
@@ -265,8 +273,8 @@ void ARDroneDriver::publish_video()
 
 void ARDroneDriver::publish_navdata()
 {
-    if (navdata.getNumSubscribers() == 0)
-        return // why bother, no one is listening.
+    if (navdata_pub.getNumSubscribers() == 0)
+        return; // why bother, no one is listening.
 	ardrone_autonomy::Navdata msg;
 
 	msg.batteryPercent = navdata.vbat_flying_percentage;
@@ -321,8 +329,8 @@ void ARDroneDriver::publish_navdata()
 
 void ARDroneDriver::publish_navdata2()
 {
-    if (navdata2.getNumSubscribers() == 0)
-        return // why bother, no one is listening.
+    if (navdata2_pub.getNumSubscribers() == 0)
+        return; // why bother, no one is listening.
 	ardrone_autonomy::Navdata2 msg;
 
 	msg.batteryPercent = navdata.vbat_flying_percentage;
