@@ -59,7 +59,7 @@ bool toggleCamCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Respo
 bool setLedAnimationCallback(ardrone_autonomy::LedAnim::Request& request, ardrone_autonomy::LedAnim::Response& response)
 {
 	LED_ANIMATION_IDS anim_id = ledAnimMap[request.type % 14]; // Don't trick me
-	ardrone_at_set_led_animation(anim_id, request.freq, request.duration);
+	ardrone_at_set_led_animation(anim_id, fabs(request.freq), abs(request.duration));
 	response.result = true;
 	return true;
 }
