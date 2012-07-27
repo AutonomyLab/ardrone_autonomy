@@ -44,6 +44,10 @@ extern navdata_phys_measures_t navdata_phys;
 extern navdata_demo_t navdata;
 extern navdata_time_t arnavtime;
 
+extern navdata_pressure_raw_t navdata_pressure;
+extern navdata_magneto_t navdata_magneto;
+extern navdata_wind_speed_t navdata_wind;
+
 extern int32_t should_exit;
 
 #endif

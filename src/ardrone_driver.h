@@ -18,6 +18,7 @@ public:
 private:
 	void publish_video();
 	void publish_navdata();
+	void publish_navdata2();
 
 	ros::NodeHandle node_handle;
 	ros::Subscriber cmd_vel_sub;
@@ -30,6 +31,7 @@ private:
 	image_transport::CameraPublisher vert_pub;
 
 	ros::Publisher navdata_pub;
+	ros::Publisher navdata2_pub;
 
 	//ros::Subscriber toggleCam_sub;
 	ros::ServiceServer toggleCam_service;
