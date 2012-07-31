@@ -18,7 +18,8 @@ ARDroneDriver::ARDroneDriver()
     hori_pub = image_transport.advertiseCamera("ardrone/front/image_raw", 10);
 	vert_pub = image_transport.advertiseCamera("ardrone/bottom/image_raw", 10);
 	navdata_pub = node_handle.advertise<ardrone_autonomy::Navdata>("ardrone/navdata", 10);
-	navdata2_pub = node_handle.advertise<ardrone_autonomy::Navdata>("ardrone/navdata2", 10);
+    if (IS_ARDRONE2)
+	    navdata2_pub = node_handle.advertise<ardrone_autonomy::Navdata>("ardrone/navdata2", 10);
 	toggleCam_service = node_handle.advertiseService("ardrone/togglecam", toggleCamCallback);
 	toggleNavdataDemo_service = node_handle.advertiseService("ardrone/togglenavdatademo", toggleNavdataDemoCallback);
 	setCamChannel_service = node_handle.advertiseService("ardrone/setcamchannel",setCamChannelCallback );
@@ -40,6 +41,8 @@ void ARDroneDriver::run()
 		{
 			publish_video();
 			publish_navdata();
+            if (IS_ARDRONE2)
+			    publish_navdata2();
 			last_frame_id = current_frame_id;
 		}
 		ros::spinOnce();
