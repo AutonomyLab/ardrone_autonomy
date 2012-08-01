@@ -19,6 +19,8 @@ ARDroneDriver::ARDroneDriver()
     hori_pub = image_transport.advertiseCamera("ardrone/front/image_raw", 10);
 	vert_pub = image_transport.advertiseCamera("ardrone/bottom/image_raw", 10);
 	navdata_pub = node_handle.advertise<ardrone_autonomy::Navdata>("ardrone/navdata", 10);
+    if (IS_ARDRONE2)
+	    navdata2_pub = node_handle.advertise<ardrone_autonomy::Navdata2>("ardrone/navdata2", 10);
 	toggleCam_service = node_handle.advertiseService("ardrone/togglecam", toggleCamCallback);
 	toggleNavdataDemo_service = node_handle.advertiseService("ardrone/togglenavdatademo", toggleNavdataDemoCallback);
 	setCamChannel_service = node_handle.advertiseService("ardrone/setcamchannel",setCamChannelCallback );
@@ -41,6 +43,8 @@ void ARDroneDriver::run()
 		{
 			publish_video();
 			publish_navdata();
+            if (IS_ARDRONE2)
+			    publish_navdata2();
 			last_frame_id = current_frame_id;
 		}
 		ros::spinOnce();
@@ -60,6 +64,12 @@ double ARDroneDriver::getRosParam(char* param, double defaultVal)
 
 void ARDroneDriver::publish_video()
 {
+	if (image_pub.getNumSubscribers() == 0)
+        return;
+    if (hori_pub.getNumSubscribers() == 0)
+        return;
+	if (vert_pub.getNumSubscribers() == 0)
+        return;
     if (IS_ARDRONE1)
     {
         /*
@@ -230,6 +240,8 @@ void ARDroneDriver::publish_video()
      */
     if (IS_ARDRONE2)
     {
+        if (hori_pub.getNumSubscribers() == 0 || vert_pub.getNumSubscribers() == 0)
+            return;
         sensor_msgs::Image image_msg;
         sensor_msgs::CameraInfo cinfo_msg;
         sensor_msgs::Image::_data_type::iterator _it;
@@ -266,6 +278,8 @@ void ARDroneDriver::publish_video()
 
 void ARDroneDriver::publish_navdata()
 {
+    if (navdata_pub.getNumSubscribers() == 0)
+        return; // why bother, no one is listening.
 	ardrone_autonomy::Navdata msg;
 
 	msg.batteryPercent = navdata.vbat_flying_percentage;
@@ -318,6 +332,56 @@ void ARDroneDriver::publish_navdata()
 	navdata_pub.publish(msg);
 }
 
+void ARDroneDriver::publish_navdata2()
+{
+    if (navdata2_pub.getNumSubscribers() == 0)
+        return; // why bother, no one is listening.
+	ardrone_autonomy::Navdata2 msg;
+
+	msg.batteryPercent = navdata.vbat_flying_percentage;
+    msg.state = (navdata.ctrl_state >> 16);
+    
+	// positive means counterclockwise rotation around axis
+	msg.rotX = navdata.phi / 1000.0; // tilt left/right
+	msg.rotY = -navdata.theta / 1000.0; // tilt forward/backward
+	msg.rotZ = -navdata.psi / 1000.0; // orientation
+
+	msg.altd = navdata.altitude; // cm
+	msg.vx = navdata.vx; // mm/sec
+	msg.vy = -navdata.vy; // mm/sec
+	msg.vz = -navdata.vz; // mm/sec
+	msg.tm = arnavtime.time;
+	msg.ax = navdata_phys.phys_accs[ACC_X] / 1000.0; // g
+	msg.ay = -navdata_phys.phys_accs[ACC_Y] / 1000.0; // g
+	msg.az = -navdata_phys.phys_accs[ACC_Z] / 1000.0; // g
+
+    msg.magX = (int32_t)navdata_magneto.mx;
+    msg.magY = (int32_t)navdata_magneto.my;
+    msg.magZ = (int32_t)navdata_magneto.mz;
+
+    msg.pressure = navdata_pressure.Pression_meas; // typo in the SDK!
+    msg.temp = navdata_pressure.Temperature_meas;
+
+    msg.wind_speed = navdata_wind.wind_speed;
+    msg.wind_angle = navdata_wind.wind_angle;
+    msg.wind_comp_angle = navdata_wind.wind_compensation_phi;
+	
+	// Tag Detection
+	msg.tags_count = navdata_detect.nb_detected;
+	for (int i = 0; i < navdata_detect.nb_detected; i++)
+	{
+		msg.tags_type.push_back(navdata_detect.type[i]);
+		msg.tags_xc.push_back(navdata_detect.xc[i]);
+		msg.tags_yc.push_back(navdata_detect.yc[i]);
+		msg.tags_width.push_back(navdata_detect.width[i]);
+		msg.tags_height.push_back(navdata_detect.height[i]);
+		msg.tags_orientation.push_back(navdata_detect.orientation_angle[i]);
+		msg.tags_distance.push_back(navdata_detect.dist[i]);
+	}
+
+	navdata2_pub.publish(msg);
+}
+
 void controlCHandler (int signal)
 {
     ros::shutdown();
@@ -332,7 +396,7 @@ int main(int argc, char** argv)
 {        
         // We need to implement our own Signal handler instead of ROS to shutdown
         // the SDK threads correctly.
-    
+
         ros::init(argc, argv, "ardrone_driver", ros::init_options::NoSigintHandler);
         
         signal (SIGABRT, &controlCHandler);
