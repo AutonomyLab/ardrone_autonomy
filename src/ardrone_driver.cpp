@@ -18,7 +18,8 @@ ARDroneDriver::ARDroneDriver()
     hori_pub = image_transport.advertiseCamera("ardrone/front/image_raw", 10);
 	vert_pub = image_transport.advertiseCamera("ardrone/bottom/image_raw", 10);
 	navdata_pub = node_handle.advertise<ardrone_autonomy::Navdata>("ardrone/navdata", 10);
-	navdata2_pub = node_handle.advertise<ardrone_autonomy::Navdata>("ardrone/navdata2", 10);
+    if (IS_ARDRONE2)
+	    navdata2_pub = node_handle.advertise<ardrone_autonomy::Navdata>("ardrone/navdata2", 10);
 	toggleCam_service = node_handle.advertiseService("ardrone/togglecam", toggleCamCallback);
 	toggleNavdataDemo_service = node_handle.advertiseService("ardrone/togglenavdatademo", toggleNavdataDemoCallback);
 	setCamChannel_service = node_handle.advertiseService("ardrone/setcamchannel",setCamChannelCallback );
@@ -40,7 +41,8 @@ void ARDroneDriver::run()
 		{
 			publish_video();
 			publish_navdata();
-			publish_navdata2();
+            if (IS_ARDRONE2)
+			    publish_navdata2();
 			last_frame_id = current_frame_id;
 		}
 		ros::spinOnce();
@@ -60,6 +62,12 @@ double ARDroneDriver::getRosParam(char* param, double defaultVal)
 
 void ARDroneDriver::publish_video()
 {
+	if (image_pub.getNumSubscribers() == 0)
+        return;
+    if (hori_pub.getNumSubscribers() == 0)
+        return;
+	if (vert_pub.getNumSubscribers() == 0)
+        return;
     if (IS_ARDRONE1)
     {
         /*
@@ -230,6 +238,8 @@ void ARDroneDriver::publish_video()
      */
     if (IS_ARDRONE2)
     {
+        if (hori_pub.getNumSubscribers() == 0 || vert_pub.getNumSubscribers() == 0)
+            return;
         sensor_msgs::Image image_msg;
         sensor_msgs::CameraInfo cinfo_msg;
         sensor_msgs::Image::_data_type::iterator _it;

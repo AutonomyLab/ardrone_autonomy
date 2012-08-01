@@ -70,6 +70,11 @@ extern "C" {
         ardrone_application_default_config.control_yaw = (float) rosDriver->getRosParam("~control_yaw", (100.0 /180.0) * 3.1415);
         ardrone_application_default_config.euler_angle_max = (float) rosDriver->getRosParam("~euler_angle_max", (12.0 / 180.0) * 3.1415);                
         ardrone_application_default_config.navdata_demo = (int) rosDriver->getRosParam("~navdata_demo", (double) 1);
+        if (IS_ARDRONE2) {
+            ardrone_application_default_config.navdata_magneto = (int) rosDriver->getRosParam("~navdata_magneto", (double) 1);
+            ardrone_application_default_config.navdata_pressure_raw = (int) rosDriver->getRosParam("~navdata_pressure", (double) 1);
+            ardrone_application_default_config.navdata_wind_speed = (int) rosDriver->getRosParam("~navdata_wind", (double) 1);
+        }
         ardrone_application_default_config.detect_type = (int) rosDriver->getRosParam("~detect_type", (double) CAD_TYPE_MULTIPLE_DETECTION_MODE);
         ardrone_application_default_config.enemy_colors = (int) rosDriver->getRosParam("~enemy_colors", (double) ARDRONE_DETECTION_COLOR_ORANGE_YELLOW);
         ardrone_application_default_config.enemy_without_shell = (bool) rosDriver->getRosParam("~enemy_without_shell", (double) 0.0);
