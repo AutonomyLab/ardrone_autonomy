@@ -19,7 +19,7 @@ ARDroneDriver::ARDroneDriver()
 	vert_pub = image_transport.advertiseCamera("ardrone/bottom/image_raw", 10);
 	navdata_pub = node_handle.advertise<ardrone_autonomy::Navdata>("ardrone/navdata", 10);
     if (IS_ARDRONE2)
-	    navdata2_pub = node_handle.advertise<ardrone_autonomy::Navdata>("ardrone/navdata2", 10);
+	    navdata2_pub = node_handle.advertise<ardrone_autonomy::Navdata2>("ardrone/navdata2", 10);
 	toggleCam_service = node_handle.advertiseService("ardrone/togglecam", toggleCamCallback);
 	toggleNavdataDemo_service = node_handle.advertiseService("ardrone/togglenavdatademo", toggleNavdataDemoCallback);
 	setCamChannel_service = node_handle.advertiseService("ardrone/setcamchannel",setCamChannelCallback );
@@ -377,8 +377,6 @@ void ARDroneDriver::publish_navdata2()
 		msg.tags_distance.push_back(navdata_detect.dist[i]);
 	}
 
-    printf("%d\n", msg.magX);
-
 	navdata2_pub.publish(msg);
 }
 
@@ -396,7 +394,7 @@ int main(int argc, char** argv)
 {        
         // We need to implement our own Signal handler instead of ROS to shutdown
         // the SDK threads correctly.
-    
+
         ros::init(argc, argv, "ardrone_driver", ros::init_options::NoSigintHandler);
         
         signal (SIGABRT, &controlCHandler);
