@@ -6,9 +6,9 @@
 
 ### Updates
 
-- August 1 2012: Enhanced `Navdata` message. `Navdata` now includes magnetometer data, barometer data, temperature and wind information for AR-Drone 2.
-- July 27 2012: LED Animation Support added to the driver as a service 
-- July 19 2012: Initial Public Release
+- *August 1 2012*: Enhanced `Navdata` message. `Navdata` now includes magnetometer data, barometer data, temperature and wind information for AR-Drone 2. (Issue #2)
+- *July 27 2012*: LED Animation Support added to the driver as a service
+- *July 19 2012*: Initial Public Release
 
 ## Installation
 
