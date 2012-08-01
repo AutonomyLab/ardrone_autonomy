@@ -40,6 +40,7 @@ void ARDroneDriver::run()
 		{
 			publish_video();
 			publish_navdata();
+			publish_navdata2();
 			last_frame_id = current_frame_id;
 		}
 		ros::spinOnce();
@@ -265,8 +266,8 @@ void ARDroneDriver::publish_video()
 
 void ARDroneDriver::publish_navdata()
 {
-    if (navdata.getNumSubscribers() == 0)
-        return // why bother, no one is listening.
+    if (navdata_pub.getNumSubscribers() == 0)
+        return; // why bother, no one is listening.
 	ardrone_autonomy::Navdata msg;
 
 	msg.batteryPercent = navdata.vbat_flying_percentage;
@@ -321,8 +322,8 @@ void ARDroneDriver::publish_navdata()
 
 void ARDroneDriver::publish_navdata2()
 {
-    if (navdata2.getNumSubscribers() == 0)
-        return // why bother, no one is listening.
+    if (navdata2_pub.getNumSubscribers() == 0)
+        return; // why bother, no one is listening.
 	ardrone_autonomy::Navdata2 msg;
 
 	msg.batteryPercent = navdata.vbat_flying_percentage;
@@ -357,17 +358,6 @@ void ARDroneDriver::publish_navdata2()
 	msg.tags_count = navdata_detect.nb_detected;
 	for (int i = 0; i < navdata_detect.nb_detected; i++)
 	{
-		/*
-		 * The tags_type is in raw format. In order to extract the information 
-		 * macros from ardrone_api.h is needed.
-		 *
-		 * #define DETECTION_MAKE_TYPE(source,tag) ( ((source)<<16) | (tag) )
-		 * #define DETECTION_EXTRACT_SOURCE(type)  ( ((type)>>16) & 0x0FF )
-		 * #define DETECTION_EXTRACT_TAG(type)     ( (type) & 0x0FF )
-		 * 
-		 * Please also note that the xc, yc, width and height are in [0,1000] range
-		 * and must get converted back based on image resolution.
-		 */
 		msg.tags_type.push_back(navdata_detect.type[i]);
 		msg.tags_xc.push_back(navdata_detect.xc[i]);
 		msg.tags_yc.push_back(navdata_detect.yc[i]);
@@ -376,12 +366,8 @@ void ARDroneDriver::publish_navdata2()
 		msg.tags_orientation.push_back(navdata_detect.orientation_angle[i]);
 		msg.tags_distance.push_back(navdata_detect.dist[i]);
 	}
-	// TODO: Ideally we would be able to figure out whether we are in an emergency state
-	// using the navdata.ctrl_state bitfield with the ARDRONE_EMERGENCY_MASK flag, but
-	// it seems to always be 0.  The emergency state seems to be correlated with the
-	// inverse of the ARDRONE_TIMER_ELAPSED flag, but that just makes so little sense
-	// that I don't want to use it because it's probably wrong.  So we'll just use a
-	// manual reset for now.
+
+    printf("%d\n", msg.magX);
 
 	navdata2_pub.publish(msg);
 }
