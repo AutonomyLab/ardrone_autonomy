@@ -6,6 +6,7 @@
 
 ### Updates
 
+- August 1 2012: Enhanced `Navdata` message. `Navdata` now includes magnetometer data, barometer data, temperature and wind information for AR-Drone 2.
 - July 27 2012: LED Animation Support added to the driver as a service 
 - July 19 2012: Initial Public Release
 
@@ -67,6 +68,12 @@ Information received from the drone will be published to the `ardrone/navdata` t
 * `rotx`: Left/right tilt in degrees (rotation about the X axis)
 * `roty`: Forward/backward tilt in degrees (rotation about the Y axis)
 * `rotz`: Orientation in degrees (rotation about the Z axis)
+* `magX`, `magY`, `magZ`: Magnetometer readings (AR-Drone 2.0 Only) (TBA: Convention)
+* `pressure`: Pressure sensed by Drone's barometer (AR-Drone 2.0 Only) (TBA: Unit)
+* `temp` : Temperature sensed by Drone's senseor (AR-Drone 2.0 Only) (TBA: Unit)
+* `wind_speed`: Estimated wind speed (AR-Drone 2.0 Only) (TBA: Unit)
+* `wind_angle`: Estimated wind angle (AR-Drone 2.0 Only) (TBA: Unit)
+* `wind_comp_angle`: Estimated wind angle compensation (AR-Drone 2.0 Only) (TBA: Unit)
 * `altd`: Estimated altitude (cm)
 * `vx`, `vy`, `vz`: Linear velocity (mm/s) [TBA: Convention]
 * `ax`, `ay`, `az`: Linear acceleration (g) [TBA: Convention]
@@ -165,6 +172,10 @@ The parameters listed below are named according to AR-Drone's SDK 2.0 configurat
 ## License
 
 The Parrot's license, copyright and disclaimer for `ARDroneLib` are included with the package and can be found in `ParrotLicense.txt` and `ParrotCopyrightAndDisclaimer.txt` files respectively. The other parts of the code are subject to `BSD` license.
+
+## Contributers
+
+- [Rachel Brindle](https://github.com/younata) - [Enhanced Navdata for AR-Drone 2.0](https://github.com/AutonomyLab/ardrone_autonomy/pull/2)
 
 ## FAQ
 
