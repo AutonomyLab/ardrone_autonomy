@@ -1,4 +1,5 @@
 #include "teleop_twist.h"
+#include "ardrone_autonomy/LedAnim.h"
 
 inline float max(float a, float b) { return a > b ? a : b; }
 inline float min(float a, float b) { return a < b ? a : b; }
@@ -21,6 +22,11 @@ int32_t detect_vert_type = TAG_TYPE_MASK(TAG_TYPE_BLACK_ROUNDEL);
 int32_t detect_indoor_hull = 0;
 int32_t detect_disable_placeholder = 0;
 int32_t detect_enable_placeholder = 1;
+
+const LED_ANIMATION_IDS ledAnimMap[14] = {
+	BLINK_GREEN_RED, BLINK_GREEN, BLINK_RED, BLINK_ORANGE,
+	SNAKE_GREEN_RED, FIRE, STANDARD, RED, GREEN, RED_SNAKE,BLANK,
+	LEFT_GREEN_RIGHT_RED, LEFT_RED_RIGHT_GREEN, BLINK_STANDARD};
 
 bool toggleNavdataDemoCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response)
 {
@@ -50,6 +56,13 @@ bool toggleCamCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Respo
     return true;
 }
 
+bool setLedAnimationCallback(ardrone_autonomy::LedAnim::Request& request, ardrone_autonomy::LedAnim::Response& response)
+{
+	LED_ANIMATION_IDS anim_id = ledAnimMap[request.type % 14]; // Don't trick me
+	ardrone_at_set_led_animation(anim_id, fabs(request.freq), abs(request.duration));
+	response.result = true;
+	return true;
+}
 
 /*
 // Older rostopic callback function for toggling Cam

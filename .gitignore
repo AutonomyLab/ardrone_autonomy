@@ -12,3 +12,4 @@
 *.a
 /nbproject/private/
 Makefile
+/build/CMakeFiles/
