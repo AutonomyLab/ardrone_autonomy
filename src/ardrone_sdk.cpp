@@ -7,6 +7,10 @@ navdata_demo_t navdata;
 navdata_phys_measures_t navdata_phys;
 navdata_vision_detect_t navdata_detect;
 
+navdata_pressure_raw_t navdata_pressure;
+navdata_magneto_t navdata_magneto;
+navdata_wind_speed_t navdata_wind;
+
 navdata_time_t arnavtime;
 
 ARDroneDriver* rosDriver;
@@ -177,6 +181,9 @@ extern "C" {
 		navdata_phys = pnd->navdata_phys_measures;
 		navdata = pnd->navdata_demo;
 		arnavtime = pnd->navdata_time;
+        navdata_pressure = pnd->navdata_pressure_raw;
+        navdata_magneto = pnd->navdata_magneto;
+        navdata_wind = pnd->navdata_wind_speed;
 		return C_OK;
 	}
 
