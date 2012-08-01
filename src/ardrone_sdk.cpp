@@ -181,9 +181,12 @@ extern "C" {
 		navdata_phys = pnd->navdata_phys_measures;
 		navdata = pnd->navdata_demo;
 		arnavtime = pnd->navdata_time;
-        navdata_pressure = pnd->navdata_pressure_raw;
-        navdata_magneto = pnd->navdata_magneto;
-        navdata_wind = pnd->navdata_wind_speed;
+        if (IS_ARDRONE2)
+        { // This is neccessary
+            navdata_pressure = pnd->navdata_pressure_raw;
+            navdata_magneto = pnd->navdata_magneto;
+            navdata_wind = pnd->navdata_wind_speed;
+        }
 		return C_OK;
 	}
 

@@ -5,7 +5,6 @@
 #include <image_transport/image_transport.h>
 #include <sensor_msgs/Image.h>
 #include <ardrone_autonomy/Navdata.h>
-#include <ardrone_autonomy/Navdata2.h>
 #include "ardrone_sdk.h"
 
 class ARDroneDriver
@@ -19,9 +18,8 @@ public:
 private:
 	void publish_video();
 	void publish_navdata();
-	void publish_navdata2();
 
-	ros::NodeHandle node_handle;
+    ros::NodeHandle node_handle;
 	ros::Subscriber cmd_vel_sub;
 	ros::Subscriber takeoff_sub;
 	ros::Subscriber reset_sub;
@@ -32,7 +30,6 @@ private:
 	image_transport::CameraPublisher vert_pub;
 
 	ros::Publisher navdata_pub;
-	ros::Publisher navdata2_pub;
 
 	//ros::Subscriber toggleCam_sub;
 	ros::ServiceServer toggleCam_service;

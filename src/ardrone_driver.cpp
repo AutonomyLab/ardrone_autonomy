@@ -19,8 +19,6 @@ ARDroneDriver::ARDroneDriver()
     hori_pub = image_transport.advertiseCamera("ardrone/front/image_raw", 10);
 	vert_pub = image_transport.advertiseCamera("ardrone/bottom/image_raw", 10);
 	navdata_pub = node_handle.advertise<ardrone_autonomy::Navdata>("ardrone/navdata", 10);
-    if (IS_ARDRONE2)
-	    navdata2_pub = node_handle.advertise<ardrone_autonomy::Navdata2>("ardrone/navdata2", 10);
 	toggleCam_service = node_handle.advertiseService("ardrone/togglecam", toggleCamCallback);
 	toggleNavdataDemo_service = node_handle.advertiseService("ardrone/togglenavdatademo", toggleNavdataDemoCallback);
 	setCamChannel_service = node_handle.advertiseService("ardrone/setcamchannel",setCamChannelCallback );
@@ -43,8 +41,6 @@ void ARDroneDriver::run()
 		{
 			publish_video();
 			publish_navdata();
-            if (IS_ARDRONE2)
-			    publish_navdata2();
 			last_frame_id = current_frame_id;
 		}
 		ros::spinOnce();
@@ -299,6 +295,31 @@ void ARDroneDriver::publish_navdata()
 	msg.ay = -navdata_phys.phys_accs[ACC_Y] / 1000.0; // g
 	msg.az = -navdata_phys.phys_accs[ACC_Z] / 1000.0; // g
 	
+    // New stuff
+
+    if (IS_ARDRONE2)
+    {
+        msg.magX = (int32_t)navdata_magneto.mx;
+        msg.magY = (int32_t)navdata_magneto.my;
+        msg.magZ = (int32_t)navdata_magneto.mz;
+
+        msg.pressure = navdata_pressure.Pression_meas; // typo in the SDK!
+        msg.temp = navdata_pressure.Temperature_meas;
+
+        msg.wind_speed = navdata_wind.wind_speed;
+        msg.wind_angle = navdata_wind.wind_angle;
+        msg.wind_comp_angle = navdata_wind.wind_compensation_phi;
+    }
+    else
+    {
+        msg.magX = msg.magY = msg.magZ = 0;
+        msg.pressure = 0.0;
+        msg.temp = 0.0;
+        msg.wind_speed = 0.0;
+        msg.wind_angle = 0.0;
+        msg.wind_comp_angle = 0.0;
+    }
+
 	// Tag Detection
 	msg.tags_count = navdata_detect.nb_detected;
 	for (int i = 0; i < navdata_detect.nb_detected; i++)
@@ -322,64 +343,8 @@ void ARDroneDriver::publish_navdata()
 		msg.tags_orientation.push_back(navdata_detect.orientation_angle[i]);
 		msg.tags_distance.push_back(navdata_detect.dist[i]);
 	}
-	// TODO: Ideally we would be able to figure out whether we are in an emergency state
-	// using the navdata.ctrl_state bitfield with the ARDRONE_EMERGENCY_MASK flag, but
-	// it seems to always be 0.  The emergency state seems to be correlated with the
-	// inverse of the ARDRONE_TIMER_ELAPSED flag, but that just makes so little sense
-	// that I don't want to use it because it's probably wrong.  So we'll just use a
-	// manual reset for now.
 
 	navdata_pub.publish(msg);
-}
-
-void ARDroneDriver::publish_navdata2()
-{
-    if (navdata2_pub.getNumSubscribers() == 0)
-        return; // why bother, no one is listening.
-	ardrone_autonomy::Navdata2 msg;
-
-	msg.batteryPercent = navdata.vbat_flying_percentage;
-    msg.state = (navdata.ctrl_state >> 16);
-    
-	// positive means counterclockwise rotation around axis
-	msg.rotX = navdata.phi / 1000.0; // tilt left/right
-	msg.rotY = -navdata.theta / 1000.0; // tilt forward/backward
-	msg.rotZ = -navdata.psi / 1000.0; // orientation
-
-	msg.altd = navdata.altitude; // cm
-	msg.vx = navdata.vx; // mm/sec
-	msg.vy = -navdata.vy; // mm/sec
-	msg.vz = -navdata.vz; // mm/sec
-	msg.tm = arnavtime.time;
-	msg.ax = navdata_phys.phys_accs[ACC_X] / 1000.0; // g
-	msg.ay = -navdata_phys.phys_accs[ACC_Y] / 1000.0; // g
-	msg.az = -navdata_phys.phys_accs[ACC_Z] / 1000.0; // g
-
-    msg.magX = (int32_t)navdata_magneto.mx;
-    msg.magY = (int32_t)navdata_magneto.my;
-    msg.magZ = (int32_t)navdata_magneto.mz;
-
-    msg.pressure = navdata_pressure.Pression_meas; // typo in the SDK!
-    msg.temp = navdata_pressure.Temperature_meas;
-
-    msg.wind_speed = navdata_wind.wind_speed;
-    msg.wind_angle = navdata_wind.wind_angle;
-    msg.wind_comp_angle = navdata_wind.wind_compensation_phi;
-	
-	// Tag Detection
-	msg.tags_count = navdata_detect.nb_detected;
-	for (int i = 0; i < navdata_detect.nb_detected; i++)
-	{
-		msg.tags_type.push_back(navdata_detect.type[i]);
-		msg.tags_xc.push_back(navdata_detect.xc[i]);
-		msg.tags_yc.push_back(navdata_detect.yc[i]);
-		msg.tags_width.push_back(navdata_detect.width[i]);
-		msg.tags_height.push_back(navdata_detect.height[i]);
-		msg.tags_orientation.push_back(navdata_detect.orientation_angle[i]);
-		msg.tags_distance.push_back(navdata_detect.dist[i]);
-	}
-
-	navdata2_pub.publish(msg);
 }
 
 void controlCHandler (int signal)

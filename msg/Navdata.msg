@@ -1,5 +1,8 @@
 Header header
 
+# Navdata including the ARDrone 2 specifica sensors
+# (magnetometer, barometer)
+
 # 0 means no battery, 100 means full battery
 float32 batteryPercent
 
@@ -7,6 +10,21 @@ float32 batteryPercent
 # 6: Taking off, 7: Goto Fix Point, 8: Landing, 9: Looping
 # Note: 3,7 seems to discriminate type of flying (isFly = 3 | 7)
 uint32 state
+
+int32 magX
+int32 magY
+int32 magZ
+
+# pressure sensor
+int32 pressure
+
+# apparently, there was a temperature sensor added as well.
+int32 temp
+
+# wind sensing...
+float32 wind_speed
+float32 wind_angle
+float32 wind_comp_angle
 
 # left/right tilt in degrees (rotation about the X axis)
 float32 rotX
@@ -46,4 +64,3 @@ float32[] tags_distance
 
 #time stamp
 float32 tm
-
