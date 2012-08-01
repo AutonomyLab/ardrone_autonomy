@@ -173,7 +173,7 @@ The parameters listed below are named according to AR-Drone's SDK 2.0 configurat
 
 The Parrot's license, copyright and disclaimer for `ARDroneLib` are included with the package and can be found in `ParrotLicense.txt` and `ParrotCopyrightAndDisclaimer.txt` files respectively. The other parts of the code are subject to `BSD` license.
 
-## Contributers
+## Contributors
 
 - [Rachel Brindle](https://github.com/younata) - [Enhanced Navdata for AR-Drone 2.0](https://github.com/AutonomyLab/ardrone_autonomy/pull/2)
 
@@ -232,7 +232,7 @@ typedef enum
 
 ## TODO 
 
-* Enrich `Navdata` with magneto meter and baro meter information
 * Add separate topic for drone's debug stream (`navdata_demo`)
 * Add the currently selected camera name to `Navdata`
 * Make the `togglecam` service accept parameters
+* [DONE] Enrich `Navdata` with magneto meter and baro meter information
