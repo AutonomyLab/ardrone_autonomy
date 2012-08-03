@@ -60,12 +60,12 @@ double ARDroneDriver::getRosParam(char* param, double defaultVal)
 
 void ARDroneDriver::publish_video()
 {
-	if (image_pub.getNumSubscribers() == 0)
-        return;
-    if (hori_pub.getNumSubscribers() == 0)
-        return;
-	if (vert_pub.getNumSubscribers() == 0)
-        return;
+    if (
+            (image_pub.getNumSubscribers() == 0) &&
+            (hori_pub.getNumSubscribers() == 0) &&
+            (vert_pub.getNumSubscribers() == 0)
+       ) return;
+
     if (IS_ARDRONE1)
     {
         /*
