@@ -236,8 +236,6 @@ void ARDroneDriver::publish_video()
      */
     if (IS_ARDRONE2)
     {
-        if (hori_pub.getNumSubscribers() == 0 || vert_pub.getNumSubscribers() == 0)
-            return;
         sensor_msgs::Image image_msg;
         sensor_msgs::CameraInfo cinfo_msg;
         sensor_msgs::Image::_data_type::iterator _it;
