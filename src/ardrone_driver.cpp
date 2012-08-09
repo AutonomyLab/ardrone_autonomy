@@ -90,6 +90,8 @@ void ARDroneDriver::publish_video()
         sensor_msgs::CameraInfo cinfo_msg;
         sensor_msgs::Image::_data_type::iterator _it;
 
+        image_msg.header.stamp = ros::Time::now();
+        cinfo_msg.header.stamp = ros::Time::now();
         image_msg.width = D1_STREAM_WIDTH;
         image_msg.height = D1_STREAM_HEIGHT;
         image_msg.encoding = "rgb8";
@@ -101,6 +103,7 @@ void ARDroneDriver::publish_video()
         // We only put the width and height in here.
         cinfo_msg.width = D1_STREAM_WIDTH;
         cinfo_msg.height = D1_STREAM_HEIGHT;
+
         image_pub.publish(image_msg, cinfo_msg);
         if (cam_state == ZAP_CHANNEL_HORI)
         {
@@ -240,6 +243,8 @@ void ARDroneDriver::publish_video()
         sensor_msgs::CameraInfo cinfo_msg;
         sensor_msgs::Image::_data_type::iterator _it;
 
+        image_msg.header.stamp = ros::Time::now();
+        cinfo_msg.header.stamp = ros::Time::now();
         image_msg.width = D2_STREAM_WIDTH;
         image_msg.height = D2_STREAM_HEIGHT;
         image_msg.encoding = "rgb8";
@@ -276,6 +281,7 @@ void ARDroneDriver::publish_navdata()
         return; // why bother, no one is listening.
 	ardrone_autonomy::Navdata msg;
 
+    msg.header.stamp = ros::Time::now();
 	msg.batteryPercent = navdata.vbat_flying_percentage;
     msg.state = (navdata.ctrl_state >> 16);
     
