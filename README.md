@@ -74,7 +74,7 @@ Information received from the drone will be published to the `ardrone/navdata` t
 * `wind_speed`: Estimated wind speed (AR-Drone 2.0 Only) (TBA: Unit)
 * `wind_angle`: Estimated wind angle (AR-Drone 2.0 Only) (TBA: Unit)
 * `wind_comp_angle`: Estimated wind angle compensation (AR-Drone 2.0 Only) (TBA: Unit)
-* `altd`: Estimated altitude (cm)
+* `altd`: Estimated altitude (mm)
 * `vx`, `vy`, `vz`: Linear velocity (mm/s) [TBA: Convention]
 * `ax`, `ay`, `az`: Linear acceleration (g) [TBA: Convention]
 * `tm`: Timestamp of the data returned by the Drone
