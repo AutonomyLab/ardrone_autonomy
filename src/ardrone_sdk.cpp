@@ -52,7 +52,8 @@ extern "C" {
         {
             printf("Something must be really wrong with the SDK!");
         }
-        
+
+
         //TODO: Please FIX this to read default values from ros params and move them to ardrone driver
         //Roadmap: We have the pointer to ARDroneDriver here, so it is doable to return back ros params
         //using this class.
@@ -61,18 +62,23 @@ extern "C" {
         {
             ardrone_application_default_config.max_bitrate = (int) rosDriver->getRosParam("~max_bitrate", 4000.0);
         }
-        ardrone_application_default_config.bitrate = (int) rosDriver->getRosParam("~bitrate", 4000.0);
+        // TODO: Fix CAT_COMMONS
         ardrone_application_default_config.outdoor = (bool) rosDriver->getRosParam("~outdoor", 0.0);
         ardrone_application_default_config.flight_without_shell = (bool) rosDriver->getRosParam("~flight_without_shell", 1.0);
         ardrone_application_default_config.altitude_max = (int) rosDriver->getRosParam("~altitude_max", 3000.0);
         ardrone_application_default_config.altitude_min = (int) rosDriver->getRosParam("~altitude_min", 100.0);
-        ardrone_application_default_config.control_vz_max = (float) rosDriver->getRosParam("~control_vz_max", 850.0);
-        ardrone_application_default_config.control_yaw = (float) rosDriver->getRosParam("~control_yaw", (100.0 /180.0) * 3.1415);
-        ardrone_application_default_config.euler_angle_max = (float) rosDriver->getRosParam("~euler_angle_max", (12.0 / 180.0) * 3.1415);                
-        ardrone_application_default_config.navdata_demo = (int) rosDriver->getRosParam("~navdata_demo", (double) 1);
-        ardrone_application_default_config.detect_type = (int) rosDriver->getRosParam("~detect_type", (double) CAD_TYPE_MULTIPLE_DETECTION_MODE);
         ardrone_application_default_config.enemy_colors = (int) rosDriver->getRosParam("~enemy_colors", (double) ARDRONE_DETECTION_COLOR_ORANGE_YELLOW);
         ardrone_application_default_config.enemy_without_shell = (bool) rosDriver->getRosParam("~enemy_without_shell", (double) 0.0);
+        ardrone_application_default_config.video_on_usb = 0;
+        ardrone_application_default_config.autonomous_flight = 0;
+
+
+        ardrone_application_default_config.control_vz_max = (float) rosDriver->getRosParam("~control_vz_max", 850.0);
+        ardrone_application_default_config.control_yaw = (float) rosDriver->getRosParam("~control_yaw", (100.0 /180.0) * 3.1415);
+        ardrone_application_default_config.euler_angle_max = (float) rosDriver->getRosParam("~euler_angle_max", (12.0 / 180.0) * 3.1415);
+        ardrone_application_default_config.bitrate = (int) rosDriver->getRosParam("~bitrate", 4000.0);                
+        ardrone_application_default_config.navdata_demo = (int) rosDriver->getRosParam("~navdata_demo", (double) 1);
+        ardrone_application_default_config.detect_type = (int) rosDriver->getRosParam("~detect_type", (double) CAD_TYPE_MULTIPLE_DETECTION_MODE);
         ardrone_application_default_config.detections_select_h = rosDriver->getRosParam("~detections_select_h", 
                 (double) TAG_TYPE_MASK(TAG_TYPE_SHELL_TAG_V2));
         ardrone_application_default_config.detections_select_v_hsync = rosDriver->getRosParam("~detections_select_v_hsync", 
@@ -88,9 +94,7 @@ extern "C" {
         
         ardrone_application_default_config.video_channel = ZAP_CHANNEL_HORI;
         ardrone_application_default_config.control_level = (0 << CONTROL_LEVEL_COMBINED_YAW);
-        ardrone_application_default_config.autonomous_flight = 0;
         ardrone_application_default_config.flying_mode = FLYING_MODE_FREE_FLIGHT;
-        ardrone_application_default_config.video_on_usb = 0;
 
         ardrone_tool_input_add(&teleop);
         uint8_t post_stages_index = 0;

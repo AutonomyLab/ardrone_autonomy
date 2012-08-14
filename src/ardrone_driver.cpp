@@ -34,9 +34,20 @@ ARDroneDriver::~ARDroneDriver()
 void ARDroneDriver::run()
 {
 	ros::Rate loop_rate(30);
-
+    ros::Time startTime = ros::Time::now();
+    bool inited = false;
 	while (node_handle.ok())
 	{
+        if ((!inited) &&
+            (((ros::Time::now() - startTime).toSec()) > 5.0))
+        {
+            inited = true;
+            ROS_INFO("Successfully connected to '%s' (AR-Drone %d - Firmware: %s)",
+                     ardrone_control_config.ardrone_name,
+                     (IS_ARDRONE1) ? 1 : 2,
+                     ardrone_control_config.num_version_soft);
+        }
+
 		if (current_frame_id != last_frame_id)
 		{
 			publish_video();
