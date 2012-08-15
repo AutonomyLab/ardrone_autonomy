@@ -53,6 +53,8 @@ private:
 	int last_frame_id;
 	int flying_state;
 
+    bool inited;
+
 };
 
 #endif

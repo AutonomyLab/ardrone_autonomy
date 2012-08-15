@@ -11,6 +11,7 @@
 ARDroneDriver::ARDroneDriver()
 	: image_transport(node_handle)
 {
+    inited = false;
 	cmd_vel_sub = node_handle.subscribe("cmd_vel", 100, &cmdVelCallback);
 	takeoff_sub = node_handle.subscribe("ardrone/takeoff", 1, &takeoffCallback);
 	reset_sub = node_handle.subscribe("ardrone/reset", 1, &resetCallback);
@@ -35,29 +36,32 @@ void ARDroneDriver::run()
 {
 	ros::Rate loop_rate(30);
     ros::Time startTime = ros::Time::now();
-    bool inited = false;
+
 	while (node_handle.ok())
 	{
-        if ((!inited) &&
-            (((ros::Time::now() - startTime).toSec()) > 5.0))
+        if (!inited) // Give the Drone 5s of free time to finish init phase
         {
-            inited = true;
-            ROS_INFO("Successfully connected to '%s' (AR-Drone %d - Firmware: %s)",
-                     ardrone_control_config.ardrone_name,
-                     (IS_ARDRONE1) ? 1 : 2,
-                     ardrone_control_config.num_version_soft);
+            if (((ros::Time::now() - startTime).toSec()) > 5.0)
+            {
+                inited = true;
+                ROS_INFO("Successfully connected to '%s' (AR-Drone %d.0 - Firmware: %s) - Battery(\%): %d",
+                         ardrone_control_config.ardrone_name,
+                         (IS_ARDRONE1) ? 1 : 2,
+                         ardrone_control_config.num_version_soft,
+                         navdata.vbat_flying_percentage);
+            }
+        } else {
+            if (current_frame_id != last_frame_id)
+            {
+                publish_video();
+                publish_navdata();
+                last_frame_id = current_frame_id;
+            }
+            ros::spinOnce();
         }
-
-		if (current_frame_id != last_frame_id)
-		{
-			publish_video();
-			publish_navdata();
-			last_frame_id = current_frame_id;
-		}
-		ros::spinOnce();
 		loop_rate.sleep();
 	}
-        printf("ROS loop terminated ... \n");
+    printf("ROS loop terminated ... \n");
 }
 
 double ARDroneDriver::getRosParam(char* param, double defaultVal)
