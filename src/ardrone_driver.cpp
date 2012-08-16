@@ -26,6 +26,8 @@ ARDroneDriver::ARDroneDriver()
 	setLedAnimation_service = node_handle.advertiseService("ardrone/setledanimation", setLedAnimationCallback);
 //	setEnemyColor_service = node_handle.advertiseService("/ardrone/setenemycolor", setEnemyColorCallback);
 //	setHullType_service = node_handle.advertiseService("/ardrone/sethulltype", setHullTypeCallback);
+
+    droneFrameId = (ros::param::get("~drone_frame_id", droneFrameId)) ? droneFrameId : "ardrone";
 }
 
 ARDroneDriver::~ARDroneDriver()
@@ -57,8 +59,8 @@ void ARDroneDriver::run()
                 publish_navdata();
                 last_frame_id = current_frame_id;
             }
-            ros::spinOnce();
         }
+        ros::spinOnce();
 		loop_rate.sleep();
 	}
     printf("ROS loop terminated ... \n");
@@ -107,6 +109,8 @@ void ARDroneDriver::publish_video()
 
         image_msg.header.stamp = ros::Time::now();
         cinfo_msg.header.stamp = ros::Time::now();
+        image_msg.header.frame_id = droneFrameId;
+        cinfo_msg.header.frame_id = droneFrameId;
         image_msg.width = D1_STREAM_WIDTH;
         image_msg.height = D1_STREAM_HEIGHT;
         image_msg.encoding = "rgb8";
@@ -260,6 +264,9 @@ void ARDroneDriver::publish_video()
 
         image_msg.header.stamp = ros::Time::now();
         cinfo_msg.header.stamp = ros::Time::now();
+        image_msg.header.frame_id = droneFrameId;
+        cinfo_msg.header.frame_id = droneFrameId;
+
         image_msg.width = D2_STREAM_WIDTH;
         image_msg.height = D2_STREAM_HEIGHT;
         image_msg.encoding = "rgb8";

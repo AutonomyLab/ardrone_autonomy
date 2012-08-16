@@ -54,6 +54,7 @@ private:
 	int flying_state;
 
     bool inited;
+    std::string droneFrameId;
 
 };
 

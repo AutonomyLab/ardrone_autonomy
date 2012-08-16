@@ -152,6 +152,7 @@ You can test these animations in command line using commands like `rosservice ca
 
 The parameters listed below are named according to AR-Drone's SDK 2.0 configuration. Unless you set the parameters using `rosparam` or in your `lauch` file, the default values will be used. These values are applied during driver's initialization phase. Please refer to AR-Drone SDK 2.0's [developer's guide](https://projects.ardrone.org/projects/show/ardrone-api/) for information about valid values.
 
+* `drone_frame_id` - The "frame_id" to be used in camera & image messages header - default: "ardrone"
 * `bitrate_ctrl_mode` - default: DISABLED
 * `max_bitrate` - (AR-Drone 2.0 only) Default: 4000 Kbps
 * `bitrate` -  Default: 4000 Kbps
