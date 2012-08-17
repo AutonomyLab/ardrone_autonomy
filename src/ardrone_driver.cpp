@@ -27,7 +27,7 @@ ARDroneDriver::ARDroneDriver()
 //	setEnemyColor_service = node_handle.advertiseService("/ardrone/setenemycolor", setEnemyColorCallback);
 //	setHullType_service = node_handle.advertiseService("/ardrone/sethulltype", setHullTypeCallback);
 
-    droneFrameId = (ros::param::get("~drone_frame_id", droneFrameId)) ? droneFrameId : "ardrone";
+    droneFrameId = (ros::param::get("~drone_frame_id", droneFrameId)) ? droneFrameId : "ardrone_frame";
 }
 
 ARDroneDriver::~ARDroneDriver()
@@ -304,6 +304,7 @@ void ARDroneDriver::publish_navdata()
 	ardrone_autonomy::Navdata msg;
 
     msg.header.stamp = ros::Time::now();
+    msg.header.frame_id = droneFrameId;
 	msg.batteryPercent = navdata.vbat_flying_percentage;
     msg.state = (navdata.ctrl_state >> 16);
     
