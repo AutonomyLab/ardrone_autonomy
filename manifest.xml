@@ -14,6 +14,7 @@
   <depend package="image_transport"/>
   <depend package="sensor_msgs"/>
   <depend package="std_srvs"/>
+  <depend package="tf"/>
 </package>
 
 

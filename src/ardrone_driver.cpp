@@ -28,6 +28,10 @@ ARDroneDriver::ARDroneDriver()
 //	setHullType_service = node_handle.advertiseService("/ardrone/sethulltype", setHullTypeCallback);
 
     droneFrameId = (ros::param::get("~drone_frame_id", droneFrameId)) ? droneFrameId : "ardrone_frame";
+    droneFrameBase = droneFrameId + "_base";
+    droneFrameIMU = droneFrameId + "_imu";
+    droneFrameFrontCam = droneFrameId + "_frontcam";
+    droneFrameBottomCam = droneFrameId + "_bottomcam";
 }
 
 ARDroneDriver::~ARDroneDriver()
@@ -57,6 +61,7 @@ void ARDroneDriver::run()
             {
                 publish_video();
                 publish_navdata();
+                publish_tf();
                 last_frame_id = current_frame_id;
             }
         }
@@ -109,8 +114,21 @@ void ARDroneDriver::publish_video()
 
         image_msg.header.stamp = ros::Time::now();
         cinfo_msg.header.stamp = ros::Time::now();
-        image_msg.header.frame_id = droneFrameId;
-        cinfo_msg.header.frame_id = droneFrameId;
+        if ((cam_state == ZAP_CHANNEL_HORI) || (cam_state == ZAP_CHANNEL_LARGE_HORI_SMALL_VERT))
+        {
+            image_msg.header.frame_id = droneFrameFrontCam;
+            cinfo_msg.header.frame_id = droneFrameFrontCam;
+        }
+        else if ((cam_state == ZAP_CHANNEL_VERT) || (cam_state == ZAP_CHANNEL_LARGE_VERT_SMALL_HORI))
+        {
+            image_msg.header.frame_id = droneFrameBottomCam;
+            cinfo_msg.header.frame_id = droneFrameBottomCam;
+        }
+        else
+        {
+            ROS_WARN_ONCE("Something is wrong with camera channel config.");
+        }
+
         image_msg.width = D1_STREAM_WIDTH;
         image_msg.height = D1_STREAM_HEIGHT;
         image_msg.encoding = "rgb8";
@@ -264,8 +282,20 @@ void ARDroneDriver::publish_video()
 
         image_msg.header.stamp = ros::Time::now();
         cinfo_msg.header.stamp = ros::Time::now();
-        image_msg.header.frame_id = droneFrameId;
-        cinfo_msg.header.frame_id = droneFrameId;
+        if (cam_state == ZAP_CHANNEL_HORI)
+        {
+            image_msg.header.frame_id = droneFrameFrontCam;
+            cinfo_msg.header.frame_id = droneFrameFrontCam;
+        }
+        else if (cam_state == ZAP_CHANNEL_VERT)
+        {
+            image_msg.header.frame_id = droneFrameBottomCam;
+            cinfo_msg.header.frame_id = droneFrameBottomCam;
+        }
+        else
+        {
+            ROS_WARN_ONCE("Something is wrong with camera channel config.");
+        }
 
         image_msg.width = D2_STREAM_WIDTH;
         image_msg.height = D2_STREAM_HEIGHT;
@@ -304,7 +334,7 @@ void ARDroneDriver::publish_navdata()
 	ardrone_autonomy::Navdata msg;
 
     msg.header.stamp = ros::Time::now();
-    msg.header.frame_id = droneFrameId;
+    msg.header.frame_id = droneFrameBase;
 	msg.batteryPercent = navdata.vbat_flying_percentage;
     msg.state = (navdata.ctrl_state >> 16);
     
@@ -372,6 +402,40 @@ void ARDroneDriver::publish_navdata()
 	}
 
 	navdata_pub.publish(msg);
+}
+
+void ARDroneDriver::publish_tf()
+{
+    // IMU To Base (Assume to be the same)
+    tf_broad.sendTransform(
+                tf::StampedTransform(
+                    tf::Transform(tf::Quaternion(0, 0, 0, 1), tf::Vector3(0.0, 0.0, 0.0)),
+                    ros::Time::now(), droneFrameBase, droneFrameIMU
+                    )
+                );
+
+    // Front Cam to Base
+    // TODO: Precise values for Drone1 & Drone2
+    tf_broad.sendTransform(
+                tf::StampedTransform(
+                    tf::Transform(
+                        tf::createQuaternionFromRPY(0.0, 90.0 * _DEG2RAD, 0.0),
+                        tf::Vector3(0.21, 0.0, 0.0)),
+                    ros::Time::now(), droneFrameBase, droneFrameFrontCam
+                    )
+                );
+
+    // Bottom Cam to Base (Bad Assumption: No translation from IMU and Base)
+    // TODO: This should be different from Drone 1 & 2.
+    tf_broad.sendTransform(
+                tf::StampedTransform(
+                    tf::Transform(
+                        tf::createQuaternionFromRPY(0.0, 180 * _DEG2RAD, 0.0),
+                        tf::Vector3(0.0, -0.02, 0.0)),
+                    ros::Time::now(), droneFrameBase, droneFrameBottomCam
+                    )
+                );
+
 }
 
 void controlCHandler (int signal)

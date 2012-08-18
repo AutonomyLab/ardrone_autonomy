@@ -3,9 +3,13 @@
 
 #include <ros/ros.h>
 #include <image_transport/image_transport.h>
+#include <tf/transform_broadcaster.h>
 #include <sensor_msgs/Image.h>
 #include <ardrone_autonomy/Navdata.h>
 #include "ardrone_sdk.h"
+
+#define _DEG2RAD 0.01745331111
+#define _RAD2DEG 57.2957184819
 
 class ARDroneDriver
 {
@@ -18,6 +22,7 @@ public:
 private:
 	void publish_video();
 	void publish_navdata();
+    void publish_tf();
 
     ros::NodeHandle node_handle;
 	ros::Subscriber cmd_vel_sub;
@@ -29,7 +34,8 @@ private:
     image_transport::CameraPublisher hori_pub;
 	image_transport::CameraPublisher vert_pub;
 
-	ros::Publisher navdata_pub;
+    ros::Publisher navdata_pub;
+    tf::TransformBroadcaster tf_broad;
 
 	//ros::Subscriber toggleCam_sub;
 	ros::ServiceServer toggleCam_service;
@@ -55,6 +61,13 @@ private:
 
     bool inited;
     std::string droneFrameId;
+
+
+    /*
+     * TF Frames
+     * Base: Should be COM
+     */
+    std::string droneFrameBase, droneFrameIMU, droneFrameFrontCam, droneFrameBottomCam;
 
 };
 
