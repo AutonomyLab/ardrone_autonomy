@@ -454,7 +454,7 @@ void ARDroneDriver::publish_tf()
     tf_broad.sendTransform(
                 tf::StampedTransform(
                     tf::Transform(
-                        tf::createQuaternionFromRPY(0.0, 90.0 * _DEG2RAD, 0.0),
+                        tf::createQuaternionFromRPY(90.0 * _DEG2RAD, 0.0, 90.0 * _DEG2RAD),
                         tf::Vector3(0.21, 0.0, 0.0)),
                     ros::Time::now(), droneFrameBase, droneFrameFrontCam
                     )
@@ -465,7 +465,7 @@ void ARDroneDriver::publish_tf()
     tf_broad.sendTransform(
                 tf::StampedTransform(
                     tf::Transform(
-                        tf::createQuaternionFromRPY(0.0, 180 * _DEG2RAD, 0.0),
+                        tf::createQuaternionFromRPY(180.0 * _DEG2RAD, 0.0, 90.0 * _DEG2RAD),
                         tf::Vector3(0.0, -0.02, 0.0)),
                     ros::Time::now(), droneFrameBase, droneFrameBottomCam
                     )
