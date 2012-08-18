@@ -19,7 +19,8 @@ ARDroneDriver::ARDroneDriver()
 	image_pub = image_transport.advertiseCamera("ardrone/image_raw", 10);
     hori_pub = image_transport.advertiseCamera("ardrone/front/image_raw", 10);
 	vert_pub = image_transport.advertiseCamera("ardrone/bottom/image_raw", 10);
-	navdata_pub = node_handle.advertise<ardrone_autonomy::Navdata>("ardrone/navdata", 10);
+    navdata_pub = node_handle.advertise<ardrone_autonomy::Navdata>("ardrone/navdata", 25);
+    imu_pub = node_handle.advertise<sensor_msgs::Imu>("ardrone/imu", 25);
 	toggleCam_service = node_handle.advertiseService("ardrone/togglecam", toggleCamCallback);
 	toggleNavdataDemo_service = node_handle.advertiseService("ardrone/togglenavdatademo", toggleNavdataDemoCallback);
 	setCamChannel_service = node_handle.advertiseService("ardrone/setcamchannel",setCamChannelCallback );
@@ -32,6 +33,26 @@ ARDroneDriver::ARDroneDriver()
     droneFrameIMU = droneFrameId + "_imu";
     droneFrameFrontCam = droneFrameId + "_frontcam";
     droneFrameBottomCam = droneFrameId + "_bottomcam";
+
+    // Fill constant parts of IMU Message
+
+    // No covariance yet for linear acceleration
+    for (sensor_msgs::Imu::_angular_velocity_covariance_type::iterator ita = imu_msg.linear_acceleration_covariance.begin();
+         ita != imu_msg.linear_acceleration_covariance.end(); ita++)
+    {
+        *ita = 0.0;
+    }
+
+    // No covariance yet for rotation
+    for (sensor_msgs::Imu::_orientation_covariance_type::iterator ito = imu_msg.orientation_covariance.begin();
+         ito != imu_msg.orientation_covariance.end(); ito++)
+    {
+        *ito = 0.0;
+    }
+
+    // No angular velocity at all
+    imu_msg.angular_velocity_covariance[0] = -1.0;
+
 }
 
 ARDroneDriver::~ARDroneDriver()
@@ -329,7 +350,7 @@ void ARDroneDriver::publish_video()
 
 void ARDroneDriver::publish_navdata()
 {
-    if (navdata_pub.getNumSubscribers() == 0)
+    if ((navdata_pub.getNumSubscribers() == 0) && (imu_pub.getNumSubscribers() == 0))
         return; // why bother, no one is listening.
 	ardrone_autonomy::Navdata msg;
 
@@ -379,7 +400,7 @@ void ARDroneDriver::publish_navdata()
 
 	// Tag Detection
 	msg.tags_count = navdata_detect.nb_detected;
-	for (int i = 0; i < navdata_detect.nb_detected; i++)
+    for (int i = 0; i < navdata_detect.nb_detected; i++)
 	{
 		/*
 		 * The tags_type is in raw format. In order to extract the information 
@@ -401,7 +422,21 @@ void ARDroneDriver::publish_navdata()
 		msg.tags_distance.push_back(navdata_detect.dist[i]);
 	}
 
-	navdata_pub.publish(msg);
+    navdata_pub.publish(msg);
+
+    /* IMU */
+    imu_msg.header.frame_id = droneFrameIMU;
+    imu_msg.header.stamp = ros::Time::now();
+
+    // IMU - Linear Acc
+    imu_msg.linear_acceleration.x = msg.ax * 9.8;
+    imu_msg.linear_acceleration.y = msg.ay * 9.8;
+    imu_msg.linear_acceleration.z = msg.az * 9.8;
+
+    // IMU - Rotation Matrix
+    imu_msg.orientation = tf::createQuaternionMsgFromRollPitchYaw(msg.rotX * _DEG2RAD, msg.rotY * _DEG2RAD, msg.rotZ * _DEG2RAD);
+
+    imu_pub.publish(imu_msg);
 }
 
 void ARDroneDriver::publish_tf()

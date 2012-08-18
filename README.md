@@ -6,6 +6,7 @@
 
 ### Updates
 
+- *August 17 2012*: Experimental `tf` support added. New published topic `imu`.
 - *August 1 2012*: Enhanced `Navdata` message. `Navdata` now includes magnetometer data, barometer data, temperature and wind information for AR-Drone 2. [Issue #2](https://github.com/AutonomyLab/ardrone_autonomy/pull/2)
 - *July 27 2012*: LED Animation Support added to the driver as a service
 - *July 19 2012*: Initial Public Release
@@ -14,7 +15,7 @@
 
 ### Pre-requirements
 
-This driver has been tested on Linux machines running Ubuntu 11.10 & 12.04 (32 bit and 64 bit). However it should also work on any other mainstream Linux distribution. The driver has been tested on both ROS "electric" and "fuerte". The AR-Drone SDK has its own build system which usually handles system wide dependencies itself. The ROS package depends on these standard ROS packages: `roscpp`, `image_transport`, `sensor_msgs` and `std_srvs`. 
+This driver has been tested on Linux machines running Ubuntu 11.10 & 12.04 (32 bit and 64 bit). However it should also work on any other mainstream Linux distribution. The driver has been tested on both ROS "electric" and "fuerte". The AR-Drone SDK has its own build system which usually handles system wide dependencies itself. The ROS package depends on these standard ROS packages: `roscpp`, `image_transport`, `sensor_msgs`, `tf` and `std_srvs`.
 
 ### Installation Steps
 
@@ -47,6 +48,10 @@ The installation follows the same steps needed usually to compile a ROS driver.
 
 The driver's executable node is `ardrone_driver`. You can either use `rosrun ardrone_autonomy ardrone_driver` or put it in a custom launch file with your desired parameters.
 
+## Coordinate Frames
+
+[TBA]
+
 ## Reading from AR-Drone
 
 ### Navigation Data
@@ -78,6 +83,10 @@ Information received from the drone will be published to the `ardrone/navdata` t
 * `vx`, `vy`, `vz`: Linear velocity (mm/s) [TBA: Convention]
 * `ax`, `ay`, `az`: Linear acceleration (g) [TBA: Convention]
 * `tm`: Timestamp of the data returned by the Drone
+
+### IMU data
+
+The acceleration and orientation from the `Navdata` is also published to a standard ROS [`sensor_msgs/Imu`](http://www.ros.org/doc/api/sensor_msgs/html/msg/Imu.html) message. The units are all metric and the reference frame is in `IMU` frame. This topic is experimental and needs to be enhanced by covariance matrices.
 
 ### Cameras
 
@@ -152,7 +161,7 @@ You can test these animations in command line using commands like `rosservice ca
 
 The parameters listed below are named according to AR-Drone's SDK 2.0 configuration. Unless you set the parameters using `rosparam` or in your `lauch` file, the default values will be used. These values are applied during driver's initialization phase. Please refer to AR-Drone SDK 2.0's [developer's guide](https://projects.ardrone.org/projects/show/ardrone-api/) for information about valid values.
 
-* `drone_frame_id` - The "frame_id" to be used in camera & image messages header - default: "ardrone"
+* `drone_frame_id` - The "frame_id" prefix to be used in all messages headers - default: "ardrone_frame"
 * `bitrate_ctrl_mode` - default: DISABLED
 * `max_bitrate` - (AR-Drone 2.0 only) Default: 4000 Kbps
 * `bitrate` -  Default: 4000 Kbps

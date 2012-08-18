@@ -5,6 +5,7 @@
 #include <image_transport/image_transport.h>
 #include <tf/transform_broadcaster.h>
 #include <sensor_msgs/Image.h>
+#include <sensor_msgs/Imu.h>
 #include <ardrone_autonomy/Navdata.h>
 #include "ardrone_sdk.h"
 
@@ -35,6 +36,8 @@ private:
 	image_transport::CameraPublisher vert_pub;
 
     ros::Publisher navdata_pub;
+    ros::Publisher imu_pub;
+
     tf::TransformBroadcaster tf_broad;
 
 	//ros::Subscriber toggleCam_sub;
@@ -68,6 +71,9 @@ private:
      * Base: Should be COM
      */
     std::string droneFrameBase, droneFrameIMU, droneFrameFrontCam, droneFrameBottomCam;
+
+    // Huge part of IMU message is constant, let's fill'em once.
+    sensor_msgs::Imu imu_msg;
 
 };
 
