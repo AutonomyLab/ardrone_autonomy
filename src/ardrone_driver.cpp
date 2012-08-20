@@ -28,8 +28,8 @@ ARDroneDriver::ARDroneDriver()
 //	setEnemyColor_service = node_handle.advertiseService("/ardrone/setenemycolor", setEnemyColorCallback);
 //	setHullType_service = node_handle.advertiseService("/ardrone/sethulltype", setHullTypeCallback);
 
-    droneFrameId = (ros::param::get("~drone_frame_id", droneFrameId)) ? droneFrameId : "ardrone_frame";
-    droneFrameBase = droneFrameId + "_base";
+    droneFrameId = (ros::param::get("~drone_frame_id", droneFrameId)) ? droneFrameId : "ardrone_base";
+    droneFrameBase = droneFrameId + "_link";
     droneFrameIMU = droneFrameId + "_imu";
     droneFrameFrontCam = droneFrameId + "_frontcam";
     droneFrameBottomCam = droneFrameId + "_bottomcam";
@@ -434,7 +434,9 @@ void ARDroneDriver::publish_navdata()
     imu_msg.linear_acceleration.z = msg.az * 9.8;
 
     // IMU - Rotation Matrix
-    imu_msg.orientation = tf::createQuaternionMsgFromRollPitchYaw(msg.rotX * _DEG2RAD, msg.rotY * _DEG2RAD, msg.rotZ * _DEG2RAD);
+    btQuaternion q;
+    q.setEulerZYX(msg.rotZ * _DEG2RAD, msg.rotY * _DEG2RAD, msg.rotX * _DEG2RAD);
+    tf::quaternionTFToMsg(q, imu_msg.orientation);
 
     imu_pub.publish(imu_msg);
 }
