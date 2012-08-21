@@ -113,9 +113,6 @@ void ARDroneDriver::publish_video()
             (vert_pub.getNumSubscribers() == 0)
        ) return;
 
-
-
-
     // Camera Info (NO PIP)
 
     sensor_msgs::CameraInfo cinfo_msg_hori = cinfo_hori_->getCameraInfo();
