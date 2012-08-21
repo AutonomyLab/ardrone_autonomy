@@ -13,8 +13,17 @@
 #define _DEG2RAD 0.01745331111
 #define _RAD2DEG 57.2957184819
 
-class ARDroneDriver
+enum ROOT_FRAME
 {
+    ROOT_FRAME_BASE = 0,
+    ROOT_FRAME_FRONT = 1,
+    ROOT_FRAME_BOTTOM = 2,
+    ROOT_FRAME_IMU = 3,
+    ROOT_FRAME_NUM
+};
+
+class ARDroneDriver
+{    
 public:
 	ARDroneDriver();
 	~ARDroneDriver();
@@ -75,6 +84,8 @@ private:
      * Base: Should be COM
      */
     std::string droneFrameBase, droneFrameIMU, droneFrameFrontCam, droneFrameBottomCam;
+    int drone_root_frame;
+    tf::StampedTransform tf_base_imu, tf_base_front, tf_base_bottom;
 
     // Huge part of IMU message is constant, let's fill'em once.
     sensor_msgs::Imu imu_msg;

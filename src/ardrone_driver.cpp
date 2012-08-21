@@ -34,6 +34,10 @@ ARDroneDriver::ARDroneDriver()
     droneFrameFrontCam = droneFrameId + "_frontcam";
     droneFrameBottomCam = droneFrameId + "_bottomcam";
 
+    drone_root_frame = (ros::param::get("~root_frame", drone_root_frame)) ? drone_root_frame : ROOT_FRAME_BASE;
+    drone_root_frame = drone_root_frame % ROOT_FRAME_NUM;
+    ROS_INFO("Root Frame is: %d", drone_root_frame);
+
     // Fill constant parts of IMU Message
 
     // No covariance yet for linear acceleration
@@ -55,6 +59,51 @@ ARDroneDriver::ARDroneDriver()
 
     cinfo_hori_ = new camera_info_manager::CameraInfoManager(ros::NodeHandle("ardrone/front"), "ardrone_front");
     cinfo_vert_ = new camera_info_manager::CameraInfoManager(ros::NodeHandle("ardrone/bottom"), "ardrone_bottom");
+
+    // TF
+
+    // IMU To Base (Assume to be the same)
+    tf_base_imu = tf::StampedTransform(
+                tf::Transform(tf::Quaternion(0, 0, 0, 1), tf::Vector3(0.0, 0.0, 0.0)),
+                ros::Time::now(), droneFrameBase, droneFrameIMU
+                );
+
+    // Front Cam to Base
+    // TODO: Precise values for Drone1 & Drone2
+    tf_base_front = tf::StampedTransform(
+                tf::Transform(
+                    tf::createQuaternionFromRPY(-90.0 * _DEG2RAD, 0.0, -90.0 * _DEG2RAD),
+                    tf::Vector3(0.21, 0.0, 0.0)),
+                ros::Time::now(), droneFrameBase, droneFrameFrontCam
+                );
+
+
+    // Bottom Cam to Base (Bad Assumption: No translation from IMU and Base)
+    // TODO: This should be different from Drone 1 & 2.
+    tf_base_bottom = tf::StampedTransform(
+                tf::Transform(
+                    tf::createQuaternionFromRPY(180.0 * _DEG2RAD, 0.0, 90.0 * _DEG2RAD),
+                    tf::Vector3(0.0, -0.02, 0.0)),
+                ros::Time::now(), droneFrameBase, droneFrameBottomCam
+                );
+
+    // Changing the root for TF if needed
+    if (drone_root_frame == ROOT_FRAME_FRONT)
+    {
+        tf_base_front.setData(tf_base_front.inverse());
+        tf_base_front.child_frame_id_.swap(tf_base_front.frame_id_);
+    }
+    else if (drone_root_frame == ROOT_FRAME_BOTTOM)
+    {
+        tf_base_bottom.setData(tf_base_bottom.inverse());
+        tf_base_bottom.child_frame_id_.swap(tf_base_bottom.frame_id_);
+    }
+    else if (drone_root_frame == ROOT_FRAME_IMU)
+    {
+        tf_base_imu.setData(tf_base_imu.inverse());
+        tf_base_imu.child_frame_id_.swap(tf_base_imu.frame_id_);
+    }
+
 }
 
 ARDroneDriver::~ARDroneDriver()
@@ -455,36 +504,12 @@ void ARDroneDriver::publish_navdata()
 
 void ARDroneDriver::publish_tf()
 {
-    // IMU To Base (Assume to be the same)
-    tf_broad.sendTransform(
-                tf::StampedTransform(
-                    tf::Transform(tf::Quaternion(0, 0, 0, 1), tf::Vector3(0.0, 0.0, 0.0)),
-                    ros::Time::now(), droneFrameBase, droneFrameIMU
-                    )
-                );
-
-    // Front Cam to Base
-    // TODO: Precise values for Drone1 & Drone2
-    tf_broad.sendTransform(
-                tf::StampedTransform(
-                    tf::Transform(
-                        tf::createQuaternionFromRPY(-90.0 * _DEG2RAD, 0.0, -90.0 * _DEG2RAD),
-                        tf::Vector3(0.21, 0.0, 0.0)),
-                    ros::Time::now(), droneFrameBase, droneFrameFrontCam
-                    )
-                );
-
-    // Bottom Cam to Base (Bad Assumption: No translation from IMU and Base)
-    // TODO: This should be different from Drone 1 & 2.
-    tf_broad.sendTransform(
-                tf::StampedTransform(
-                    tf::Transform(
-                        tf::createQuaternionFromRPY(180.0 * _DEG2RAD, 0.0, 90.0 * _DEG2RAD),
-                        tf::Vector3(0.0, -0.02, 0.0)),
-                    ros::Time::now(), droneFrameBase, droneFrameBottomCam
-                    )
-                );
-
+    tf_base_imu.stamp_ = ros::Time::now();
+    tf_base_front.stamp_ = ros::Time::now();
+    tf_base_bottom.stamp_ = ros::Time::now();
+    tf_broad.sendTransform(tf_base_imu);
+    tf_broad.sendTransform(tf_base_front);
+    tf_broad.sendTransform(tf_base_bottom);
 }
 
 void controlCHandler (int signal)
