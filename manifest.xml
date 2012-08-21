@@ -15,6 +15,7 @@
   <depend package="sensor_msgs"/>
   <depend package="std_srvs"/>
   <depend package="tf"/>
+  <depend package="camera_info_manager"/>
 </package>
 
 

@@ -9,7 +9,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 ARDroneDriver::ARDroneDriver()
-	: image_transport(node_handle)
+    : image_transport(node_handle)
 {
     inited = false;
 	cmd_vel_sub = node_handle.subscribe("cmd_vel", 100, &cmdVelCallback);
@@ -53,10 +53,14 @@ ARDroneDriver::ARDroneDriver()
     // No angular velocity at all
     imu_msg.angular_velocity_covariance[0] = -1.0;
 
+    cinfo_hori_ = new camera_info_manager::CameraInfoManager(ros::NodeHandle("ardrone/front"), "ardrone_front");
+    cinfo_vert_ = new camera_info_manager::CameraInfoManager(ros::NodeHandle("ardrone/bottom"), "ardrone_bottom");
 }
 
 ARDroneDriver::~ARDroneDriver()
 {
+    delete cinfo_hori_;
+    delete cinfo_vert_;
 }
 
 void ARDroneDriver::run()
@@ -109,6 +113,17 @@ void ARDroneDriver::publish_video()
             (vert_pub.getNumSubscribers() == 0)
        ) return;
 
+
+
+
+    // Camera Info (NO PIP)
+
+    sensor_msgs::CameraInfo cinfo_msg_hori = cinfo_hori_->getCameraInfo();
+    sensor_msgs::CameraInfo cinfo_msg_vert = cinfo_vert_->getCameraInfo();
+
+    cinfo_msg_hori.header.frame_id = droneFrameFrontCam;
+    cinfo_msg_vert.header.frame_id = droneFrameBottomCam;
+
     if (IS_ARDRONE1)
     {
         /*
@@ -130,20 +145,16 @@ void ARDroneDriver::publish_video()
         * The bottom image is a (174-58)x144 crop of the buffer. 
         */
         sensor_msgs::Image image_msg;
-        sensor_msgs::CameraInfo cinfo_msg;
         sensor_msgs::Image::_data_type::iterator _it;
 
         image_msg.header.stamp = ros::Time::now();
-        cinfo_msg.header.stamp = ros::Time::now();
         if ((cam_state == ZAP_CHANNEL_HORI) || (cam_state == ZAP_CHANNEL_LARGE_HORI_SMALL_VERT))
         {
             image_msg.header.frame_id = droneFrameFrontCam;
-            cinfo_msg.header.frame_id = droneFrameFrontCam;
         }
         else if ((cam_state == ZAP_CHANNEL_VERT) || (cam_state == ZAP_CHANNEL_LARGE_VERT_SMALL_HORI))
         {
             image_msg.header.frame_id = droneFrameBottomCam;
-            cinfo_msg.header.frame_id = droneFrameBottomCam;
         }
         else
         {
@@ -158,17 +169,16 @@ void ARDroneDriver::publish_video()
         image_msg.data.resize(D1_STREAM_WIDTH*D1_STREAM_HEIGHT*3);
         std::copy(buffer, buffer+(D1_STREAM_WIDTH*D1_STREAM_HEIGHT*3), image_msg.data.begin());
 
-        // We only put the width and height in here.
-        cinfo_msg.width = D1_STREAM_WIDTH;
-        cinfo_msg.height = D1_STREAM_HEIGHT;
-
-        image_pub.publish(image_msg, cinfo_msg);
         if (cam_state == ZAP_CHANNEL_HORI)
         {
             /*
             * Horizontal camera is activated, only /ardrone/front/ is being updated 
             */
-            hori_pub.publish(image_msg, cinfo_msg);
+            cinfo_msg_hori.width = D1_STREAM_WIDTH;
+            cinfo_msg_hori.height = D1_STREAM_HEIGHT;
+
+            image_pub.publish(image_msg, cinfo_msg_hori);
+            hori_pub.publish(image_msg, cinfo_msg_hori);
         }
         else if (cam_state == ZAP_CHANNEL_VERT)
         {
@@ -190,9 +200,10 @@ void ARDroneDriver::publish_video()
                 _it = std::copy(buffer + _b, buffer + _e, _it);
             }
 
-            cinfo_msg.width = D1_VERTSTREAM_WIDTH;
-            cinfo_msg.height = D1_VERTSTREAM_HEIGHT;
-            vert_pub.publish(image_msg, cinfo_msg);
+            cinfo_msg_vert.width = D1_VERTSTREAM_WIDTH;
+            cinfo_msg_vert.height = D1_VERTSTREAM_HEIGHT;
+            image_pub.publish(image_msg, cinfo_msg_vert);
+            vert_pub.publish(image_msg, cinfo_msg_vert);
         }
         else if (cam_state == ZAP_CHANNEL_LARGE_HORI_SMALL_VERT)
         {
@@ -217,9 +228,9 @@ void ARDroneDriver::publish_video()
                 _it = std::copy(buffer + _b, buffer + _e, _it);
             }
 
-            cinfo_msg.width = D1_STREAM_WIDTH - D1_MODE2_PIP_WIDTH;
-            cinfo_msg.height = D1_STREAM_HEIGHT;
-            hori_pub.publish(image_msg, cinfo_msg);
+            cinfo_msg_hori.width = D1_STREAM_WIDTH - D1_MODE2_PIP_WIDTH;
+            cinfo_msg_hori.height = D1_STREAM_HEIGHT;
+            hori_pub.publish(image_msg, cinfo_msg_hori);
 
             //Bottom
             image_msg.width = D1_MODE2_PIP_WIDTH;
@@ -237,9 +248,9 @@ void ARDroneDriver::publish_video()
                 _it = std::copy(buffer + _b, buffer + _e, _it);
             }
 
-            cinfo_msg.width = D1_MODE2_PIP_WIDTH;
-            cinfo_msg.height = D1_MODE2_PIP_HEIGHT;
-            vert_pub.publish(image_msg, cinfo_msg);
+            cinfo_msg_vert.width = D1_MODE2_PIP_WIDTH;
+            cinfo_msg_vert.height = D1_MODE2_PIP_HEIGHT;
+            vert_pub.publish(image_msg, cinfo_msg_vert);
         }
         else if (cam_state == ZAP_CHANNEL_LARGE_VERT_SMALL_HORI)
         {
@@ -264,9 +275,9 @@ void ARDroneDriver::publish_video()
                 _it = std::copy(buffer + _b, buffer + _e, _it);
             }
 
-            cinfo_msg.width = D1_VERTSTREAM_WIDTH - D1_MODE3_PIP_WIDTH;
-            cinfo_msg.height = D1_VERTSTREAM_HEIGHT;
-            vert_pub.publish(image_msg, cinfo_msg);
+            cinfo_msg_vert.width = D1_VERTSTREAM_WIDTH - D1_MODE3_PIP_WIDTH;
+            cinfo_msg_vert.height = D1_VERTSTREAM_HEIGHT;
+            vert_pub.publish(image_msg, cinfo_msg_vert);
 
             //Front
             image_msg.width = D1_MODE3_PIP_WIDTH;
@@ -284,9 +295,9 @@ void ARDroneDriver::publish_video()
                 _it = std::copy(buffer + _b, buffer + _e, _it);
             }
 
-            cinfo_msg.width = D1_MODE3_PIP_WIDTH;
-            cinfo_msg.height = D1_MODE3_PIP_HEIGHT;
-            hori_pub.publish(image_msg, cinfo_msg);
+            cinfo_msg_hori.width = D1_MODE3_PIP_WIDTH;
+            cinfo_msg_hori.height = D1_MODE3_PIP_HEIGHT;
+            hori_pub.publish(image_msg, cinfo_msg_hori);
         }
     }
     
@@ -297,21 +308,20 @@ void ARDroneDriver::publish_video()
      */
     if (IS_ARDRONE2)
     {
-        sensor_msgs::Image image_msg;
-        sensor_msgs::CameraInfo cinfo_msg;
+        sensor_msgs::Image image_msg;        
         sensor_msgs::Image::_data_type::iterator _it;
 
         image_msg.header.stamp = ros::Time::now();
-        cinfo_msg.header.stamp = ros::Time::now();
+        cinfo_msg_hori.header.stamp = ros::Time::now();
+        cinfo_msg_vert.header.stamp = ros::Time::now();
+
         if (cam_state == ZAP_CHANNEL_HORI)
         {
             image_msg.header.frame_id = droneFrameFrontCam;
-            cinfo_msg.header.frame_id = droneFrameFrontCam;
         }
         else if (cam_state == ZAP_CHANNEL_VERT)
         {
             image_msg.header.frame_id = droneFrameBottomCam;
-            cinfo_msg.header.frame_id = droneFrameBottomCam;
         }
         else
         {
@@ -327,22 +337,27 @@ void ARDroneDriver::publish_video()
         std::copy(buffer, buffer+(D2_STREAM_WIDTH*D2_STREAM_HEIGHT*3), image_msg.data.begin());
 
         // We only put the width and height in here.
-        cinfo_msg.width = D2_STREAM_WIDTH;
-        cinfo_msg.height = D2_STREAM_HEIGHT;
-        image_pub.publish(image_msg, cinfo_msg); // /ardrone
+
+
         if (cam_state == ZAP_CHANNEL_HORI)
         {
             /*
             * Horizontal camera is activated, only /ardrone/front/ is being updated 
             */
-            hori_pub.publish(image_msg, cinfo_msg);
+            cinfo_msg_hori.width = D2_STREAM_WIDTH;
+            cinfo_msg_hori.height = D2_STREAM_HEIGHT;
+            image_pub.publish(image_msg, cinfo_msg_hori); // /ardrone
+            hori_pub.publish(image_msg, cinfo_msg_hori);
         }
         else if (cam_state == ZAP_CHANNEL_VERT)
         {
             /*
             * Vertical camera is activated, only /ardrone/bottom/ is being updated 
             */
-            vert_pub.publish(image_msg, cinfo_msg);
+            cinfo_msg_vert.width = D2_STREAM_WIDTH;
+            cinfo_msg_vert.height = D2_STREAM_HEIGHT;
+            image_pub.publish(image_msg, cinfo_msg_vert); // /ardrone
+            vert_pub.publish(image_msg, cinfo_msg_vert);
         }
     }
 	

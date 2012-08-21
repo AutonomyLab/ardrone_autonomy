@@ -4,6 +4,7 @@
 #include <ros/ros.h>
 #include <image_transport/image_transport.h>
 #include <tf/transform_broadcaster.h>
+#include <camera_info_manager/camera_info_manager.h>
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/Imu.h>
 #include <ardrone_autonomy/Navdata.h>
@@ -34,6 +35,9 @@ private:
 	image_transport::CameraPublisher image_pub;
     image_transport::CameraPublisher hori_pub;
 	image_transport::CameraPublisher vert_pub;
+
+    camera_info_manager::CameraInfoManager *cinfo_hori_;
+    camera_info_manager::CameraInfoManager *cinfo_vert_;
 
     ros::Publisher navdata_pub;
     ros::Publisher imu_pub;
