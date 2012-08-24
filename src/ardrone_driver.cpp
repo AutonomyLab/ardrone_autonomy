@@ -63,17 +63,17 @@ ARDroneDriver::ARDroneDriver()
 
     // The value in Specs is weird (2000 deg/sec) which does not make sense
     // Not sending the data until find the actual values
-//    for (sensor_msgs::Imu::_angular_velocity_covariance_type::iterator itc = imu_msg.angular_velocity_covariance.begin();
-//         itc != imu_msg.angular_velocity_covariance.end(); itc++)
-//    {
-//        *itc = 0.0;
-//    }
+    for (sensor_msgs::Imu::_angular_velocity_covariance_type::iterator itc = imu_msg.angular_velocity_covariance.begin();
+         itc != imu_msg.angular_velocity_covariance.end(); itc++)
+    {
+        *itc = 0.0;
+    }
 
-      imu_msg.angular_velocity_covariance[0] = -1.0;
+//      imu_msg.angular_velocity_covariance[0] = -1.0;
 
-//    imu_msg.angular_velocity_covariance[0] = 1e-1;
-//    imu_msg.angular_velocity_covariance[4] = 1e-1;
-//    imu_msg.angular_velocity_covariance[8] = 1e-1;
+    imu_msg.angular_velocity_covariance[0] = 500 * 1e-1;
+    imu_msg.angular_velocity_covariance[4] = 500 * 1e-1;
+    imu_msg.angular_velocity_covariance[8] = 500 * 1e-1;
 
 
     // Camera Info Manager
@@ -124,9 +124,9 @@ ARDroneDriver::~ARDroneDriver()
 
 void ARDroneDriver::run()
 {
-	ros::Rate loop_rate(30);
+    ros::Rate loop_rate(50);
     ros::Time startTime = ros::Time::now();
-
+    static int freq_dev = 0;
 	while (node_handle.ok())
 	{
         if (!inited) // Give the Drone 5s of free time to finish init phase
@@ -139,15 +139,21 @@ void ARDroneDriver::run()
                          (IS_ARDRONE1) ? 1 : 2,
                          ardrone_control_config.num_version_soft,
                          navdata.vbat_flying_percentage);
+
+                if (ardrone_control_config.num_version_soft[0] == '0')
+                {
+                    ROS_WARN("The AR-Drone has a suspicious Firmware number. It usually means the network link is unreliable.");
+                }
             }
         } else {
             if (current_frame_id != last_frame_id)
             {
-                publish_video();
-                publish_navdata();
-                publish_tf();
+                publish_video();                                
                 last_frame_id = current_frame_id;
             }
+            if (freq_dev == 0) publish_tf();
+            publish_navdata();
+            freq_dev = (freq_dev + 1) % 5; // ~10Hz TF publish
         }
         ros::spinOnce();
 		loop_rate.sleep();
