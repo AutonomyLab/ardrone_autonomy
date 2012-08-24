@@ -40,33 +40,48 @@ ARDroneDriver::ARDroneDriver()
 
     // Fill constant parts of IMU Message
 
-    // No covariance yet for linear acceleration
+    // From Specs: +-50 mg precision (2 x sigma = 50 mg)
     for (sensor_msgs::Imu::_angular_velocity_covariance_type::iterator ita = imu_msg.linear_acceleration_covariance.begin();
          ita != imu_msg.linear_acceleration_covariance.end(); ita++)
     {
         *ita = 0.0;
     }
+    imu_msg.linear_acceleration_covariance[0] = 625 * 1e-1;
+    imu_msg.linear_acceleration_covariance[4] = 625 * 1e-1;
+    imu_msg.linear_acceleration_covariance[8] = 625 * 1e-1;
 
-    // No covariance yet for rotation
+    // No covariance yet for rotation, setting the values to +-2 degrees
     for (sensor_msgs::Imu::_orientation_covariance_type::iterator ito = imu_msg.orientation_covariance.begin();
          ito != imu_msg.orientation_covariance.end(); ito++)
     {
         *ito = 0.0;
     }
 
-    // No angular velocity at all
-    imu_msg.angular_velocity_covariance[0] = -1.0;
+    imu_msg.orientation_covariance[0] = 304 * 1e-1;
+    imu_msg.orientation_covariance[4] = 304 * 1e-1;
+    imu_msg.orientation_covariance[8] = 1e10;
 
+    // The value in Specs is weird (2000 deg/sec) which does not make sense
+    // Not sending the data until find the actual values
+//    for (sensor_msgs::Imu::_angular_velocity_covariance_type::iterator itc = imu_msg.angular_velocity_covariance.begin();
+//         itc != imu_msg.angular_velocity_covariance.end(); itc++)
+//    {
+//        *itc = 0.0;
+//    }
+
+      imu_msg.angular_velocity_covariance[0] = -1.0;
+
+//    imu_msg.angular_velocity_covariance[0] = 1e-1;
+//    imu_msg.angular_velocity_covariance[4] = 1e-1;
+//    imu_msg.angular_velocity_covariance[8] = 1e-1;
+
+
+    // Camera Info Manager
     cinfo_hori_ = new camera_info_manager::CameraInfoManager(ros::NodeHandle("ardrone/front"), "ardrone_front");
     cinfo_vert_ = new camera_info_manager::CameraInfoManager(ros::NodeHandle("ardrone/bottom"), "ardrone_bottom");
 
-    // TF
+    // TF Stuff
 
-    // IMU To Base (Assume to be the same)
-    tf_base_imu = tf::StampedTransform(
-                tf::Transform(tf::Quaternion(0, 0, 0, 1), tf::Vector3(0.0, 0.0, 0.0)),
-                ros::Time::now(), droneFrameBase, droneFrameIMU
-                );
 
     // Front Cam to Base
     // TODO: Precise values for Drone1 & Drone2
@@ -97,12 +112,7 @@ ARDroneDriver::ARDroneDriver()
     {
         tf_base_bottom.setData(tf_base_bottom.inverse());
         tf_base_bottom.child_frame_id_.swap(tf_base_bottom.frame_id_);
-    }
-    else if (drone_root_frame == ROOT_FRAME_IMU)
-    {
-        tf_base_imu.setData(tf_base_imu.inverse());
-        tf_base_imu.child_frame_id_.swap(tf_base_imu.frame_id_);
-    }
+    }   
 
 }
 
@@ -486,7 +496,7 @@ void ARDroneDriver::publish_navdata()
     navdata_pub.publish(msg);
 
     /* IMU */
-    imu_msg.header.frame_id = droneFrameIMU;
+    imu_msg.header.frame_id = droneFrameBase;
     imu_msg.header.stamp = ros::Time::now();
 
     // IMU - Linear Acc
@@ -497,17 +507,22 @@ void ARDroneDriver::publish_navdata()
     // IMU - Rotation Matrix
     btQuaternion q;
     q.setEulerZYX(msg.rotZ * _DEG2RAD, msg.rotY * _DEG2RAD, msg.rotX * _DEG2RAD);
+    //q.setEulerZYX(0.0, 0.0, 0.0);
     tf::quaternionTFToMsg(q, imu_msg.orientation);
+
+    // IMU - Gyro (Gyro is being sent in deg/sec)
+    // TODO: Should Gyro be added to Navdata?
+    imu_msg.angular_velocity.x = 0.0;//navdata_phys.phys_gyros[GYRO_X] * DEG_TO_RAD;
+    imu_msg.angular_velocity.y = 0.0;//-navdata_phys.phys_gyros[GYRO_Y] * DEG_TO_RAD;
+    imu_msg.angular_velocity.z = 0.0;//-navdata_phys.phys_gyros[GYRO_Z] * DEG_TO_RAD;
 
     imu_pub.publish(imu_msg);
 }
 
 void ARDroneDriver::publish_tf()
 {
-    tf_base_imu.stamp_ = ros::Time::now();
     tf_base_front.stamp_ = ros::Time::now();
     tf_base_bottom.stamp_ = ros::Time::now();
-    tf_broad.sendTransform(tf_base_imu);
     tf_broad.sendTransform(tf_base_front);
     tf_broad.sendTransform(tf_base_bottom);
 }

@@ -18,7 +18,6 @@ enum ROOT_FRAME
     ROOT_FRAME_BASE = 0,
     ROOT_FRAME_FRONT = 1,
     ROOT_FRAME_BOTTOM = 2,
-    ROOT_FRAME_IMU = 3,
     ROOT_FRAME_NUM
 };
 
@@ -85,7 +84,7 @@ private:
      */
     std::string droneFrameBase, droneFrameIMU, droneFrameFrontCam, droneFrameBottomCam;
     int drone_root_frame;
-    tf::StampedTransform tf_base_imu, tf_base_front, tf_base_bottom;
+    tf::StampedTransform tf_base_front, tf_base_bottom;
 
     // Huge part of IMU message is constant, let's fill'em once.
     sensor_msgs::Imu imu_msg;
