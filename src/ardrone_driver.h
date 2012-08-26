@@ -33,6 +33,7 @@ private:
 	void publish_video();
 	void publish_navdata();
     void publish_tf();
+    bool readCovParams(std::string param_name, boost::array<double, 9> &cov_array);
 
     ros::NodeHandle node_handle;
 	ros::Subscriber cmd_vel_sub;

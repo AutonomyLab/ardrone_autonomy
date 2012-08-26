@@ -86,7 +86,7 @@ Information received from the drone will be published to the `ardrone/navdata` t
 
 ### IMU data
 
-The acceleration and orientation from the `Navdata` is also published to a standard ROS [`sensor_msgs/Imu`](http://www.ros.org/doc/api/sensor_msgs/html/msg/Imu.html) message. The units are all metric and the reference frame is in `IMU` frame. This topic is experimental and needs to be enhanced by covariance matrices.
+The linear acceleration, angular velocity and orientation from the `Navdata` is also published to a standard ROS [`sensor_msgs/Imu`](http://www.ros.org/doc/api/sensor_msgs/html/msg/Imu.html) message. The units are all metric and the reference frame is in `Base` frame. This topic is experimental. The covariance values are specified by specific parameters.
 
 ### Cameras
 

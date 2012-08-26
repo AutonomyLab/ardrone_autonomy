@@ -39,42 +39,17 @@ ARDroneDriver::ARDroneDriver()
     ROS_INFO("Root Frame is: %d", drone_root_frame);
 
     // Fill constant parts of IMU Message
+    // If no rosparam is set then the default value of 0.0 will be assigned to all covariance values
 
-    // From Specs: +-50 mg precision (2 x sigma = 50 mg)
-    for (sensor_msgs::Imu::_angular_velocity_covariance_type::iterator ita = imu_msg.linear_acceleration_covariance.begin();
-         ita != imu_msg.linear_acceleration_covariance.end(); ita++)
+    for (int i = 0; i < 9; i++)
     {
-        *ita = 0.0;
+        imu_msg.linear_acceleration_covariance[i] = 0.0;
+        imu_msg.angular_velocity_covariance[i] = 0.0;
+        imu_msg.orientation_covariance[i] = 0.0;
     }
-    imu_msg.linear_acceleration_covariance[0] = 625 * 1e-1;
-    imu_msg.linear_acceleration_covariance[4] = 625 * 1e-1;
-    imu_msg.linear_acceleration_covariance[8] = 625 * 1e-1;
-
-    // No covariance yet for rotation, setting the values to +-2 degrees
-    for (sensor_msgs::Imu::_orientation_covariance_type::iterator ito = imu_msg.orientation_covariance.begin();
-         ito != imu_msg.orientation_covariance.end(); ito++)
-    {
-        *ito = 0.0;
-    }
-
-    imu_msg.orientation_covariance[0] = 304 * 1e-1;
-    imu_msg.orientation_covariance[4] = 304 * 1e-1;
-    imu_msg.orientation_covariance[8] = 1e10;
-
-    // The value in Specs is weird (2000 deg/sec) which does not make sense
-    // Not sending the data until find the actual values
-    for (sensor_msgs::Imu::_angular_velocity_covariance_type::iterator itc = imu_msg.angular_velocity_covariance.begin();
-         itc != imu_msg.angular_velocity_covariance.end(); itc++)
-    {
-        *itc = 0.0;
-    }
-
-//      imu_msg.angular_velocity_covariance[0] = -1.0;
-
-    imu_msg.angular_velocity_covariance[0] = 500 * 1e-1;
-    imu_msg.angular_velocity_covariance[4] = 500 * 1e-1;
-    imu_msg.angular_velocity_covariance[8] = 500 * 1e-1;
-
+    readCovParams("~cov/imu_la", imu_msg.linear_acceleration_covariance);
+    readCovParams("~cov/imu_av", imu_msg.angular_velocity_covariance);
+    readCovParams("~cov/imu_or", imu_msg.orientation_covariance);
 
     // Camera Info Manager
     cinfo_hori_ = new camera_info_manager::CameraInfoManager(ros::NodeHandle("ardrone/front"), "ardrone_front");
@@ -159,6 +134,43 @@ void ARDroneDriver::run()
 		loop_rate.sleep();
 	}
     printf("ROS loop terminated ... \n");
+}
+
+bool ARDroneDriver::readCovParams(std::string param_name, boost::array<double, 9> &cov_array)
+{
+    XmlRpc::XmlRpcValue cov_list;
+    std::stringstream str_stream;
+    if (ros::param::get(param_name, cov_list))
+    {
+         if (cov_list.getType() != XmlRpc::XmlRpcValue::TypeArray)
+         {
+             ROS_WARN("Covariance values for %s is not a list", param_name.c_str());
+             return false;
+         }
+
+         if (cov_list.size() != 9)
+         {
+             ROS_WARN("Covariance list size for %s is not of size 9 (Size: %d)", param_name.c_str(), cov_list.size());
+             return false;
+         }
+         str_stream << param_name << " set to [";
+         for (int32_t i = 0; i < cov_list.size(); i++)
+         {
+             ROS_ASSERT(cov_list[i].getType() == XmlRpc::XmlRpcValue::TypeDouble);
+             cov_array[i] = static_cast<double> (cov_list[i]);
+             str_stream << cov_array[i] << ((i < 8) ? ", " : "");
+         }
+         str_stream << "]";
+         ROS_INFO(str_stream.str().c_str());
+         return true;
+
+    }
+    else
+    {
+        ROS_INFO("No values found for `%s` in parameters, set all to zero.", param_name.c_str());
+        return false;
+    }
+
 }
 
 double ARDroneDriver::getRosParam(char* param, double defaultVal)
