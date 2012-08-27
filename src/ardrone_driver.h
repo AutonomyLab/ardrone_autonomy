@@ -9,6 +9,7 @@
 #include <sensor_msgs/Imu.h>
 #include <ardrone_autonomy/Navdata.h>
 #include "ardrone_sdk.h"
+#include <vector>
 
 #define _DEG2RAD 0.01745331111
 #define _RAD2DEG 57.2957184819
@@ -34,6 +35,7 @@ private:
 	void publish_navdata();
     void publish_tf();
     bool readCovParams(std::string param_name, boost::array<double, 9> &cov_array);
+    double calcAverage(std::vector<double> &vec);
 
     ros::NodeHandle node_handle;
 	ros::Subscriber cmd_vel_sub;
@@ -89,6 +91,16 @@ private:
 
     // Huge part of IMU message is constant, let's fill'em once.
     sensor_msgs::Imu imu_msg;
+
+    // Manual IMU caliberation
+    int max_num_samples;
+    bool caliberated;
+    double acc_bias[3];
+    double gyro_bias[3];
+    double vel_bias[3];
+    std::vector< std::vector<double> > acc_samples;
+    std::vector< std::vector<double> > gyro_samples;
+    std::vector< std::vector<double> > vel_samples;
 
 };
 

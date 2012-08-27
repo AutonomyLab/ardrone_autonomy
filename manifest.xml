@@ -8,7 +8,7 @@
   <email>mmonajje@cs.sfu.ca</email>
   <license>BSD</license>
   <review status="unreviewed" notes=""/>
-  <url>TBA.</url>
+  <url>https://github.com/AutonomyLab/ardrone_autonomy</url>
   <rosdep name="libsdl-dev" />
   <depend package="roscpp"/>
   <depend package="image_transport"/>

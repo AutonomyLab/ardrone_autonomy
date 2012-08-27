@@ -51,6 +51,20 @@ ARDroneDriver::ARDroneDriver()
     readCovParams("~cov/imu_av", imu_msg.angular_velocity_covariance);
     readCovParams("~cov/imu_or", imu_msg.orientation_covariance);
 
+    // Caliberation
+    max_num_samples = 50;
+    caliberated = false;
+
+    for (int i = 0; i < 3; i++)
+    {
+        acc_bias[i] = 0.0;
+        vel_bias[i] = 0.0;
+        gyro_bias[i] = 0.0;
+        acc_samples.push_back(std::vector<double> ());
+        gyro_samples.push_back(std::vector<double> ());
+        vel_samples.push_back(std::vector<double> ());
+    }
+
     // Camera Info Manager
     cinfo_hori_ = new camera_info_manager::CameraInfoManager(ros::NodeHandle("ardrone/front"), "ardrone_front");
     cinfo_vert_ = new camera_info_manager::CameraInfoManager(ros::NodeHandle("ardrone/bottom"), "ardrone_bottom");
@@ -99,7 +113,8 @@ ARDroneDriver::~ARDroneDriver()
 
 void ARDroneDriver::run()
 {
-    ros::Rate loop_rate(50);
+    // TODO: 50Hz made navdata unstable, I think it is a locking issue.
+    ros::Rate loop_rate(10);
     ros::Time startTime = ros::Time::now();
     static int freq_dev = 0;
 	while (node_handle.ok())
@@ -128,12 +143,22 @@ void ARDroneDriver::run()
             }
             if (freq_dev == 0) publish_tf();
             publish_navdata();
-            freq_dev = (freq_dev + 1) % 5; // ~10Hz TF publish
+            freq_dev = (freq_dev + 1) % 3; // ~10Hz TF publish
         }
         ros::spinOnce();
 		loop_rate.sleep();
 	}
     printf("ROS loop terminated ... \n");
+}
+
+double ARDroneDriver::calcAverage(std::vector<double> &vec)
+{
+    double ret = 0.0;
+    for (int i = 0; i < vec.size(); i++)
+    {
+        ret += vec.at(i);
+    }
+    return (ret / vec.size());
 }
 
 bool ARDroneDriver::readCovParams(std::string param_name, boost::array<double, 9> &cov_array)
@@ -439,6 +464,43 @@ void ARDroneDriver::publish_video()
 
 void ARDroneDriver::publish_navdata()
 {
+    if (!caliberated)
+    {
+        acc_samples[0].push_back(navdata_phys.phys_accs[ACC_X]);
+        acc_samples[1].push_back(navdata_phys.phys_accs[ACC_Y]);
+        acc_samples[2].push_back(navdata_phys.phys_accs[ACC_Z]);
+        gyro_samples[0].push_back(navdata_phys.phys_gyros[GYRO_X]);
+        gyro_samples[1].push_back(navdata_phys.phys_gyros[GYRO_Y]);
+        gyro_samples[2].push_back(navdata_phys.phys_gyros[GYRO_Z]);
+        vel_samples[0].push_back(navdata.vx);
+        vel_samples[1].push_back(navdata.vy);
+        vel_samples[2].push_back(navdata.vz);
+        if (acc_samples[0].size() == max_num_samples)
+        {
+            for (int j = 0; j < 3; j++)
+            {
+                acc_bias[j] = calcAverage(acc_samples[j]);
+                gyro_bias[j] = calcAverage(gyro_samples[j]);
+                vel_bias[j] = calcAverage(vel_samples[j]);
+            }
+            ROS_INFO("Bias in linear acceleration: [%4.4lf, %4.4lf, %4.4lf]", acc_bias[0], acc_bias[1], acc_bias[2]);
+            ROS_INFO("Bias in angular velocity: [%4.4lf, %4.4lf, %4.4lf]", gyro_bias[0], gyro_bias[1], gyro_bias[2]);
+            ROS_INFO("Bias in linear velocity: [%4.4lf, %4.4lf, %4.4lf]", vel_bias[0], vel_bias[1], vel_bias[2]);
+            caliberated = true;
+        }
+    }
+    if (caliberated)
+    {
+        for (int j = 0; j < 3; j++)
+        {
+            if (j != 2) navdata_phys.phys_accs[j] -= acc_bias[j];
+            navdata_phys.phys_gyros[j] -= gyro_bias[j];
+        }
+        navdata.vx -= vel_bias[0];
+        navdata.vy -= vel_bias[1];
+        navdata.vz -= vel_bias[2];
+
+    }
     if ((navdata_pub.getNumSubscribers() == 0) && (imu_pub.getNumSubscribers() == 0))
         return; // why bother, no one is listening.
 	ardrone_autonomy::Navdata msg;
@@ -530,9 +592,9 @@ void ARDroneDriver::publish_navdata()
 
     // IMU - Gyro (Gyro is being sent in deg/sec)
     // TODO: Should Gyro be added to Navdata?
-    imu_msg.angular_velocity.x = 0.0;//navdata_phys.phys_gyros[GYRO_X] * DEG_TO_RAD;
-    imu_msg.angular_velocity.y = 0.0;//-navdata_phys.phys_gyros[GYRO_Y] * DEG_TO_RAD;
-    imu_msg.angular_velocity.z = 0.0;//-navdata_phys.phys_gyros[GYRO_Z] * DEG_TO_RAD;
+    imu_msg.angular_velocity.x = navdata_phys.phys_gyros[GYRO_X] * DEG_TO_RAD;
+    imu_msg.angular_velocity.y = -navdata_phys.phys_gyros[GYRO_Y] * DEG_TO_RAD;
+    imu_msg.angular_velocity.z = -navdata_phys.phys_gyros[GYRO_Z] * DEG_TO_RAD;
 
     imu_pub.publish(imu_msg);
 }
