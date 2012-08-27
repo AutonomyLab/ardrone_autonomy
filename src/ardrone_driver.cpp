@@ -114,7 +114,7 @@ ARDroneDriver::~ARDroneDriver()
 void ARDroneDriver::run()
 {
     // TODO: 50Hz made navdata unstable, I think it is a locking issue.
-    ros::Rate loop_rate(10);
+    ros::Rate loop_rate(50);
     ros::Time startTime = ros::Time::now();
     static int freq_dev = 0;
 	while (node_handle.ok())
