@@ -74,12 +74,21 @@ private:
 	 */
 	//ros::ServiceServer setHullType_service;
 
-	int last_frame_id;
+    long int last_frame_id;
+    long int last_navdata_id;
 	int flying_state;
 
     bool inited;
     std::string droneFrameId;
 
+    // Navdata copy
+    navdata_demo_t navdata;
+    navdata_phys_measures_t navdata_phys;
+    navdata_vision_detect_t navdata_detect;
+    navdata_pressure_raw_t navdata_pressure;
+    navdata_magneto_t navdata_magneto;
+    navdata_wind_speed_t navdata_wind;
+    navdata_time_t arnavtime;
 
     /*
      * TF Frames

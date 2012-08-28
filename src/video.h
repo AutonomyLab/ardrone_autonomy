@@ -36,6 +36,7 @@ extern video_com_multisocket_config_t icc;
 extern const vp_api_stage_funcs_t vp_stages_export_funcs;
 extern unsigned char buffer[]; // size STREAM_WIDTH * STREAM_HEIGHT * 3
 extern long int current_frame_id; // this will be incremented for every frame
+extern long int current_navdata_id;
 
 #endif
 

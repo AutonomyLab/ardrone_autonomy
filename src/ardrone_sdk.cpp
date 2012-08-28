@@ -3,15 +3,18 @@
 #include "teleop_twist.h"
 #include "ardrone_driver.h"
 
-navdata_demo_t navdata;
-navdata_phys_measures_t navdata_phys;
-navdata_vision_detect_t navdata_detect;
+navdata_demo_t shared_navdata;
+navdata_phys_measures_t shared_navdata_phys;
+navdata_vision_detect_t shared_navdata_detect;
+navdata_pressure_raw_t shared_navdata_pressure;
+navdata_magneto_t shared_navdata_magneto;
+navdata_wind_speed_t shared_navdata_wind;
+navdata_time_t shared_arnavtime;
 
-navdata_pressure_raw_t navdata_pressure;
-navdata_magneto_t navdata_magneto;
-navdata_wind_speed_t navdata_wind;
+vp_os_mutex_t navdata_lock;
+vp_os_mutex_t video_lock;
 
-navdata_time_t arnavtime;
+long int current_navdata_id = 0;
 
 ARDroneDriver* rosDriver;
 
@@ -32,6 +35,9 @@ extern "C" {
 	 C_RESULT ardrone_tool_init_custom(void) 
      {
      should_exit = 0;
+     vp_os_mutex_init(&navdata_lock);
+     vp_os_mutex_init(&video_lock);
+
      rosDriver = new ARDroneDriver();
      int _w, _h;
         
@@ -180,17 +186,20 @@ extern "C" {
 		return C_OK;
 	}
 
-	C_RESULT navdata_custom_process(const navdata_unpacked_t * const pnd) {
-		navdata_detect = pnd->navdata_vision_detect;
-		navdata_phys = pnd->navdata_phys_measures;
-		navdata = pnd->navdata_demo;
-		arnavtime = pnd->navdata_time;
+    C_RESULT navdata_custom_process(const navdata_unpacked_t * const pnd) {
+        vp_os_mutex_lock(&navdata_lock);
+        shared_navdata_detect = pnd->navdata_vision_detect;
+        shared_navdata_phys = pnd->navdata_phys_measures;
+        shared_navdata = pnd->navdata_demo;
+        shared_arnavtime = pnd->navdata_time;
         if (IS_ARDRONE2)
         { // This is neccessary
-            navdata_pressure = pnd->navdata_pressure_raw;
-            navdata_magneto = pnd->navdata_magneto;
-            navdata_wind = pnd->navdata_wind_speed;
+            shared_navdata_pressure = pnd->navdata_pressure_raw;
+            shared_navdata_magneto = pnd->navdata_magneto;
+            shared_navdata_wind = pnd->navdata_wind_speed;
         }
+        vp_os_mutex_unlock(&navdata_lock);
+        current_navdata_id++;
 		return C_OK;
 	}
 

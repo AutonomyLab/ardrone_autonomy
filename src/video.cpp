@@ -15,7 +15,9 @@ extern "C" C_RESULT export_stage_transform( void *cfg, vp_api_io_data_t *in, vp_
 {
 //    PRINT("In Transform before copy\n");
 //        printf("The size of buffer is %d\n", in->size);
+    vp_os_mutex_lock(&video_lock);
 	memcpy(buffer, in->buffers[0], in->size);
+    vp_os_mutex_unlock(&video_lock);
 //    vp_os_mutex_unlock(&video_update_lock);
 	current_frame_id++;
  	return (SUCCESS);
