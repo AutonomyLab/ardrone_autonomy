@@ -175,7 +175,7 @@ The parameters listed below are named according to AR-Drone's SDK 2.0 configurat
 * `navdata_demo` - Default: 1
 * `detect_type` - Default: `CAD_TYPE_MULTIPLE_DETECTION_MODE` 
 * `enemy_colors` - Default: `ARDRONE_DETECTION_COLOR_ORANGE_YELLOW` 
-* `enemy_without_shell` - Default: 1
+* `enemy_without_shell` - Default: 0
 * `detections_select_h` - Default: `TAG_TYPE_MASK(TAG_TYPE_SHELL_TAG_V2)` (The macro is defined in `ardrone_api.h`)
 * `detections_select_v_hsync` - Default: `TAG_TYPE_MASK(TAG_TYPE_BLACK_ROUNDEL)` (The macro is defined in `ardrone_api.h`)
 
