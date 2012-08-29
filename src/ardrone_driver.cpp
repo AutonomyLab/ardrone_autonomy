@@ -623,7 +623,6 @@ void ARDroneDriver::publish_navdata()
     // IMU - Rotation Matrix
     btQuaternion q;
     q.setEulerZYX(msg.rotZ * _DEG2RAD, msg.rotY * _DEG2RAD, msg.rotX * _DEG2RAD);
-    //q.setEulerZYX(0.0, 0.0, 0.0);
     tf::quaternionTFToMsg(q, imu_msg.orientation);
 
     // IMU - Gyro (Gyro is being sent in deg/sec)
