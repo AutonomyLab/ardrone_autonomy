@@ -15,7 +15,12 @@
 #if defined __cplusplus
 #    define __STDC_CONSTANT_MACROS
 #endif
+
 #include <stdint.h>
+
+#ifndef UINT64_C
+#define UINT64_C(c) (c ## ULL)
+#endif
 
 extern "C" {
 
