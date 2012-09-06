@@ -28,6 +28,7 @@ rosbuild_gensrv()
 #rosbuild_link_boost(${PROJECT_NAME} thread)
 #target_link_libraries(example ${PROJECT_NAME})
 
+rosbuild_add_boost_directories()
 set(SDK ARDroneLib/)
 link_directories(${PROJECT_SOURCE_DIR}/lib/)
 include_directories(${SDK} ${SDK}/FFMPEG/Includes ${SDK}/Soft/Common ${SDK}/Soft/Lib ${SDK}/VP_SDK ${SDK}/VP_SDK/VP_Os/linux )

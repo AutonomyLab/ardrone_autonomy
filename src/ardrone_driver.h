@@ -7,6 +7,7 @@
 #include <camera_info_manager/camera_info_manager.h>
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/Imu.h>
+#include <std_srvs/Empty.h>
 #include <ardrone_autonomy/Navdata.h>
 #include "ardrone_sdk.h"
 #include <vector>
@@ -30,12 +31,15 @@ public:
 
 	void run();
     double getRosParam(char* param, double defaultVal);
+    bool imuReCalibCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Response &response);
+
 private:
 	void publish_video();
 	void publish_navdata();
     void publish_tf();
     bool readCovParams(std::string param_name, boost::array<double, 9> &cov_array);
     double calcAverage(std::vector<double> &vec);
+    void resetCaliberation();    
 
     ros::NodeHandle node_handle;
 	ros::Subscriber cmd_vel_sub;
@@ -60,6 +64,7 @@ private:
 	ros::ServiceServer toggleNavdataDemo_service;
 	ros::ServiceServer setCamChannel_service;
 	ros::ServiceServer setLedAnimation_service;
+    ros::ServiceServer imuReCalib_service;
 	
 	/*
 	 * Orange Green : 1
@@ -102,6 +107,7 @@ private:
     sensor_msgs::Imu imu_msg;
 
     // Manual IMU caliberation
+    bool do_caliberation;
     int max_num_samples;
     bool caliberated;
     double acc_bias[3];

@@ -42,8 +42,8 @@ extern "C" {
 extern video_decoder_config_t vec;
 }
 
-#define NB_DRIVER_POST_STAGES   10
 
+#define NB_DRIVER_POST_STAGES   10
 extern navdata_vision_detect_t shared_navdata_detect;
 extern navdata_phys_measures_t shared_navdata_phys;
 extern navdata_demo_t shared_navdata;

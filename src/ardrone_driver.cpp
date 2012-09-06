@@ -14,7 +14,7 @@ ARDroneDriver::ARDroneDriver()
     inited = false;
     last_frame_id = -1;
     last_navdata_id = -1;
-	cmd_vel_sub = node_handle.subscribe("cmd_vel", 100, &cmdVelCallback);
+    cmd_vel_sub = node_handle.subscribe("cmd_vel", 1, &cmdVelCallback);
 	takeoff_sub = node_handle.subscribe("ardrone/takeoff", 1, &takeoffCallback);
 	reset_sub = node_handle.subscribe("ardrone/reset", 1, &resetCallback);
 	land_sub = node_handle.subscribe("ardrone/land", 1, &landCallback);
@@ -27,6 +27,14 @@ ARDroneDriver::ARDroneDriver()
 	toggleNavdataDemo_service = node_handle.advertiseService("ardrone/togglenavdatademo", toggleNavdataDemoCallback);
 	setCamChannel_service = node_handle.advertiseService("ardrone/setcamchannel",setCamChannelCallback );
 	setLedAnimation_service = node_handle.advertiseService("ardrone/setledanimation", setLedAnimationCallback);
+
+    /*
+        To be honest, I am not sure why advertising a service using class members should be this complicated!
+        One day, I should learn what is exactly happenning here. /M
+    */
+    imuReCalib_service = node_handle.advertiseService<std_srvs::Empty::Request, std_srvs::Empty::Response>
+            ("ardrone/imu_recalib", boost::bind(&ARDroneDriver::imuReCalibCallback, this, _1, _2));
+
 //	setEnemyColor_service = node_handle.advertiseService("/ardrone/setenemycolor", setEnemyColorCallback);
 //	setHullType_service = node_handle.advertiseService("/ardrone/sethulltype", setHullTypeCallback);
 
@@ -55,16 +63,10 @@ ARDroneDriver::ARDroneDriver()
 
     // Caliberation
     max_num_samples = 50;
-    caliberated = false;
-
-    for (int i = 0; i < 3; i++)
-    {
-        acc_bias[i] = 0.0;
-        vel_bias[i] = 0.0;
-        gyro_bias[i] = 0.0;
-        acc_samples.push_back(std::vector<double> ());
-        gyro_samples.push_back(std::vector<double> ());
-        vel_samples.push_back(std::vector<double> ());
+    do_caliberation = (ros::param::get("~do_imu_caliberation", do_caliberation)) ? do_caliberation : false;
+    if (do_caliberation) {
+        resetCaliberation();
+        ROS_WARN("Automatic IMU Caliberation is active.");
     }
 
     // Camera Info Manager
@@ -157,6 +159,23 @@ void ARDroneDriver::run()
 		loop_rate.sleep();
 	}
     printf("ROS loop terminated ... \n");
+}
+
+void ARDroneDriver::resetCaliberation()
+{
+    caliberated = false;
+    acc_samples.clear();
+    gyro_samples.clear();
+    vel_samples.clear();
+    for (int i = 0; i < 3; i++)
+    {
+        acc_bias[i] = 0.0;
+        vel_bias[i] = 0.0;
+        gyro_bias[i] = 0.0;
+        acc_samples.push_back(std::vector<double> ());
+        gyro_samples.push_back(std::vector<double> ());
+        vel_samples.push_back(std::vector<double> ());
+    }
 }
 
 double ARDroneDriver::calcAverage(std::vector<double> &vec)
@@ -500,7 +519,7 @@ void ARDroneDriver::publish_navdata()
     vp_os_mutex_unlock(&navdata_lock);
 
 
-    if (!caliberated)
+    if ((do_caliberation) && (!caliberated))
     {
         acc_samples[0].push_back(navdata_phys.phys_accs[ACC_X]);
         acc_samples[1].push_back(navdata_phys.phys_accs[ACC_Y]);
@@ -519,13 +538,15 @@ void ARDroneDriver::publish_navdata()
                 gyro_bias[j] = calcAverage(gyro_samples[j]);
                 vel_bias[j] = calcAverage(vel_samples[j]);
             }
-            ROS_INFO("Bias in linear acceleration: [%4.4lf, %4.4lf, %4.4lf]", acc_bias[0], acc_bias[1], acc_bias[2]);
-            ROS_INFO("Bias in angular velocity: [%4.4lf, %4.4lf, %4.4lf]", gyro_bias[0], gyro_bias[1], gyro_bias[2]);
-            ROS_INFO("Bias in linear velocity: [%4.4lf, %4.4lf, %4.4lf]", vel_bias[0], vel_bias[1], vel_bias[2]);
+            ROS_INFO("Bias in linear acceleration (mg): [%4.4lf, %4.4lf, %4.4lf]", acc_bias[0], acc_bias[1], acc_bias[2]);
+            ROS_INFO("Bias in angular velocity (deg/s): [%4.4lf, %4.4lf, %4.4lf]", gyro_bias[0], gyro_bias[1], gyro_bias[2]);
+            ROS_INFO("Bias in linear velocity (mm/s): [%4.4lf, %4.4lf, %4.4lf]", vel_bias[0], vel_bias[1], vel_bias[2]);
+            ROS_INFO("Above values (except z-axis accel) will be substracted from actual IMU data in `navdata` and `imu` topic.");
+            ROS_INFO("This feature can be disabled using `do_imu_caliberation` parameter. Recaliberate using `imu_recalib` service.");
             caliberated = true;
         }
     }
-    if (caliberated)
+    if ((do_caliberation) && (caliberated))
     {
         for (int j = 0; j < 3; j++)
         {
@@ -640,6 +661,21 @@ void ARDroneDriver::publish_tf()
     tf_base_bottom.stamp_ = ros::Time::now();
     tf_broad.sendTransform(tf_base_front);
     tf_broad.sendTransform(tf_base_bottom);
+}
+
+bool ARDroneDriver::imuReCalibCallback(std_srvs::Empty::Request &request, std_srvs::Empty::Response &response)
+{
+    if (!do_caliberation)
+    {
+        ROS_WARN("Automatic IMU Caliberation is not active. Activate first using `do_imu_caliberation` parameter");
+        return false;
+    }
+    else
+    {
+        ROS_WARN("Recaliberating IMU, please do not move the drone for a couple of seconds.");
+        resetCaliberation();
+        return true;
+    }
 }
 
 void controlCHandler (int signal)
