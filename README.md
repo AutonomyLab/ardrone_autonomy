@@ -6,6 +6,8 @@
 
 ### Updates
 
+- *August 27 2012*: Thread-safe SDK data access. Synchronized `navdata` and `camera` topics.
+- *August 20 2012*: The driver is now provides ROS standard camera interface.
 - *August 17 2012*: Experimental `tf` support added. New published topic `imu`.
 - *August 1 2012*: Enhanced `Navdata` message. `Navdata` now includes magnetometer data, barometer data, temperature and wind information for AR-Drone 2. [Issue #2](https://github.com/AutonomyLab/ardrone_autonomy/pull/2)
 - *July 27 2012*: LED Animation Support added to the driver as a service
@@ -15,7 +17,7 @@
 
 ### Pre-requirements
 
-This driver has been tested on Linux machines running Ubuntu 11.10 & 12.04 (32 bit and 64 bit). However it should also work on any other mainstream Linux distribution. The driver has been tested on both ROS "electric" and "fuerte". The AR-Drone SDK has its own build system which usually handles system wide dependencies itself. The ROS package depends on these standard ROS packages: `roscpp`, `image_transport`, `sensor_msgs`, `tf` and `std_srvs`.
+This driver has been tested on Linux machines running Ubuntu 11.10 & 12.04 (32 bit and 64 bit). However it should also work on any other mainstream Linux distribution. The driver has been tested on both ROS "electric" and "fuerte". The AR-Drone SDK has its own build system which usually handles system wide dependencies itself. The ROS package depends on these standard ROS packages: `roscpp`, `image_transport`, `sensor_msgs`, `tf`, `camera_info_manager` and `std_srvs`.
 
 ### Installation Steps
 
@@ -48,11 +50,11 @@ The installation follows the same steps needed usually to compile a ROS driver.
 
 The driver's executable node is `ardrone_driver`. You can either use `rosrun ardrone_autonomy ardrone_driver` or put it in a custom launch file with your desired parameters.
 
-## Coordinate Frames
-
-[TBA]
-
 ## Reading from AR-Drone
+
+### Update Frequencies
+
+The driver's main loop is being executed in 50Hz, however the data publish rate is device and configuration dependent. Basically, the data will be published when a new data arrives. For example, `navdata` and `imu` update frequencies is 15Hz if `navdata_demo` parameter is set to true, otherwise it will be 50Hz.
 
 ### Navigation Data
 
@@ -90,7 +92,7 @@ The linear acceleration, angular velocity and orientation from the `Navdata` is 
 
 ### Cameras
 
-Both AR-Drone 1.0 and 2.0 are equipped with two cameras. One frontal camera pointing forward and one vertical camera pointing downward. This driver will create three topics for each drone: `ardrone/image_raw`, `ardrone/front/image_raw` and `ardrone/bottom/image_raw`. Each of these three are standard [ROS camera interface](http://ros.org/wiki/camera_drivers) and publish messages of type [image transport](http://www.ros.org/wiki/image_transport). 
+Both AR-Drone 1.0 and 2.0 are equipped with two cameras. One frontal camera pointing forward and one vertical camera pointing downward. This driver will create three topics for each drone: `ardrone/image_raw`, `ardrone/front/image_raw` and `ardrone/bottom/image_raw`. Each of these three are standard [ROS camera interface](http://ros.org/wiki/camera_drivers) and publish messages of type [image transport](http://www.ros.org/wiki/image_transport). The driver is also a standard [ROS camera driver](http://www.ros.org/wiki/camera_drivers), therefor if camera caliberation information is provided either as a set of ROS parameters or appropriate `ardrone_front.yaml` and/or `ardrone_bottom.yaml`, the information will be published in appropriate `camera_info` topics. Please check the FAQ section for more information.
 
 * The `ardrone/*` will always contain the selected camera's video stream and information.
 
@@ -103,6 +105,7 @@ Both AR-Drone 1.0 and 2.0 are equipped with two cameras. One frontal camera poin
 	* Drone 2
 
 	Drone 2 does not support PIP feature anymore, therefore only one of `ardrone/front` or `ardrone/bottom` topics will be updated based on which camera is selected at the time.
+
 
 ### Tag Detection
 
@@ -135,6 +138,12 @@ In order to fly the drone after takeoff, you can publish a message of type [`geo
 
 The range for each component should be between -1.0 and 1.0. The maximum range can be configured using ROS parameters discussed later in this document. Publishing "0" values for all components will make the drone keep hovering.
 
+## Coordinate Frames
+
+The driver publishes two [`tf`](***) transforms between three reference frames: `${tf_prefix}/${base_prefix}_link`, `${tf_prefix}/${base_prefix}_frontcam` and `${tf_prefix}/${base_prefix}_bottomcam`. The `${tf_prefix}` is ROS standard way to handle multi-robot `tf` trees and can be set using `tf_prefix` parameters, by default it is empty. The ${base_link} is the shared name prefix of all three reference frames and can also be set using parameters, by default it has the value of `ardrone_base`. Using default parameters, the three frames would be: `ardrone_base_link`, `ardrone_base_frontcam` and `ardrone_base_bottomcam`. By default the root frame is  `ardrone_base_link`. Therefor `ardrone_base_frontcam` and `ardrone_base_bottomcam` are children of `ardrone_base_link` in the published `tf` tree. This can be changed using `root_frame` parameter.
+
+The `frame_id` field in header of all published topics (navdata, imu, cameras) will have the appropriate frame names. All frames are [ROS REP 103](http://www.ros.org/reps/rep-0103.html) compatible.
+
 ## Services
 
 ### Toggle AR-Drone's Camera
@@ -157,11 +166,15 @@ The `type` parameter will map [in order] to one of these animations:
 
 You can test these animations in command line using commands like `rosservice call /ardrone/setledanimation 1 4 5`
 
+### IMU Caliberation
+
+If `do_imu_caliberation` parameter is set to true, calling this service would make the driver recalculate the biases in IMU data based on data from a short sampling period.
+
 ## Parameters
 
 The parameters listed below are named according to AR-Drone's SDK 2.0 configuration. Unless you set the parameters using `rosparam` or in your `lauch` file, the default values will be used. These values are applied during driver's initialization phase. Please refer to AR-Drone SDK 2.0's [developer's guide](https://projects.ardrone.org/projects/show/ardrone-api/) for information about valid values.
 
-* `drone_frame_id` - The "frame_id" prefix to be used in all messages headers - default: "ardrone_frame"
+* `drone_frame_id` - The "frame_id" prefix to be used in all `tf` frame names - default: "ardrone_base"
 * `bitrate_ctrl_mode` - default: DISABLED
 * `max_bitrate` - (AR-Drone 2.0 only) Default: 4000 Kbps
 * `bitrate` -  Default: 4000 Kbps
@@ -178,6 +191,9 @@ The parameters listed below are named according to AR-Drone's SDK 2.0 configurat
 * `enemy_without_shell` - Default: 0
 * `detections_select_h` - Default: `TAG_TYPE_MASK(TAG_TYPE_SHELL_TAG_V2)` (The macro is defined in `ardrone_api.h`)
 * `detections_select_v_hsync` - Default: `TAG_TYPE_MASK(TAG_TYPE_BLACK_ROUNDEL)` (The macro is defined in `ardrone_api.h`)
+* `root_frame` - The default root in drone's `tf` tree (0: _link, 1: _frontcam, 2: _bottomcam) - Default: 0
+* `cov/imu_la`, `cov/imu_av` & `cov/imu_or`: List of 9 covariance values to be used in `imu`'s topic linear acceleration, angular velocity and orientation fields respectively - Default: 0.0 for all memebers (Please check the FAQ section for a sample launch file that shows how to set these values)
+* `do_imu_caliberation`: [EXPERIMENTAL] Should the drone cancel the biases in IMU data - Default: 0
 
 ## License
 
@@ -238,6 +254,35 @@ typedef enum
   TAG_TYPE_NUM
 } TAG_TYPE;
 
+```
+
+### How can I caliberate the ardrone front/bottom camera?
+
+It is easy to caliberate both cameras using ROS [Camera Caliberation](http://www.ros.org/wiki/camera_calibration) package.
+
+First, run the camera_calibration node with appropriate arguments: (For the bottom camera, replace front with bottom)
+
+```bash
+rosrun camera_calibration cameracalibrator.py --size [SIZE] --square [SQUARESIZE] image:=/ardrone/front/image_raw camera:=/ardrone/front
+```
+
+After successfull calibration, press the `commit` button in the UI. The driver will receive the data from the camera calibration node, then will save the information by default in `~/.ros/camera_info/ardrone_front.yaml`. From this point on, whenever you run the driver on the same computer this file will be loaded automatically by the driver and its information will be published to appropriate `camera_info` topic. Sample caliberation files for AR-Drone 2.0's cameras are provided in `data/camera_info` folder.
+
+### Can I see a sample launch file to learn how to set parameters?
+
+
+```xml
+
+<node name="ardrone_driver" pkg="ardrone_autonomy" type="ardrone_driver" output="screen">
+    <param name="max_bitrate" value="2000" />
+    <param name="bitrate" value="2000" />
+    <param name="do_imu_caliberation" value="true" />
+    <param name="tf_prefix" value="mydrone" />
+    <!-- Coovariance Values -->
+    <rosparam param="cov/imu_la">[0.1, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.1]</rosparam>
+    <rosparam param="cov/imu_av">[1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]</rosparam>
+    <rosparam param="cov/imu_or">[1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 100000.0]</rosparam>
+</node>
 ```
 
 ## TODO 
