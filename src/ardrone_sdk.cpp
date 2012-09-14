@@ -13,6 +13,7 @@ navdata_time_t shared_arnavtime;
 
 vp_os_mutex_t navdata_lock;
 vp_os_mutex_t video_lock;
+vp_os_mutex_t twist_lock;
 
 long int current_navdata_id = 0;
 
@@ -37,6 +38,7 @@ extern "C" {
      should_exit = 0;
      vp_os_mutex_init(&navdata_lock);
      vp_os_mutex_init(&video_lock);
+     vp_os_mutex_init(&twist_lock);
 
      rosDriver = new ARDroneDriver();
      int _w, _h;
@@ -91,7 +93,7 @@ extern "C" {
                 (double) TAG_TYPE_MASK(TAG_TYPE_BLACK_ROUNDEL));
 //        ardrone_application_default_config.detections_select_v = rosDriver->getRosParam("~detections_select_v", 
 //                (double) TAG_TYPE_MASK(TAG_TYPE_BLACK_ROUNDEL));
-       
+             
         ardrone_application_default_config.navdata_options = NAVDATA_OPTION_FULL_MASK /*&
         ~(NAVDATA_OPTION_MASK(NAVDATA_TRACKERS_SEND_TAG)
         | NAVDATA_OPTION_MASK(NAVDATA_VISION_OF_TAG)

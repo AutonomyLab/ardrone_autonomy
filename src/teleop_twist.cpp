@@ -58,10 +58,12 @@ bool toggleCamCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Respo
 
 bool setLedAnimationCallback(ardrone_autonomy::LedAnim::Request& request, ardrone_autonomy::LedAnim::Response& response)
 {
-	LED_ANIMATION_IDS anim_id = ledAnimMap[request.type % 14]; // Don't trick me
-	ardrone_at_set_led_animation(anim_id, fabs(request.freq), abs(request.duration));
-	response.result = true;
-	return true;
+    LED_ANIMATION_IDS anim_id = ledAnimMap[request.type % 14]; // Don't trick me
+    vp_os_mutex_lock(&twist_lock);
+    ardrone_at_set_led_animation(anim_id, (float) fabs(request.freq), (uint32_t) abs(request.duration));
+    vp_os_mutex_unlock(&twist_lock);
+    response.result = true;
+    return true;
 }
 
 /*
@@ -85,29 +87,36 @@ void toggleCamCallback(const std_msgs::Empty &msg)
 
 void cmdVelCallback(const geometry_msgs::TwistConstPtr &msg)
 {
-	const double maxHorizontalSpeed = 1.0; // use 0.1f for testing and 1 for the real thing
+    const double maxHorizontalSpeed = 1.0; // use 0.1f for testing and 1 for the real thing
+    vp_os_mutex_lock(&twist_lock);
 	cmd_vel.linear.x  = max(min(-msg->linear.x, maxHorizontalSpeed), -maxHorizontalSpeed);
 	cmd_vel.linear.y  = max(min(-msg->linear.y, maxHorizontalSpeed), -maxHorizontalSpeed);
 	cmd_vel.linear.z  = max(min(msg->linear.z, 1.0), -1.0);
-	cmd_vel.angular.x = 0.0;
-	cmd_vel.angular.y = 0.0;
+    cmd_vel.angular.x = 0.0;
+    cmd_vel.angular.y = 0.0;
 	cmd_vel.angular.z = max(min(-msg->angular.z, 1.0), -1.0);
+    vp_os_mutex_unlock(&twist_lock);
 }
 
 void landCallback(const std_msgs::Empty &msg)
-{    
+{
+    vp_os_mutex_lock(&twist_lock);
     needs_land = true;
+    vp_os_mutex_unlock(&twist_lock);
 }
 
 void resetCallback(const std_msgs::Empty &msg)
 {	
+    vp_os_mutex_lock(&twist_lock);
     needs_reset = true;
+    vp_os_mutex_unlock(&twist_lock);
 }
 
 void takeoffCallback(const std_msgs::Empty &msg)
 {
-    
+    vp_os_mutex_lock(&twist_lock);
     needs_takeoff = true;
+    vp_os_mutex_unlock(&twist_lock);
 }
 
 C_RESULT open_teleop(void)
@@ -119,6 +128,7 @@ C_RESULT update_teleop(void)
 {
 	// This function *toggles* the emergency state, so we only want to toggle the emergency
 	// state when we are in the emergency state (because we want to get out of it).
+    vp_os_mutex_lock(&twist_lock);
     if (needs_reset)
     {
         ardrone_tool_set_ui_pad_select(1);
@@ -171,14 +181,14 @@ C_RESULT update_teleop(void)
         old_front_back = front_back;
         old_up_down = up_down;
         old_turn = turn;
-        
+        //is_changed = true;
         if ((is_changed) || (hover))
         {
             ardrone_tool_set_progressive_cmd(control_flag, left_right, front_back, up_down, turn, 0.0, 0.0);
         }
 
     }
-    
+    vp_os_mutex_unlock(&twist_lock);
 	return C_OK;
 }
 

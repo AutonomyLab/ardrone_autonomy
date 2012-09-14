@@ -268,7 +268,7 @@ rosrun camera_calibration cameracalibrator.py --size [SIZE] --square [SQUARESIZE
 
 After successful calibration, press the `commit` button in the UI. The driver will receive the data from the camera calibration node, then will save the information by default in `~/.ros/camera_info/ardrone_front.yaml`. From this point on, whenever you run the driver on the same computer this file will be loaded automatically by the driver and its information will be published to appropriate `camera_info` topic. Sample calibration files for AR-Drone 2.0's cameras are provided in `data/camera_info` folder.
 
-### Can I see a sample ardrone <node> in a launch file to learn how to set parameters?
+### Can I see a sample ardrone node in a launch file to learn how to set parameters?
 
 
 ```xml

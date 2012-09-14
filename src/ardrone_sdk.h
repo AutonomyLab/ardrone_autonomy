@@ -54,6 +54,7 @@ extern navdata_wind_speed_t shared_navdata_wind;
 
 extern vp_os_mutex_t navdata_lock;
 extern vp_os_mutex_t video_lock;
+extern vp_os_mutex_t twist_lock;
 
 extern int32_t should_exit;
 
