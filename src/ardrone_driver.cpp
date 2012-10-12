@@ -450,8 +450,8 @@ void ARDroneDriver::publish_video()
         sensor_msgs::Image::_data_type::iterator _it;
 
         image_msg.header.stamp = ros::Time::now();
-        cinfo_msg_hori.header.stamp = ros::Time::now();
-        cinfo_msg_vert.header.stamp = ros::Time::now();
+        cinfo_msg_hori.header.stamp = image_msg.header.stamp; 
+        cinfo_msg_vert.header.stamp = image_msg.header.stamp; 
 
         if (cam_state == ZAP_CHANNEL_HORI)
         {
