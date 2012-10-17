@@ -73,9 +73,9 @@ Information received from the drone will be published to the `ardrone/navdata` t
         * 6: Taking off
         * 8: Landing
         * 9: Looping (?)
-* `rotx`: Left/right tilt in degrees (rotation about the X axis)
-* `roty`: Forward/backward tilt in degrees (rotation about the Y axis)
-* `rotz`: Orientation in degrees (rotation about the Z axis)
+* `rotX`: Left/right tilt in degrees (rotation about the X axis)
+* `rotY`: Forward/backward tilt in degrees (rotation about the Y axis)
+* `rotZ`: Orientation in degrees (rotation about the Z axis)
 * `magX`, `magY`, `magZ`: Magnetometer readings (AR-Drone 2.0 Only) (TBA: Convention)
 * `pressure`: Pressure sensed by Drone's barometer (AR-Drone 2.0 Only) (TBA: Unit)
 * `temp` : Temperature sensed by Drone's sensor (AR-Drone 2.0 Only) (TBA: Unit)
@@ -148,7 +148,7 @@ The `frame_id` field in header of all published topics (navdata, imu, cameras) w
 
 ### Toggle AR-Drone's Camera
 
-Calling `ardrone/togglecam` service with no parameters will change the active video camera stream.
+Calling `ardrone/togglecam` service with no parameters will change the active video camera stream. (e.g `rosservice call /ardrone/togglecam`)
 
 ### LED Animations
 
