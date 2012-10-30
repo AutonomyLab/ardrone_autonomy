@@ -28,19 +28,11 @@ const LED_ANIMATION_IDS ledAnimMap[14] = {
 	SNAKE_GREEN_RED, FIRE, STANDARD, RED, GREEN, RED_SNAKE,BLANK,
 	LEFT_GREEN_RIGHT_RED, LEFT_RED_RIGHT_GREEN, BLINK_STANDARD};
 
-bool toggleNavdataDemoCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response)
-{
-    set_navdata_demo_value ^= 1;
-    ARDRONE_TOOL_CONFIGURATION_ADDEVENT (navdata_demo, &set_navdata_demo_value, NULL);
-    fprintf(stderr, "\nToggling navdata_demo, set to %d.\n", set_navdata_demo_value);
-    return true;
-}
-
 //ros service callback to set the camera channel
-//TODO: add input check
 bool setCamChannelCallback(ardrone_autonomy::CamSelect::Request& request, ardrone_autonomy::CamSelect::Response& response)
 {
-    cam_state = request.channel;
+    const int _modes = (IS_ARDRONE1) ? 4 : 2;
+    cam_state = request.channel % _modes;
     ARDRONE_TOOL_CONFIGURATION_ADDEVENT (video_channel, &cam_state, NULL);
     fprintf(stderr, "\nSetting camera channel to : %d.\n", cam_state);
     response.result = true;
@@ -49,7 +41,7 @@ bool setCamChannelCallback(ardrone_autonomy::CamSelect::Request& request, ardron
 // ros service callback function for toggling Cam
 bool toggleCamCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response)
 {
-    int _modes = (IS_ARDRONE1) ? 4 : 2;
+    const int _modes = (IS_ARDRONE1) ? 4 : 2;
     cam_state = (cam_state + 1) % _modes;
     ARDRONE_TOOL_CONFIGURATION_ADDEVENT (video_channel, &cam_state, NULL);
     fprintf(stderr, "\nSetting camera channel to : %d.\n", cam_state);
@@ -66,24 +58,13 @@ bool setLedAnimationCallback(ardrone_autonomy::LedAnim::Request& request, ardron
     return true;
 }
 
-/*
-// Older rostopic callback function for toggling Cam
-void toggleCamCallback(const std_msgs::Empty &msg)
+bool flatTrimCallback(std_srvs::Empty::Request &request, std_srvs::Empty::Response &response)
 {
-  if (cam_state == 0) // toggle to 1, the vertical camera
-    {
-      cam_state = 1;
-      ardrone_at_set_toy_configuration("video:video_channel","1");
-      fprintf(stderr, "\nToggling from frontal camera to vertical camera.\n");
-    }
-  else if (cam_state == 1) // toggle to the forward camera
-    {
-      cam_state = 0;
-      ardrone_at_set_toy_configuration("video:video_channel","0");
-      fprintf(stderr, "\nToggling from vertical camera to frontal camera.\n");      
-    }
+    vp_os_mutex_lock(&twist_lock);
+    ardrone_at_set_flat_trim();
+    vp_os_mutex_unlock(&twist_lock);
+    fprintf(stderr, "\nFlat Trim Set.\n");
 }
-*/
 
 void cmdVelCallback(const geometry_msgs::TwistConstPtr &msg)
 {

@@ -20,8 +20,8 @@ void takeoffCallback(const std_msgs::Empty &msg);
 //void toggleCamCallback(const std_msgs::Empty &msg);
 bool setCamChannelCallback(ardrone_autonomy::CamSelect::Request& request, ardrone_autonomy::CamSelect::Response& response);
 bool toggleCamCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response);
-bool toggleNavdataDemoCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response);
 bool setLedAnimationCallback(ardrone_autonomy::LedAnim::Request& request, ardrone_autonomy::LedAnim::Response& response);
+bool flatTrimCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response);
 
 //All global drone configs that should be sent on init
 
