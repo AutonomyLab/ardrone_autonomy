@@ -1,7 +1,6 @@
 #include "ardrone_driver.h"
 #include "teleop_twist.h"
 #include "video.h"
-#include "ardrone_autonomy/LedAnim.h"
 #include <signal.h>
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -28,6 +27,7 @@ ARDroneDriver::ARDroneDriver()
     toggleNavdataDemo_service = node_handle.advertiseService("ardrone/togglenavdatademo", toggleNavdataDemoCallback);
     setCamChannel_service = node_handle.advertiseService("ardrone/setcamchannel",setCamChannelCallback );
     setLedAnimation_service = node_handle.advertiseService("ardrone/setledanimation", setLedAnimationCallback);
+    flatTrim_service = node_handle.advertiseService("ardrone/flattrim", flatTrimCallback);
 
     /*
         To be honest, I am not sure why advertising a service using class members should be this complicated!

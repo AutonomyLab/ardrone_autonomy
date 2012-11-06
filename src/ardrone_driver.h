@@ -63,10 +63,10 @@ private:
 
 	//ros::Subscriber toggleCam_sub;
 	ros::ServiceServer toggleCam_service;
-	ros::ServiceServer toggleNavdataDemo_service;
 	ros::ServiceServer setCamChannel_service;
 	ros::ServiceServer setLedAnimation_service;
     ros::ServiceServer imuReCalib_service;
+    ros::ServiceServer flatTrim_service;
 	
 	/*
 	 * Orange Green : 1

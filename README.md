@@ -148,7 +148,10 @@ The `frame_id` field in header of all published topics (navdata, imu, cameras) w
 
 ### Toggle AR-Drone's Camera
 
-Calling `ardrone/togglecam` service with no parameters will change the active video camera stream. (e.g `rosservice call /ardrone/togglecam`)
+Calling `ardrone/togglecam` service with no parameters will change the active video camera stream. (e.g `rosservice call /ardrone/togglecam`).
+
+`ardrone/setcamchannel` service directly sets the current active camera channel. One parameter (`uint8 channel
+`) should be sent to this service. For AR-Drone 1.0 the valid values are [0..3] and for AR-Drone 2.0 the valid values are [0..1]. The order is similar to the order described in "Cameras" section.
 
 ### LED Animations
 
@@ -168,7 +171,11 @@ You can test these animations in command line using commands like `rosservice ca
 
 ### IMU Calibration
 
-If `do_imu_caliberation` parameter is set to true, calling this service would make the driver recalculate the biases in IMU data based on data from a short sampling period.
+If `do_imu_caliberation` parameter is set to true, calling `ardrone/imu_recalib` service will make the driver recalculate the biases in IMU data based on data from a short sampling period.
+
+### Flat Trim
+
+Calling `ardrone/flattrim` service without any parameter will send a "Flat Trim" request to AR-Drone to re-caliberate its rotation estimates assuming that it is on a flat surface. Do not call this service while Drone is flying or while the drone is not actually on a flat surface.
 
 ## Parameters
 
@@ -202,6 +209,8 @@ The Parrot's license, copyright and disclaimer for `ARDroneLib` are included wit
 ## Contributors
 
 - [Rachel Brindle](https://github.com/younata) - [Enhanced Navdata for AR-Drone 2.0](https://github.com/AutonomyLab/ardrone_autonomy/pull/2)
+- [Devmax](https://github.com/devmax) - [Flat Trim](https://github.com/AutonomyLab/ardrone_autonomy/issues/18) + Various
+comments for enhancements
 
 ## FAQ
 
@@ -290,5 +299,5 @@ After successful calibration, press the `commit` button in the UI. The driver wi
 * Make the `tf` publish optional.
 * Add separate topic for drone's debug stream (`navdata_demo`)
 * Add the currently selected camera name to `Navdata`
-* Make the `togglecam` service accept parameters
+* [DONE] Make the `togglecam` service accept parameters
 * [DONE] Enrich `Navdata` with magneto meter and baro meter information
