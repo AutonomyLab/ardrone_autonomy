@@ -7,6 +7,7 @@
 #include <camera_info_manager/camera_info_manager.h>
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/Imu.h>
+#include <geometry_msgs/Vector3Stamped.h>
 #include <std_srvs/Empty.h>
 #include <ardrone_autonomy/Navdata.h>
 #include "ardrone_sdk.h"
@@ -56,6 +57,7 @@ private:
 
     ros::Publisher navdata_pub;
     ros::Publisher imu_pub;
+    ros::Publisher mag_pub;
 
     tf::TransformBroadcaster tf_broad;
 
@@ -105,6 +107,7 @@ private:
 
     // Huge part of IMU message is constant, let's fill'em once.
     sensor_msgs::Imu imu_msg;
+    geometry_msgs::Vector3Stamped mag_msg;
 
     // Manual IMU caliberation
     bool do_caliberation;

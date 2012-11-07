@@ -14,17 +14,19 @@ ARDroneDriver::ARDroneDriver()
     last_frame_id = -1;
     last_navdata_id = -1;
     cmd_vel_sub = node_handle.subscribe("cmd_vel", 1, &cmdVelCallback);
-	takeoff_sub = node_handle.subscribe("ardrone/takeoff", 1, &takeoffCallback);
-	reset_sub = node_handle.subscribe("ardrone/reset", 1, &resetCallback);
-	land_sub = node_handle.subscribe("ardrone/land", 1, &landCallback);
-	image_pub = image_transport.advertiseCamera("ardrone/image_raw", 10);
+    takeoff_sub = node_handle.subscribe("ardrone/takeoff", 1, &takeoffCallback);
+    reset_sub = node_handle.subscribe("ardrone/reset", 1, &resetCallback);
+    land_sub = node_handle.subscribe("ardrone/land", 1, &landCallback);
+    image_pub = image_transport.advertiseCamera("ardrone/image_raw", 10);
     hori_pub = image_transport.advertiseCamera("ardrone/front/image_raw", 10);
-	vert_pub = image_transport.advertiseCamera("ardrone/bottom/image_raw", 10);
+    vert_pub = image_transport.advertiseCamera("ardrone/bottom/image_raw", 10);
     navdata_pub = node_handle.advertise<ardrone_autonomy::Navdata>("ardrone/navdata", 25);
     imu_pub = node_handle.advertise<sensor_msgs::Imu>("ardrone/imu", 25);
-	toggleCam_service = node_handle.advertiseService("ardrone/togglecam", toggleCamCallback);
+    mag_pub = node_handle.advertise<geometry_msgs::Vector3Stamped>("ardrone/mag", 25);
+    toggleCam_service = node_handle.advertiseService("ardrone/togglecam", toggleCamCallback);
+    toggleNavdataDemo_service = node_handle.advertiseService("ardrone/togglenavdatademo", toggleNavdataDemoCallback);
     setCamChannel_service = node_handle.advertiseService("ardrone/setcamchannel",setCamChannelCallback );
-	setLedAnimation_service = node_handle.advertiseService("ardrone/setledanimation", setLedAnimationCallback);
+    setLedAnimation_service = node_handle.advertiseService("ardrone/setledanimation", setLedAnimationCallback);
     flatTrim_service = node_handle.advertiseService("ardrone/flattrim", flatTrimCallback);
 
     /*
@@ -557,13 +559,14 @@ void ARDroneDriver::publish_navdata()
         navdata.vz -= vel_bias[2];
 
     }
-    if ((navdata_pub.getNumSubscribers() == 0) && (imu_pub.getNumSubscribers() == 0))
+    if ((navdata_pub.getNumSubscribers() == 0) && (imu_pub.getNumSubscribers() == 0) && (mag_pub.getNumSubscribers() == 0))
         return; // why bother, no one is listening.
-	ardrone_autonomy::Navdata msg;
+
+    ardrone_autonomy::Navdata msg;
 
     msg.header.stamp = ros::Time::now();
     msg.header.frame_id = droneFrameBase;
-	msg.batteryPercent = navdata.vbat_flying_percentage;
+    msg.batteryPercent = navdata.vbat_flying_percentage;
     msg.state = (navdata.ctrl_state >> 16);
     
 	// positive means counterclockwise rotation around axis
@@ -651,6 +654,17 @@ void ARDroneDriver::publish_navdata()
     imu_msg.angular_velocity.y = -navdata_phys.phys_gyros[GYRO_Y] * DEG_TO_RAD;
     imu_msg.angular_velocity.z = -navdata_phys.phys_gyros[GYRO_Z] * DEG_TO_RAD;
 
+    mag_msg.header.frame_id = droneFrameBase;
+    mag_msg.header.stamp = ros::Time::now();
+    float mag_normalizer = sqrt( msg.magX * msg.magX + msg.magY * msg.magY + msg.magZ * msg.magZ );
+    if( mag_normalizer != 0.0 )
+    {
+      mag_msg.vector.x = msg.magX / mag_normalizer;
+      mag_msg.vector.y = msg.magY / mag_normalizer;
+      mag_msg.vector.z = msg.magZ / mag_normalizer;
+    }
+
+    mag_pub.publish(mag_msg);
     imu_pub.publish(imu_msg);
 }
 
