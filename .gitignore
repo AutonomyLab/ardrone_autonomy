@@ -13,3 +13,14 @@
 /nbproject/private/
 Makefile
 /build/CMakeFiles/
+
+# Build results
+/ARDroneLib/FFMPEG/Includes
+/ARDroneLib/FFMPEG/FFMPEG
+/ARDroneLib/Soft/Build/
+/ARDroneLib/Soft/Common/generated_custom.h
+/bin
+/build/
+/msg_gen
+/srv_gen
+/src/ardrone_autonomy
