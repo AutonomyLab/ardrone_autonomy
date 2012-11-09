@@ -127,6 +127,10 @@ void ARDroneDriver::run()
             if (((ros::Time::now() - startTime).toSec()) > 5.0)
             {
                 inited = true;
+
+                // Send the configuration to the drone
+                configureDrone();
+
                 vp_os_mutex_lock(&navdata_lock);
                 ROS_INFO("Successfully connected to '%s' (AR-Drone %d.0 - Firmware: %s) - Battery(\%): %d",
                          ardrone_control_config.ardrone_name,
@@ -160,6 +164,58 @@ void ARDroneDriver::run()
     printf("ROS loop terminated ... \n");
 }
 
+void ARDroneDriver::configureDrone()
+{
+    // This function will send the custom configuration to the drone
+    // It doesn't work if sent during the SDK (which runs before the configuration profiles on the drone are setup)
+    #undef ARDRONE_CONFIG_KEY_IMM_a10
+    #undef ARDRONE_CONFIG_KEY_REF_a10
+    #undef ARDRONE_CONFIG_KEY_STR_a10
+    #undef LOAD_PARAM_STR
+    #undef LOAD_PARAM_NUM
+
+    #define SEND_PARAM_NUM(NAME,CATEGORY,DEFAULT)                                                          \
+    {                                                                                                      \
+        if(ardrone_application_default_config.NAME!=DEFAULT)                                               \
+        {                                                                                                  \
+            ROS_INFO("SEND: "#CATEGORY"/"#NAME" = %f (DEFAULT = %f)", (float)ardrone_application_default_config.NAME, (float)DEFAULT);           \
+            ARDRONE_TOOL_CONFIGURATION_ADDEVENT (NAME, &ardrone_application_default_config.NAME, NULL);    \
+        }                                                                                                  \
+    }
+
+    #define SEND_PARAM_STR(NAME,CATEGORY,DEFAULT)                                                          \
+    {                                                                                                      \
+        if(0!=strcmp(ardrone_application_default_config.NAME,DEFAULT))                                     \
+        {                                                                                                  \
+            ROS_INFO("SEND: "#CATEGORY"/"#NAME" = %s (DEFAULT = %s)", ardrone_application_default_config.NAME, DEFAULT);           \
+            ARDRONE_TOOL_CONFIGURATION_ADDEVENT (NAME, ardrone_application_default_config.NAME, NULL);     \
+        }                                                                                                  \
+    }
+
+    // firstly we send the CAT_COMMON parameters, for example outdoor, as these settings can affect where the other parameters are stored
+    #define ARDRONE_CONFIG_KEY_REF_a10(KEY, NAME, INI_TYPE, C_TYPE, C_TYPE_PTR, RW, RW_CUSTOM, DEFAULT, CALLBACK, CATEGORY) //do nothing for reference-only parameters
+    #define ARDRONE_CONFIG_KEY_IMM_a10(KEY, NAME, INI_TYPE, C_TYPE, C_TYPE_PTR, RW, RW_CUSTOM, DEFAULT, CALLBACK, CATEGORY) { if(0!=strcmp(KEY,"custom") && CATEGORY==CAT_COMMON) SEND_PARAM_NUM(NAME,CATEGORY,DEFAULT) } // parameters under the custom key are for control of application/user/session, we don't want to change these!
+    #define ARDRONE_CONFIG_KEY_STR_a10(KEY, NAME, INI_TYPE, C_TYPE, C_TYPE_PTR, RW, RW_CUSTOM, DEFAULT, CALLBACK, CATEGORY) { if(0!=strcmp(KEY,"custom") && CATEGORY==CAT_COMMON) SEND_PARAM_STR(NAME,CATEGORY,DEFAULT) }
+
+    #include <config_keys.h> // include the parameter definitions, which will be replaced by the above
+
+    #undef ARDRONE_CONFIG_KEY_IMM_a10
+    #undef ARDRONE_CONFIG_KEY_STR_a10
+
+    // then we send the rest of the parameters. The problem is if we send euler_angle_max (for example) before sending outdoor, it will get written to the wrong parameter
+    // (indoor_ not outdoor_euler_angle_max) and then will be overwritten by the default when changing state from indoor to outdoor, so we need to send common parameters first.
+    #define ARDRONE_CONFIG_KEY_IMM_a10(KEY, NAME, INI_TYPE, C_TYPE, C_TYPE_PTR, RW, RW_CUSTOM, DEFAULT, CALLBACK, CATEGORY) { if(0!=strcmp(KEY,"custom") && CATEGORY!=CAT_COMMON) SEND_PARAM_NUM(NAME,CATEGORY,DEFAULT) } // parameters under the custom key are for control of application/user/session, we don't want to change these!
+    #define ARDRONE_CONFIG_KEY_STR_a10(KEY, NAME, INI_TYPE, C_TYPE, C_TYPE_PTR, RW, RW_CUSTOM, DEFAULT, CALLBACK, CATEGORY) { if(0!=strcmp(KEY,"custom") && CATEGORY!=CAT_COMMON) SEND_PARAM_STR(NAME,CATEGORY,DEFAULT) }
+
+    #include <config_keys.h> // include the parameter definitions, which will be replaced by the above
+
+    #undef SEND_PARAM_NUM
+    #undef SEND_PARAM_STR
+    #undef ARDRONE_CONFIG_KEY_IMM_a10
+    #undef ARDRONE_CONFIG_KEY_REF_a10
+    #undef ARDRONE_CONFIG_KEY_STR_a10
+}
+
 void ARDroneDriver::resetCaliberation()
 {
     caliberated = false;
@@ -180,7 +236,7 @@ void ARDroneDriver::resetCaliberation()
 double ARDroneDriver::calcAverage(std::vector<double> &vec)
 {
     double ret = 0.0;
-    for (int i = 0; i < vec.size(); i++)
+    for (unsigned int i = 0; i < vec.size(); i++)
     {
         ret += vec.at(i);
     }
@@ -688,16 +744,74 @@ void controlCHandler (int signal)
 
 //extern "C" int custom_main(int argc, char** argv)
 int main(int argc, char** argv)
-{        
-        // We need to implement our own Signal handler instead of ROS to shutdown
-        // the SDK threads correctly.
+{
+    C_RESULT res = C_FAIL;
 
-        ros::init(argc, argv, "ardrone_driver", ros::init_options::NoSigintHandler);
-        
-        signal (SIGABRT, &controlCHandler);
-        signal (SIGTERM, &controlCHandler);
-        signal (SIGINT, &controlCHandler);
+    // We need to implement our own Signal handler instead of ROS to shutdown
+    // the SDK threads correctly.
 
-        return ardrone_tool_main(argc, argv);
+    ros::init(argc, argv, "ardrone_driver", ros::init_options::NoSigintHandler);
+    
+    signal (SIGABRT, &controlCHandler);
+    signal (SIGTERM, &controlCHandler);
+    signal (SIGINT, &controlCHandler);
+
+    // Now to setup the drone and communication channels
+    // We do this here because calling ardrone_tool_main uses an old
+    // function initialization and is no longer recommended by parrot
+    // I've based this section off the ControlEngine's initialization
+    // routine (distributed with ARDrone SDK 2.0 Examples) as well as
+    // the ardrone_tool_main function
+
+    // Configure wifi
+    vp_com_wifi_config_t *config = (vp_com_wifi_config_t*)wifi_config();
+
+    if(config)
+    {
+        vp_os_memset( &wifi_ardrone_ip[0], 0, ARDRONE_IPADDRESS_SIZE );
+
+        printf("===================+> %s\n", config->server);
+        strncpy( &wifi_ardrone_ip[0], config->server, ARDRONE_IPADDRESS_SIZE-1);
+    }
+
+    while (-1 == getDroneVersion (".", wifi_ardrone_ip, &ardroneVersion))
+    {
+      printf ("Getting AR.Drone version ...\n");
+      vp_os_delay (250);
+    }
+
+    // Setup communication channels
+    res = ardrone_tool_setup_com( NULL );
+    if( FAILED(res) )
+    {
+        PRINT("Wifi initialization failed. It means either:\n");
+        PRINT("\t* you're not root (it's mandatory because you can set up wifi connection only as root)\n");
+        PRINT("\t* wifi device is not present (on your pc or on your card)\n");
+        PRINT("\t* you set the wrong name for wifi interface (for example rausb0 instead of wlan0) \n");
+        PRINT("\t* ap is not up (reboot card or remove wifi usb dongle)\n");
+        PRINT("\t* wifi device has no antenna\n");
+    }
+    else
+    {
+        // setup the application and user profiles for the driver
+
+        char* appname = DRIVER_APPNAME;
+        char* usrname = DRIVER_USERNAME;
+        ardrone_gen_appid (appname, "2.0", app_id, app_name, APPLI_NAME_SIZE);
+        ardrone_gen_usrid (usrname, usr_id, usr_name, USER_NAME_SIZE);
+
+        // and finally initialize everything!
+        // this will then call our sdk, which then starts the ::run() method of this file as an ardrone client thread
+
+        res = ardrone_tool_init(wifi_ardrone_ip, strlen(wifi_ardrone_ip), NULL, app_name, usr_name, NULL, NULL, MAX_FLIGHT_STORING_SIZE, NULL);
+
+        while( SUCCEED(res) && ardrone_tool_exit() == FALSE )
+        {
+          res = ardrone_tool_update();
+        }
+        res = ardrone_tool_shutdown();
+    }
+    return SUCCEED(res) ? 0 : -1;
 }
+
 

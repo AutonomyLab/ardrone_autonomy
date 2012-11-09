@@ -3,6 +3,10 @@
 *.lo
 *.o
 
+# Project Files
+*.sublime-workspace
+*.sublime-project
+
 # Compiled Dynamic libraries
 *.so
 

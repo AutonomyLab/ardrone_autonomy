@@ -25,7 +25,8 @@
 extern "C" {
 
 #include <config.h>
-    
+
+#include <utils/ardrone_gen_ids.h>
 #include <ardrone_tool/ardrone_version.h>
 #include <ardrone_tool/ardrone_tool.h>
 #include <ardrone_tool/ardrone_tool_configuration.h>  

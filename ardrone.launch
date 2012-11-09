@@ -1,20 +1,20 @@
 <launch>
-	<node name="ardrone_driver" pkg="ardrone_autonomy" type="ardrone_driver" output="screen">
+	<node name="ardrone_driver" pkg="ardrone_autonomy" type="ardrone_driver" output="screen" clear_params="true">
 	    <param name="outdoor" value="1" />
-	    <param name="max_bitrate" value="2000" />
-	    <param name="bitrate" value="2000" />
+	    <param name="max_bitrate" value="4000" />
+	    <param name="bitrate" value="4000" />
 	    <param name="navdata_demo" value="0" />
 	    <param name="flight_without_shell" value="1" />
-	    <param name="altitude_max" value="5000" />
-	    <param name="altitude_min" value="100" />
-	    <param name="control_vz_max" value="2000" />
+	    <param name="altitude_max" value="4000" />
+	    <param name="altitude_min" value="150" />
+	   	<param name="euler_angle_max" value="0.5" />
+	   	<param name="control_vz_max" value="2000" />
 	    <param name="control_yaw" value="350" />
-	    <param name="euler_angle_max" value="0.5" />
 	    <param name="detect_type" value="10" />
-	    <param name="detections_select_h" value="32" />
 	    <param name="enemy_colors" value="3" />
 	    <param name="groundstripe_colors" value="8" />
-	    <param name="detections_select_v_hsync" value="4" />
+	    <param name="detections_select_h" value="32" />
+	    <param name="detections_select_v_hsync" value="128" />
 	    <param name="enemy_without_shell" value="0" />
 	    <param name="do_imu_caliberation" value="false" />
 	    <param name="tf_prefix" value="mydrone" />
