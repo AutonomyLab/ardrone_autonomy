@@ -14,17 +14,18 @@ ARDroneDriver::ARDroneDriver()
     last_frame_id = -1;
     last_navdata_id = -1;
     cmd_vel_sub = node_handle.subscribe("cmd_vel", 1, &cmdVelCallback);
-	takeoff_sub = node_handle.subscribe("ardrone/takeoff", 1, &takeoffCallback);
-	reset_sub = node_handle.subscribe("ardrone/reset", 1, &resetCallback);
-	land_sub = node_handle.subscribe("ardrone/land", 1, &landCallback);
-	image_pub = image_transport.advertiseCamera("ardrone/image_raw", 10);
+    takeoff_sub = node_handle.subscribe("ardrone/takeoff", 1, &takeoffCallback);
+    reset_sub = node_handle.subscribe("ardrone/reset", 1, &resetCallback);
+    land_sub = node_handle.subscribe("ardrone/land", 1, &landCallback);
+    image_pub = image_transport.advertiseCamera("ardrone/image_raw", 10);
     hori_pub = image_transport.advertiseCamera("ardrone/front/image_raw", 10);
-	vert_pub = image_transport.advertiseCamera("ardrone/bottom/image_raw", 10);
+    vert_pub = image_transport.advertiseCamera("ardrone/bottom/image_raw", 10);
     navdata_pub = node_handle.advertise<ardrone_autonomy::Navdata>("ardrone/navdata", 25);
     imu_pub = node_handle.advertise<sensor_msgs::Imu>("ardrone/imu", 25);
-	toggleCam_service = node_handle.advertiseService("ardrone/togglecam", toggleCamCallback);
+    mag_pub = node_handle.advertise<geometry_msgs::Vector3Stamped>("ardrone/mag", 25);
+    toggleCam_service = node_handle.advertiseService("ardrone/togglecam", toggleCamCallback);
     setCamChannel_service = node_handle.advertiseService("ardrone/setcamchannel",setCamChannelCallback );
-	setLedAnimation_service = node_handle.advertiseService("ardrone/setledanimation", setLedAnimationCallback);
+    setLedAnimation_service = node_handle.advertiseService("ardrone/setledanimation", setLedAnimationCallback);
     flatTrim_service = node_handle.advertiseService("ardrone/flattrim", flatTrimCallback);
 
     /*
@@ -34,8 +35,8 @@ ARDroneDriver::ARDroneDriver()
     imuReCalib_service = node_handle.advertiseService<std_srvs::Empty::Request, std_srvs::Empty::Response>
             ("ardrone/imu_recalib", boost::bind(&ARDroneDriver::imuReCalibCallback, this, _1, _2));
 
-//	setEnemyColor_service = node_handle.advertiseService("/ardrone/setenemycolor", setEnemyColorCallback);
-//	setHullType_service = node_handle.advertiseService("/ardrone/sethulltype", setHullTypeCallback);
+    //	setEnemyColor_service = node_handle.advertiseService("/ardrone/setenemycolor", setEnemyColorCallback);
+    //	setHullType_service = node_handle.advertiseService("/ardrone/sethulltype", setHullTypeCallback);
 
     droneFrameId = (ros::param::get("~drone_frame_id", droneFrameId)) ? droneFrameId : "ardrone_base";
     droneFrameBase = droneFrameId + "_link";
@@ -104,7 +105,7 @@ ARDroneDriver::ARDroneDriver()
     {
         tf_base_bottom.setData(tf_base_bottom.inverse());
         tf_base_bottom.child_frame_id_.swap(tf_base_bottom.frame_id_);
-    }   
+    }
 
 }
 
@@ -613,29 +614,31 @@ void ARDroneDriver::publish_navdata()
         navdata.vz -= vel_bias[2];
 
     }
-    if ((navdata_pub.getNumSubscribers() == 0) && (imu_pub.getNumSubscribers() == 0))
+    if ((navdata_pub.getNumSubscribers() == 0) && (imu_pub.getNumSubscribers() == 0) && (mag_pub.getNumSubscribers() == 0))
         return; // why bother, no one is listening.
-	ardrone_autonomy::Navdata msg;
+    const ros::Time _now = ros::Time::now();
 
-    msg.header.stamp = ros::Time::now();
+    ardrone_autonomy::Navdata msg;
+
+    msg.header.stamp = _now;
     msg.header.frame_id = droneFrameBase;
-	msg.batteryPercent = navdata.vbat_flying_percentage;
+    msg.batteryPercent = navdata.vbat_flying_percentage;
     msg.state = (navdata.ctrl_state >> 16);
     
-	// positive means counterclockwise rotation around axis
-	msg.rotX = navdata.phi / 1000.0; // tilt left/right
-	msg.rotY = -navdata.theta / 1000.0; // tilt forward/backward
-	msg.rotZ = -navdata.psi / 1000.0; // orientation
+    // positive means counterclockwise rotation around axis
+    msg.rotX = navdata.phi / 1000.0; // tilt left/right
+    msg.rotY = -navdata.theta / 1000.0; // tilt forward/backward
+    msg.rotZ = -navdata.psi / 1000.0; // orientation
 
-	msg.altd = navdata.altitude; // cm
-	msg.vx = navdata.vx; // mm/sec
-	msg.vy = -navdata.vy; // mm/sec
-	msg.vz = -navdata.vz; // mm/sec
-	msg.tm = arnavtime.time;
-	msg.ax = navdata_phys.phys_accs[ACC_X] / 1000.0; // g
-	msg.ay = -navdata_phys.phys_accs[ACC_Y] / 1000.0; // g
-	msg.az = -navdata_phys.phys_accs[ACC_Z] / 1000.0; // g
-	
+    msg.altd = navdata.altitude; // cm
+    msg.vx = navdata.vx; // mm/sec
+    msg.vy = -navdata.vy; // mm/sec
+    msg.vz = -navdata.vz; // mm/sec
+    msg.tm = arnavtime.time;
+    msg.ax = navdata_phys.phys_accs[ACC_X] / 1000.0; // g
+    msg.ay = -navdata_phys.phys_accs[ACC_Y] / 1000.0; // g
+    msg.az = -navdata_phys.phys_accs[ACC_Z] / 1000.0; // g
+
     // New stuff
 
     if (IS_ARDRONE2)
@@ -661,35 +664,33 @@ void ARDroneDriver::publish_navdata()
         msg.wind_comp_angle = 0.0;
     }
 
-	// Tag Detection
-	msg.tags_count = navdata_detect.nb_detected;
+    // Tag Detection
+    msg.tags_count = navdata_detect.nb_detected;
     for (int i = 0; i < navdata_detect.nb_detected; i++)
-	{
-		/*
-		 * The tags_type is in raw format. In order to extract the information 
-		 * macros from ardrone_api.h is needed.
-		 *
-		 * #define DETECTION_MAKE_TYPE(source,tag) ( ((source)<<16) | (tag) )
-		 * #define DETECTION_EXTRACT_SOURCE(type)  ( ((type)>>16) & 0x0FF )
-		 * #define DETECTION_EXTRACT_TAG(type)     ( (type) & 0x0FF )
-		 * 
-		 * Please also note that the xc, yc, width and height are in [0,1000] range
-		 * and must get converted back based on image resolution.
-		 */
-		msg.tags_type.push_back(navdata_detect.type[i]);
-		msg.tags_xc.push_back(navdata_detect.xc[i]);
-		msg.tags_yc.push_back(navdata_detect.yc[i]);
-		msg.tags_width.push_back(navdata_detect.width[i]);
-		msg.tags_height.push_back(navdata_detect.height[i]);
-		msg.tags_orientation.push_back(navdata_detect.orientation_angle[i]);
-		msg.tags_distance.push_back(navdata_detect.dist[i]);
-	}
-
-    navdata_pub.publish(msg);
+    {
+        /*
+         * The tags_type is in raw format. In order to extract the information
+         * macros from ardrone_api.h is needed.
+         *
+         * #define DETECTION_MAKE_TYPE(source,tag) ( ((source)<<16) | (tag) )
+         * #define DETECTION_EXTRACT_SOURCE(type)  ( ((type)>>16) & 0x0FF )
+         * #define DETECTION_EXTRACT_TAG(type)     ( (type) & 0x0FF )
+         *
+         * Please also note that the xc, yc, width and height are in [0,1000] range
+         * and must get converted back based on image resolution.
+         */
+        msg.tags_type.push_back(navdata_detect.type[i]);
+        msg.tags_xc.push_back(navdata_detect.xc[i]);
+        msg.tags_yc.push_back(navdata_detect.yc[i]);
+        msg.tags_width.push_back(navdata_detect.width[i]);
+        msg.tags_height.push_back(navdata_detect.height[i]);
+        msg.tags_orientation.push_back(navdata_detect.orientation_angle[i]);
+        msg.tags_distance.push_back(navdata_detect.dist[i]);
+    }
 
     /* IMU */
     imu_msg.header.frame_id = droneFrameBase;
-    imu_msg.header.stamp = ros::Time::now();
+    imu_msg.header.stamp = _now;
 
     // IMU - Linear Acc
     imu_msg.linear_acceleration.x = msg.ax * 9.8;
@@ -707,6 +708,24 @@ void ARDroneDriver::publish_navdata()
     imu_msg.angular_velocity.y = -navdata_phys.phys_gyros[GYRO_Y] * DEG_TO_RAD;
     imu_msg.angular_velocity.z = -navdata_phys.phys_gyros[GYRO_Z] * DEG_TO_RAD;
 
+    mag_msg.header.frame_id = droneFrameBase;
+    mag_msg.header.stamp = _now;
+    const float mag_normalizer = sqrt( msg.magX * msg.magX + msg.magY * msg.magY + msg.magZ * msg.magZ );
+
+    // TODO: Check if it is really needed that magnetometer message includes normalized value
+    if (fabs(mag_normalizer) > 1e-9f)
+    {
+        mag_msg.vector.x = msg.magX / mag_normalizer;
+        mag_msg.vector.y = msg.magY / mag_normalizer;
+        mag_msg.vector.z = msg.magZ / mag_normalizer;
+        mag_pub.publish(mag_msg);
+    }
+    else
+    {
+        ROS_WARN_THROTTLE(1, "There is something wrong with the magnetometer readings (Magnitude is extremely small).");
+    }
+
+    navdata_pub.publish(msg);
     imu_pub.publish(imu_msg);
 }
 
