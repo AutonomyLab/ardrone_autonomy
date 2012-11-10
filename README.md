@@ -279,20 +279,7 @@ After successful calibration, press the `commit` button in the UI. The driver wi
 
 ### Can I see a sample ardrone node in a launch file to learn how to set parameters?
 
-
-```xml
-
-<node name="ardrone_driver" pkg="ardrone_autonomy" type="ardrone_driver" output="screen">
-    <param name="max_bitrate" value="2000" />
-    <param name="bitrate" value="2000" />
-    <param name="do_imu_caliberation" value="true" />
-    <param name="tf_prefix" value="mydrone" />
-    <!-- Covariance Values (3x3 matrices reshaped to 1x9)-->
-    <rosparam param="cov/imu_la">[0.1, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.1]</rosparam>
-    <rosparam param="cov/imu_av">[1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]</rosparam>
-    <rosparam param="cov/imu_or">[1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 100000.0]</rosparam>
-</node>
-```
+Yes, you can check the `launch` folder for sample lanuch file.
 
 ## TODO
 
