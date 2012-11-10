@@ -746,6 +746,7 @@ void controlCHandler (int signal)
 int main(int argc, char** argv)
 {
     C_RESULT res = C_FAIL;
+    char * drone_ip_address = NULL;
 
     // We need to implement our own Signal handler instead of ROS to shutdown
     // the SDK threads correctly.
@@ -763,21 +764,45 @@ int main(int argc, char** argv)
     // routine (distributed with ARDrone SDK 2.0 Examples) as well as
     // the ardrone_tool_main function
 
+    // Parse command line for
+    // Backward compatibility with `-ip` command line argument
+    argc--; argv++;
+    while( argc && *argv[0] == '-' )
+    {
+        if( !strcmp(*argv, "-ip") && ( argc > 1 ) )
+        {
+            drone_ip_address = *(argv+1);
+            printf("Using custom ip address %s\n",drone_ip_address);
+            argc--; argv++;
+        }
+        argc--; argv++;
+    }
+
     // Configure wifi
     vp_com_wifi_config_t *config = (vp_com_wifi_config_t*)wifi_config();
 
     if(config)
     {
+
         vp_os_memset( &wifi_ardrone_ip[0], 0, ARDRONE_IPADDRESS_SIZE );
 
-        printf("===================+> %s\n", config->server);
-        strncpy( &wifi_ardrone_ip[0], config->server, ARDRONE_IPADDRESS_SIZE-1);
+        // TODO: Check if IP is valid
+        if(drone_ip_address)
+        {
+          printf("===================+> %s\n", drone_ip_address);
+          strncpy( &wifi_ardrone_ip[0], drone_ip_address, ARDRONE_IPADDRESS_SIZE - 1);
+        }
+        else
+        {
+          printf("===================+> %s\n", config->server);
+          strncpy( &wifi_ardrone_ip[0], config->server, ARDRONE_IPADDRESS_SIZE - 1);
+        }
     }
 
     while (-1 == getDroneVersion (".", wifi_ardrone_ip, &ardroneVersion))
     {
-      printf ("Getting AR.Drone version ...\n");
-      vp_os_delay (250);
+        printf ("Getting AR.Drone version ...\n");
+        vp_os_delay (250);
     }
 
     // Setup communication channels
@@ -807,7 +832,7 @@ int main(int argc, char** argv)
 
         while( SUCCEED(res) && ardrone_tool_exit() == FALSE )
         {
-          res = ardrone_tool_update();
+            res = ardrone_tool_update();
         }
         res = ardrone_tool_shutdown();
     }
