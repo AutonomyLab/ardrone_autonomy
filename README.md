@@ -34,7 +34,7 @@ The installation follows the same steps needed usually to compile a ROS driver.
         $ roscd ardrone_autonomy
         ```
 
-** NOTE (For advanced users): ** Instead of the `master` branch you can use the `dev-unstable` branch for the latest _unstable_ code which may contain bug fixes or new features. This is the branch that all developments happen on. Please use this branch to submit pull requests.
+**NOTE (For advanced users):** Instead of the `master` branch you can use the `dev-unstable` branch for the latest _unstable_ code which may contain bug fixes or new features. This is the branch that all developments happen on. Please use this branch to submit pull requests.
  
 * Compile the AR-Drone SDK: The driver contains a slightly patched version of AR-Drone 2.0 SDK which is located in `ARDroneLib` directory. To compile it, execute the `./build_sdk.sh`. Any system-wide dependency will be managed by the SDK's build script. You may be asked to install some packages during the installation procedure (e.g `daemontools`). You can verify the success of the SDK's build by checking the `lib` folder.
 
