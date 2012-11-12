@@ -89,32 +89,28 @@ extern "C" {
         #undef LOAD_PARAM_STR
         #undef LOAD_PARAM_NUM
 
-        #define LOAD_PARAM_NUM(NAME,C_TYPE,DEFAULT)                                                                             \
-            {                                                                                                                   \
-              double param;                                                                                                     \
-              ROS_DEBUG("CHECK: "#NAME);                                                                                        \
+        #define LOAD_PARAM_NUM(NAME,C_TYPE)                                                                                     \
+            { double param;                                                                                                     \
               if(ros::param::get("~"#NAME,param))                                                                               \
               {                                                                                                                 \
                 ardrone_application_default_config.NAME = (C_TYPE)param;                                                        \
-                ROS_DEBUG("SET: "#NAME" = %f (DEFAULT = %f)", (float)ardrone_application_default_config.NAME, (float)DEFAULT);  \
+                ROS_DEBUG("SET: "#NAME" = %f", (float)ardrone_application_default_config.NAME);                                 \
               }                                                                                                                 \
             }
 
-        #define LOAD_PARAM_STR(NAME,DEFAULT)                                                                                    \
-            {                                                                                                                   \
-              std::string param;                                                                                                \
-              ROS_DEBUG("CHECK: "#NAME);                                                                                        \
+        #define LOAD_PARAM_STR(NAME)                                                                                            \
+            { std::string param;                                                                                                \
               if(ros::param::get("~"#NAME,param))                                                                               \
               {                                                                                                                 \
                 param = param.substr(0,STRING_T_SIZE-1);                                                                        \
                 strcpy(ardrone_application_default_config.NAME , param.c_str());                                                \
-                ROS_DEBUG("SET: "#NAME" = %s (DEFAULT = %s)", ardrone_application_default_config.NAME, DEFAULT);                \      
+                ROS_DEBUG("SET: "#NAME" = %s", ardrone_application_default_config.NAME);                                        \      
               }                                                                                                                 \
             }
 
         #define ARDRONE_CONFIG_KEY_REF_a10(KEY, NAME, INI_TYPE, C_TYPE, C_TYPE_PTR, RW, RW_CUSTOM, DEFAULT, CALLBACK, CATEGORY) //do nothing for reference-only parameters
-        #define ARDRONE_CONFIG_KEY_IMM_a10(KEY, NAME, INI_TYPE, C_TYPE, C_TYPE_PTR, RW, RW_CUSTOM, DEFAULT, CALLBACK, CATEGORY) { if(0!=strcmp(KEY,"custom") && ((RW & K_WRITE) != 0 || (RW_CUSTOM & K_WRITE) != 0)) LOAD_PARAM_NUM(NAME,C_TYPE, DEFAULT) } // parameters under the custom key are for control of application/user/session, we don't want to change these!
-        #define ARDRONE_CONFIG_KEY_STR_a10(KEY, NAME, INI_TYPE, C_TYPE, C_TYPE_PTR, RW, RW_CUSTOM, DEFAULT, CALLBACK, CATEGORY) { if(0!=strcmp(KEY,"custom") && ((RW & K_WRITE) != 0 || (RW_CUSTOM & K_WRITE) != 0)) LOAD_PARAM_STR(NAME, DEFAULT) }
+        #define ARDRONE_CONFIG_KEY_IMM_a10(KEY, NAME, INI_TYPE, C_TYPE, C_TYPE_PTR, RW, RW_CUSTOM, DEFAULT, CALLBACK, CATEGORY) { if(0!=strcmp(KEY,"custom")) LOAD_PARAM_NUM(NAME,C_TYPE) } // parameters under the custom key are for control of application/user/session, we don't want to change these!
+        #define ARDRONE_CONFIG_KEY_STR_a10(KEY, NAME, INI_TYPE, C_TYPE, C_TYPE_PTR, RW, RW_CUSTOM, DEFAULT, CALLBACK, CATEGORY) { if(0!=strcmp(KEY,"custom")) LOAD_PARAM_STR(NAME) }
 
         #include <config_keys.h> // include the parameter definitions, which will be replaced by the above
 
