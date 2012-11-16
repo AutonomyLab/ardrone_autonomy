@@ -22,8 +22,6 @@
 
 #define DRIVER_USERNAME "ardrone_driver"
 #define DRIVER_APPNAME "ardrone_driver"
-#define CAMERA_QUEUE_SIZE (10)
-#define NAVDATA_QUEUE_SIZE (25)
 
 enum ROOT_FRAME
 {
@@ -32,16 +30,6 @@ enum ROOT_FRAME
     ROOT_FRAME_BOTTOM = 2,
     ROOT_FRAME_NUM
 };
-
-typedef union _dronetime_t
-{
-    uint32_t packed;
-    struct
-    {
-        uint32_t sec:11;
-        uint32_t usec:21;
-    };
-} dronetime_t;
 
 class ARDroneDriver
 {    
@@ -78,18 +66,6 @@ private:
     ros::Publisher navdata_pub;
     ros::Publisher imu_pub;
     ros::Publisher mag_pub;
-
-    #define NavdataStructStart(struct,name) ros::Publisher pub_##name;
-    #define NavdataStructMember(struct,name,ctype,rostype,member)
-    #define NavdataStructArray(struct,name,ctype,rostype,size,member)
-    #define NavdataStructEnd(struct,name) bool enabled_##name;
-
-    #include "NavdataMessageDefinitions.h"
-
-    #undef NavdataStructEnd
-    #undef NavdataStructArray
-    #undef NavdataStructMember
-    #undef NavdataStructStart
 
     tf::TransformBroadcaster tf_broad;
 
