@@ -10,6 +10,10 @@ navdata_pressure_raw_t shared_navdata_pressure;
 navdata_magneto_t shared_navdata_magneto;
 navdata_wind_speed_t shared_navdata_wind;
 navdata_time_t shared_arnavtime;
+navdata_unpacked_t shared_raw_navdata;
+
+bool command_disable_hover;
+bool command_always_send;
 
 vp_os_mutex_t navdata_lock;
 vp_os_mutex_t video_lock;
@@ -62,6 +66,12 @@ extern "C" {
         }
 
 
+        command_disable_hover = false; //disables the drone from entering the hover state - constant dynamics rather than onboard state changes
+        command_always_send = false;   //constantly sends navdata messages to the drone, even if the messages haven't changed
+        ros::param::param("~command_disable_hover", command_disable_hover, false);
+        ros::param::param("~command_always_send"  , command_always_send,   false);
+
+
         // SET SOME NON-STANDARD DEFAULT VALUES FOR THE DRIVER
         // THESE CAN BE OVERWRITTEN BY ROS PARAMETERS (below)
         ardrone_application_default_config.bitrate_ctrl_mode = VBC_MODE_DISABLED;
@@ -92,7 +102,7 @@ extern "C" {
         #define LOAD_PARAM_NUM(NAME,C_TYPE,DEFAULT)                                                                             \
             {                                                                                                                   \
               double param;                                                                                                     \
-              ROS_DEBUG("CHECK: "#NAME);                                                                                        \
+              ROS_DEBUG("CHECK: "#NAME" (Default = "#DEFAULT" = %f)",(float)DEFAULT);                                           \
               if(ros::param::get("~"#NAME,param))                                                                               \
               {                                                                                                                 \
                 ardrone_application_default_config.NAME = (C_TYPE)param;                                                        \
@@ -103,7 +113,7 @@ extern "C" {
         #define LOAD_PARAM_STR(NAME,DEFAULT)                                                                                    \
             {                                                                                                                   \
               std::string param;                                                                                                \
-              ROS_DEBUG("CHECK: "#NAME);                                                                                        \
+              ROS_DEBUG("CHECK: "#NAME" (Default = "#DEFAULT" = %s)",DEFAULT);                                                  \
               if(ros::param::get("~"#NAME,param))                                                                               \
               {                                                                                                                 \
                 param = param.substr(0,STRING_T_SIZE-1);                                                                        \
@@ -225,6 +235,7 @@ extern "C" {
 
     C_RESULT navdata_custom_process(const navdata_unpacked_t * const pnd) {
         vp_os_mutex_lock(&navdata_lock);
+        shared_raw_navdata = *pnd;
         shared_navdata_detect = pnd->navdata_vision_detect;
         shared_navdata_phys = pnd->navdata_phys_measures;
         shared_navdata = pnd->navdata_demo;
