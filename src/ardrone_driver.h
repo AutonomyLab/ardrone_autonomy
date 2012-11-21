@@ -16,12 +16,18 @@
 #include <ardrone_tool/ardrone_version.h>
 #include <ardrone_tool/ardrone_tool.h>
 
+#define NAVDATA_STRUCTS_INCLUDES
+#include "NavdataMessageDefinitions.h"
+#undef NAVDATA_STRUCTS_INCLUDES
+
 
 #define _DEG2RAD 0.01745331111
 #define _RAD2DEG 57.2957184819
 
 #define DRIVER_USERNAME "ardrone_driver"
 #define DRIVER_APPNAME "ardrone_driver"
+#define CAMERA_QUEUE_SIZE (10)
+#define NAVDATA_QUEUE_SIZE (25)
 
 enum ROOT_FRAME
 {
@@ -104,6 +110,11 @@ private:
     navdata_magneto_t navdata_magneto;
     navdata_wind_speed_t navdata_wind;
     navdata_time_t arnavtime;
+    navdata_unpacked_t navdata_raw;
+
+    #define NAVDATA_STRUCTS_HEADER
+    #include "NavdataMessageDefinitions.h"
+    #undef NAVDATA_STRUCTS_HEADER
 
     /*
      * TF Frames

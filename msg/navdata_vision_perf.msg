@@ -1,7 +1,7 @@
 Header header
-float32 drone_timeuint16 tag
+float64 drone_time
+uint16 tag
 uint16 size
-float32 time_szo
 float32 time_corners
 float32 time_compute
 float32 time_tracking

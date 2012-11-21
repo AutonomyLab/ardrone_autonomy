@@ -562,6 +562,7 @@ void ARDroneDriver::publish_navdata()
 {
     // Thread safe copy of interesting Navdata data
     vp_os_mutex_lock(&navdata_lock);
+    navdata_raw = shared_raw_navdata;
     navdata_detect = shared_navdata_detect;
     navdata_phys = shared_navdata_phys;
     navdata = shared_navdata;
@@ -614,6 +615,9 @@ void ARDroneDriver::publish_navdata()
         navdata.vz -= vel_bias[2];
 
     }
+
+    PublishNavdataTypes(navdata_raw); // This is defined in the template NavdataMessageDefinitions.h template file
+
     if ((navdata_pub.getNumSubscribers() == 0) && (imu_pub.getNumSubscribers() == 0) && (mag_pub.getNumSubscribers() == 0))
         return; // why bother, no one is listening.
     const ros::Time _now = ros::Time::now();
@@ -728,6 +732,10 @@ void ARDroneDriver::publish_navdata()
     navdata_pub.publish(msg);
     imu_pub.publish(imu_msg);
 }
+
+#define NAVDATA_STRUCTS_SOURCE
+#include "NavdataMessageDefinitions.h"
+#undef NAVDATA_STRUCTS_SOURCE
 
 void ARDroneDriver::publish_tf()
 {

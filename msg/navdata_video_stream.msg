@@ -1,5 +1,6 @@
 Header header
-float32 drone_timeuint16 tag
+float64 drone_time
+uint16 tag
 uint16 size
 uint8 quant
 uint32 frame_size
@@ -8,12 +9,9 @@ uint32 atcmd_ref_seq
 uint32 atcmd_mean_ref_gap
 float32 atcmd_var_ref_gap
 uint32 atcmd_ref_quality
-uint32 out_bitrate
 uint32 desired_bitrate
-int32 data1
 int32 data2
 int32 data3
 int32 data4
 int32 data5
-uint32 tcp_queue_level
 uint32 fifo_queue_level

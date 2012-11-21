@@ -1,5 +1,6 @@
 Header header
-float32 drone_timeuint16 tag
+float64 drone_time
+uint16 tag
 uint16 size
 int32 rc_ref_pitch
 int32 rc_ref_roll

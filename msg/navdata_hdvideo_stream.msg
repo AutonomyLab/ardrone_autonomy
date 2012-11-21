@@ -1,5 +1,6 @@
 Header header
-float32 drone_timeuint16 tag
+float64 drone_time
+uint16 tag
 uint16 size
 uint32 hdvideo_state
 uint32 storage_fifo_nb_packets

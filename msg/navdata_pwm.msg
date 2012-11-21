@@ -1,5 +1,6 @@
 Header header
-float32 drone_timeuint16 tag
+float64 drone_time
+uint16 tag
 uint16 size
 uint8 motor1
 uint8 motor2
@@ -25,5 +26,4 @@ uint16 current_motor1
 uint16 current_motor2
 uint16 current_motor3
 uint16 current_motor4
-float32 altitude_prop
 float32 altitude_der

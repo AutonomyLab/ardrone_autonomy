@@ -1,5 +1,6 @@
 Header header
-float32 drone_timeuint16 tag
+float64 drone_time
+uint16 tag
 uint16 size
 uint32 vision_state
 int32 vision_misc
@@ -13,7 +14,7 @@ float32 phi_capture
 float32 psi_capture
 int32 altitude_capture
 uint32 time_capture
-ardrone_autonomy::vector31 body_v
+vector31 body_v
 float32 delta_phi
 float32 delta_theta
 float32 delta_psi
