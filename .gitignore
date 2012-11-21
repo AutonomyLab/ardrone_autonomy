@@ -28,3 +28,4 @@ Makefile
 /msg_gen
 /srv_gen
 /src/ardrone_autonomy
+scripts/cache/DEBS_avail
