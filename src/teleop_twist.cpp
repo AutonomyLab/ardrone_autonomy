@@ -154,6 +154,10 @@ C_RESULT update_teleop(void)
                 (fabs(up_down) < _EPS) && 
                 (fabs(turn) < _EPS)
                 );
+
+        if(command_disable_hover) hover = 1; //force the hover flag to 1 (0 == enter hover) if we want to disable the hover state
+        if(command_always_send)   is_changed = true; //force the packet to send if so desired
+
         control_flag |= (hover << 0);
         control_flag |= (combined_yaw << 1);
         //ROS_INFO (">>> Control Flag: %d", control_flag);

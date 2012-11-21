@@ -6,6 +6,7 @@
 
 ### Updates
 
+- *November 9 2012*: Critical Bug in sending configurations to drone fixed ([More info](https://github.com/AutonomyLab/ardrone_autonomy/issues/24)). Seperate topic for magnetometer data added ([More info](https://github.com/AutonomyLab/ardrone_autonomy/pull/25)).
 - *September 5 2012*: Experimental automatic IMU bias removal.
 - *August 27 2012*: Thread-safe SDK data access. Synchronized `navdata` and `camera` topics.
 - *August 20 2012*: The driver is now provides ROS standard camera interface.
@@ -33,6 +34,8 @@ The installation follows the same steps needed usually to compile a ROS driver.
         $ roscd ardrone_autonomy
         ```
 
+**NOTE (For advanced users):** Instead of the `master` branch you can use the `dev-unstable` branch for the latest _unstable_ code which may contain bug fixes or new features. This is the branch that all developments happen on. Please use this branch to submit pull requests.
+ 
 * Compile the AR-Drone SDK: The driver contains a slightly patched version of AR-Drone 2.0 SDK which is located in `ARDroneLib` directory. To compile it, execute the `./build_sdk.sh`. Any system-wide dependency will be managed by the SDK's build script. You may be asked to install some packages during the installation procedure (e.g `daemontools`). You can verify the success of the SDK's build by checking the `lib` folder.
 
         ```bash
@@ -85,11 +88,15 @@ Information received from the drone will be published to the `ardrone/navdata` t
 * `altd`: Estimated altitude (mm)
 * `vx`, `vy`, `vz`: Linear velocity (mm/s) [TBA: Convention]
 * `ax`, `ay`, `az`: Linear acceleration (g) [TBA: Convention]
-* `tm`: Timestamp of the data returned by the Drone
+* `tm`: Timestamp of the data returned by the Drone returned as a packed uint32 (sec:11; usec:21)
 
 ### IMU data
 
 The linear acceleration, angular velocity and orientation from the `Navdata` is also published to a standard ROS [`sensor_msgs/Imu`](http://www.ros.org/doc/api/sensor_msgs/html/msg/Imu.html) message. The units are all metric and the reference frame is in `Base` frame. This topic is experimental. The covariance values are specified by specific parameters.
+
+### Megnetometer Data
+
+The normalized magnetometer readings are also published to `ardrone/mag` topic as a standard ROS [`geometry_msgs/Vector3Stamped`](http://www.ros.org/doc/api/geometry_msgs/html/msg/Vector3Stamped.html) message.
 
 ### Cameras
 
@@ -208,15 +215,19 @@ The Parrot's license, copyright and disclaimer for `ARDroneLib` are included wit
 
 ## Contributors
 
-- [Rachel Brindle](https://github.com/younata) - [Enhanced Navdata for AR-Drone 2.0](https://github.com/AutonomyLab/ardrone_autonomy/pull/2)
+- [Mike Hamer](https://github.com/mikehamer) - Added support for proper SDK2 way of configuring the Drone via parameter (critical bug fix). [More Info](https://github.com/AutonomyLab/ardrone_autonomy/pull/26)
+- [Sameer Parekh](https://github.com/sameerparekh) - [Seperate Magnetometer Topic](https://github.com/AutonomyLab/ardrone_autonomy/pull/25)
 - [Devmax](https://github.com/devmax) - [Flat Trim](https://github.com/AutonomyLab/ardrone_autonomy/issues/18) + Various
 comments for enhancements
+- [Rachel Brindle](https://github.com/younata) - [Enhanced Navdata for AR-Drone 2.0](https://github.com/AutonomyLab/ardrone_autonomy/pull/2)
 
 ## FAQ
 
 ### How can I report a bug, submit patches or ask for a feature?
 
 `github` offers a nice and convenient issue tracking and social coding platform, it can be used for bug reports and pull/feature request. This is the preferred method. You can also contact the author directly.
+
+If you want to submit a pull request, please submit to `dev-unstable` branch.
 
 ### Why the `ARDroneLib` has been patched?
 
@@ -279,20 +290,7 @@ After successful calibration, press the `commit` button in the UI. The driver wi
 
 ### Can I see a sample ardrone node in a launch file to learn how to set parameters?
 
-
-```xml
-
-<node name="ardrone_driver" pkg="ardrone_autonomy" type="ardrone_driver" output="screen">
-    <param name="max_bitrate" value="2000" />
-    <param name="bitrate" value="2000" />
-    <param name="do_imu_caliberation" value="true" />
-    <param name="tf_prefix" value="mydrone" />
-    <!-- Covariance Values (3x3 matrices reshaped to 1x9)-->
-    <rosparam param="cov/imu_la">[0.1, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.1]</rosparam>
-    <rosparam param="cov/imu_av">[1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]</rosparam>
-    <rosparam param="cov/imu_or">[1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 100000.0]</rosparam>
-</node>
-```
+Yes, you can check the `launch` folder for sample lanuch file.
 
 ## TODO
 

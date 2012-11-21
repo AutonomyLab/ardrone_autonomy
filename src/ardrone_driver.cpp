@@ -14,17 +14,15 @@ ARDroneDriver::ARDroneDriver()
     last_frame_id = -1;
     last_navdata_id = -1;
     cmd_vel_sub = node_handle.subscribe("cmd_vel", 1, &cmdVelCallback);
-	takeoff_sub = node_handle.subscribe("ardrone/takeoff", 1, &takeoffCallback);
-	reset_sub = node_handle.subscribe("ardrone/reset", 1, &resetCallback);
-	land_sub = node_handle.subscribe("ardrone/land", 1, &landCallback);
-	image_pub = image_transport.advertiseCamera("ardrone/image_raw", 10);
+    takeoff_sub = node_handle.subscribe("ardrone/takeoff", 1, &takeoffCallback);
+    reset_sub = node_handle.subscribe("ardrone/reset", 1, &resetCallback);
+    land_sub = node_handle.subscribe("ardrone/land", 1, &landCallback);
+    image_pub = image_transport.advertiseCamera("ardrone/image_raw", 10);
     hori_pub = image_transport.advertiseCamera("ardrone/front/image_raw", 10);
-	vert_pub = image_transport.advertiseCamera("ardrone/bottom/image_raw", 10);
-    navdata_pub = node_handle.advertise<ardrone_autonomy::Navdata>("ardrone/navdata", 25);
-    imu_pub = node_handle.advertise<sensor_msgs::Imu>("ardrone/imu", 25);
-	toggleCam_service = node_handle.advertiseService("ardrone/togglecam", toggleCamCallback);
+    vert_pub = image_transport.advertiseCamera("ardrone/bottom/image_raw", 10);
+    toggleCam_service = node_handle.advertiseService("ardrone/togglecam", toggleCamCallback);
     setCamChannel_service = node_handle.advertiseService("ardrone/setcamchannel",setCamChannelCallback );
-	setLedAnimation_service = node_handle.advertiseService("ardrone/setledanimation", setLedAnimationCallback);
+    setLedAnimation_service = node_handle.advertiseService("ardrone/setledanimation", setLedAnimationCallback);
     flatTrim_service = node_handle.advertiseService("ardrone/flattrim", flatTrimCallback);
 
     /*
@@ -34,8 +32,8 @@ ARDroneDriver::ARDroneDriver()
     imuReCalib_service = node_handle.advertiseService<std_srvs::Empty::Request, std_srvs::Empty::Response>
             ("ardrone/imu_recalib", boost::bind(&ARDroneDriver::imuReCalibCallback, this, _1, _2));
 
-//	setEnemyColor_service = node_handle.advertiseService("/ardrone/setenemycolor", setEnemyColorCallback);
-//	setHullType_service = node_handle.advertiseService("/ardrone/sethulltype", setHullTypeCallback);
+    //	setEnemyColor_service = node_handle.advertiseService("/ardrone/setenemycolor", setEnemyColorCallback);
+    //	setHullType_service = node_handle.advertiseService("/ardrone/sethulltype", setHullTypeCallback);
 
     droneFrameId = (ros::param::get("~drone_frame_id", droneFrameId)) ? droneFrameId : "ardrone_base";
     droneFrameBase = droneFrameId + "_link";
@@ -104,7 +102,7 @@ ARDroneDriver::ARDroneDriver()
     {
         tf_base_bottom.setData(tf_base_bottom.inverse());
         tf_base_bottom.child_frame_id_.swap(tf_base_bottom.frame_id_);
-    }   
+    }
 
 }
 
@@ -127,6 +125,10 @@ void ARDroneDriver::run()
             if (((ros::Time::now() - startTime).toSec()) > 5.0)
             {
                 inited = true;
+
+                // Send the configuration to the drone
+                configureDrone();
+
                 vp_os_mutex_lock(&navdata_lock);
                 ROS_INFO("Successfully connected to '%s' (AR-Drone %d.0 - Firmware: %s) - Battery(\%): %d",
                          ardrone_control_config.ardrone_name,
@@ -160,6 +162,58 @@ void ARDroneDriver::run()
     printf("ROS loop terminated ... \n");
 }
 
+void ARDroneDriver::configureDrone()
+{
+    // This function will send the custom configuration to the drone
+    // It doesn't work if sent during the SDK (which runs before the configuration profiles on the drone are setup)
+    #undef ARDRONE_CONFIG_KEY_IMM_a10
+    #undef ARDRONE_CONFIG_KEY_REF_a10
+    #undef ARDRONE_CONFIG_KEY_STR_a10
+    #undef LOAD_PARAM_STR
+    #undef LOAD_PARAM_NUM
+
+    #define SEND_PARAM_NUM(NAME,CATEGORY,DEFAULT)                                                          \
+    {                                                                                                      \
+        if(ardrone_application_default_config.NAME!=DEFAULT)                                               \
+        {                                                                                                  \
+            ROS_INFO("SEND: "#CATEGORY"/"#NAME" = %f (DEFAULT = %f)", (float)ardrone_application_default_config.NAME, (float)DEFAULT);           \
+            ARDRONE_TOOL_CONFIGURATION_ADDEVENT (NAME, &ardrone_application_default_config.NAME, NULL);    \
+        }                                                                                                  \
+    }
+
+    #define SEND_PARAM_STR(NAME,CATEGORY,DEFAULT)                                                          \
+    {                                                                                                      \
+        if(0!=strcmp(ardrone_application_default_config.NAME,DEFAULT))                                     \
+        {                                                                                                  \
+            ROS_INFO("SEND: "#CATEGORY"/"#NAME" = %s (DEFAULT = %s)", ardrone_application_default_config.NAME, DEFAULT);           \
+            ARDRONE_TOOL_CONFIGURATION_ADDEVENT (NAME, ardrone_application_default_config.NAME, NULL);     \
+        }                                                                                                  \
+    }
+
+    // firstly we send the CAT_COMMON parameters, for example outdoor, as these settings can affect where the other parameters are stored
+    #define ARDRONE_CONFIG_KEY_REF_a10(KEY, NAME, INI_TYPE, C_TYPE, C_TYPE_PTR, RW, RW_CUSTOM, DEFAULT, CALLBACK, CATEGORY) //do nothing for reference-only parameters
+    #define ARDRONE_CONFIG_KEY_IMM_a10(KEY, NAME, INI_TYPE, C_TYPE, C_TYPE_PTR, RW, RW_CUSTOM, DEFAULT, CALLBACK, CATEGORY) { if(0!=strcmp(KEY,"custom") && CATEGORY==CAT_COMMON && ((RW & K_WRITE) != 0 || (RW_CUSTOM & K_WRITE) != 0)) SEND_PARAM_NUM(NAME,CATEGORY,DEFAULT) } // parameters under the custom key are for control of application/user/session, we don't want to change these!
+    #define ARDRONE_CONFIG_KEY_STR_a10(KEY, NAME, INI_TYPE, C_TYPE, C_TYPE_PTR, RW, RW_CUSTOM, DEFAULT, CALLBACK, CATEGORY) { if(0!=strcmp(KEY,"custom") && CATEGORY==CAT_COMMON && ((RW & K_WRITE) != 0 || (RW_CUSTOM & K_WRITE) != 0)) SEND_PARAM_STR(NAME,CATEGORY,DEFAULT) }
+
+    #include <config_keys.h> // include the parameter definitions, which will be replaced by the above
+
+    #undef ARDRONE_CONFIG_KEY_IMM_a10
+    #undef ARDRONE_CONFIG_KEY_STR_a10
+
+    // then we send the rest of the parameters. The problem is if we send euler_angle_max (for example) before sending outdoor, it will get written to the wrong parameter
+    // (indoor_ not outdoor_euler_angle_max) and then will be overwritten by the default when changing state from indoor to outdoor, so we need to send common parameters first.
+    #define ARDRONE_CONFIG_KEY_IMM_a10(KEY, NAME, INI_TYPE, C_TYPE, C_TYPE_PTR, RW, RW_CUSTOM, DEFAULT, CALLBACK, CATEGORY) { if(0!=strcmp(KEY,"custom") && CATEGORY!=CAT_COMMON && ((RW & K_WRITE) != 0 || (RW_CUSTOM & K_WRITE) != 0)) SEND_PARAM_NUM(NAME,CATEGORY,DEFAULT) } // parameters under the custom key are for control of application/user/session, we don't want to change these!
+    #define ARDRONE_CONFIG_KEY_STR_a10(KEY, NAME, INI_TYPE, C_TYPE, C_TYPE_PTR, RW, RW_CUSTOM, DEFAULT, CALLBACK, CATEGORY) { if(0!=strcmp(KEY,"custom") && CATEGORY!=CAT_COMMON && ((RW & K_WRITE) != 0 || (RW_CUSTOM & K_WRITE) != 0)) SEND_PARAM_STR(NAME,CATEGORY,DEFAULT) }
+
+    #include <config_keys.h> // include the parameter definitions, which will be replaced by the above
+
+    #undef SEND_PARAM_NUM
+    #undef SEND_PARAM_STR
+    #undef ARDRONE_CONFIG_KEY_IMM_a10
+    #undef ARDRONE_CONFIG_KEY_REF_a10
+    #undef ARDRONE_CONFIG_KEY_STR_a10
+}
+
 void ARDroneDriver::resetCaliberation()
 {
     caliberated = false;
@@ -180,7 +234,7 @@ void ARDroneDriver::resetCaliberation()
 double ARDroneDriver::calcAverage(std::vector<double> &vec)
 {
     double ret = 0.0;
-    for (int i = 0; i < vec.size(); i++)
+    for (unsigned int i = 0; i < vec.size(); i++)
     {
         ret += vec.at(i);
     }
@@ -505,6 +559,7 @@ void ARDroneDriver::publish_navdata()
 {
     // Thread safe copy of interesting Navdata data
     vp_os_mutex_lock(&navdata_lock);
+    navdata_raw = shared_raw_navdata;
     navdata_detect = shared_navdata_detect;
     navdata_phys = shared_navdata_phys;
     navdata = shared_navdata;
@@ -557,29 +612,34 @@ void ARDroneDriver::publish_navdata()
         navdata.vz -= vel_bias[2];
 
     }
-    if ((navdata_pub.getNumSubscribers() == 0) && (imu_pub.getNumSubscribers() == 0))
-        return; // why bother, no one is listening.
-	ardrone_autonomy::Navdata msg;
 
-    msg.header.stamp = ros::Time::now();
+    PublishNavdataTypes(navdata_raw); // This is defined in the template NavdataMessageDefinitions.h template file
+
+    if (!enabled_legacy_navdata || (navdata_pub.getNumSubscribers() == 0) && (imu_pub.getNumSubscribers() == 0) && (mag_pub.getNumSubscribers() == 0))
+        return; // why bother, no one is listening.
+    const ros::Time _now = ros::Time::now();
+
+    ardrone_autonomy::Navdata msg;
+
+    msg.header.stamp = _now;
     msg.header.frame_id = droneFrameBase;
-	msg.batteryPercent = navdata.vbat_flying_percentage;
+    msg.batteryPercent = navdata.vbat_flying_percentage;
     msg.state = (navdata.ctrl_state >> 16);
     
-	// positive means counterclockwise rotation around axis
-	msg.rotX = navdata.phi / 1000.0; // tilt left/right
-	msg.rotY = -navdata.theta / 1000.0; // tilt forward/backward
-	msg.rotZ = -navdata.psi / 1000.0; // orientation
+    // positive means counterclockwise rotation around axis
+    msg.rotX = navdata.phi / 1000.0; // tilt left/right
+    msg.rotY = -navdata.theta / 1000.0; // tilt forward/backward
+    msg.rotZ = -navdata.psi / 1000.0; // orientation
 
-	msg.altd = navdata.altitude; // cm
-	msg.vx = navdata.vx; // mm/sec
-	msg.vy = -navdata.vy; // mm/sec
-	msg.vz = -navdata.vz; // mm/sec
-	msg.tm = arnavtime.time;
-	msg.ax = navdata_phys.phys_accs[ACC_X] / 1000.0; // g
-	msg.ay = -navdata_phys.phys_accs[ACC_Y] / 1000.0; // g
-	msg.az = -navdata_phys.phys_accs[ACC_Z] / 1000.0; // g
-	
+    msg.altd = navdata.altitude; // cm
+    msg.vx = navdata.vx; // mm/sec
+    msg.vy = -navdata.vy; // mm/sec
+    msg.vz = -navdata.vz; // mm/sec
+    msg.tm = arnavtime.time;
+    msg.ax = navdata_phys.phys_accs[ACC_X] / 1000.0; // g
+    msg.ay = -navdata_phys.phys_accs[ACC_Y] / 1000.0; // g
+    msg.az = -navdata_phys.phys_accs[ACC_Z] / 1000.0; // g
+
     // New stuff
 
     if (IS_ARDRONE2)
@@ -605,35 +665,33 @@ void ARDroneDriver::publish_navdata()
         msg.wind_comp_angle = 0.0;
     }
 
-	// Tag Detection
-	msg.tags_count = navdata_detect.nb_detected;
+    // Tag Detection
+    msg.tags_count = navdata_detect.nb_detected;
     for (int i = 0; i < navdata_detect.nb_detected; i++)
-	{
-		/*
-		 * The tags_type is in raw format. In order to extract the information 
-		 * macros from ardrone_api.h is needed.
-		 *
-		 * #define DETECTION_MAKE_TYPE(source,tag) ( ((source)<<16) | (tag) )
-		 * #define DETECTION_EXTRACT_SOURCE(type)  ( ((type)>>16) & 0x0FF )
-		 * #define DETECTION_EXTRACT_TAG(type)     ( (type) & 0x0FF )
-		 * 
-		 * Please also note that the xc, yc, width and height are in [0,1000] range
-		 * and must get converted back based on image resolution.
-		 */
-		msg.tags_type.push_back(navdata_detect.type[i]);
-		msg.tags_xc.push_back(navdata_detect.xc[i]);
-		msg.tags_yc.push_back(navdata_detect.yc[i]);
-		msg.tags_width.push_back(navdata_detect.width[i]);
-		msg.tags_height.push_back(navdata_detect.height[i]);
-		msg.tags_orientation.push_back(navdata_detect.orientation_angle[i]);
-		msg.tags_distance.push_back(navdata_detect.dist[i]);
-	}
-
-    navdata_pub.publish(msg);
+    {
+        /*
+         * The tags_type is in raw format. In order to extract the information
+         * macros from ardrone_api.h is needed.
+         *
+         * #define DETECTION_MAKE_TYPE(source,tag) ( ((source)<<16) | (tag) )
+         * #define DETECTION_EXTRACT_SOURCE(type)  ( ((type)>>16) & 0x0FF )
+         * #define DETECTION_EXTRACT_TAG(type)     ( (type) & 0x0FF )
+         *
+         * Please also note that the xc, yc, width and height are in [0,1000] range
+         * and must get converted back based on image resolution.
+         */
+        msg.tags_type.push_back(navdata_detect.type[i]);
+        msg.tags_xc.push_back(navdata_detect.xc[i]);
+        msg.tags_yc.push_back(navdata_detect.yc[i]);
+        msg.tags_width.push_back(navdata_detect.width[i]);
+        msg.tags_height.push_back(navdata_detect.height[i]);
+        msg.tags_orientation.push_back(navdata_detect.orientation_angle[i]);
+        msg.tags_distance.push_back(navdata_detect.dist[i]);
+    }
 
     /* IMU */
     imu_msg.header.frame_id = droneFrameBase;
-    imu_msg.header.stamp = ros::Time::now();
+    imu_msg.header.stamp = _now;
 
     // IMU - Linear Acc
     imu_msg.linear_acceleration.x = msg.ax * 9.8;
@@ -651,8 +709,30 @@ void ARDroneDriver::publish_navdata()
     imu_msg.angular_velocity.y = -navdata_phys.phys_gyros[GYRO_Y] * DEG_TO_RAD;
     imu_msg.angular_velocity.z = -navdata_phys.phys_gyros[GYRO_Z] * DEG_TO_RAD;
 
+    mag_msg.header.frame_id = droneFrameBase;
+    mag_msg.header.stamp = _now;
+    const float mag_normalizer = sqrt( msg.magX * msg.magX + msg.magY * msg.magY + msg.magZ * msg.magZ );
+
+    // TODO: Check if it is really needed that magnetometer message includes normalized value
+    if (fabs(mag_normalizer) > 1e-9f)
+    {
+        mag_msg.vector.x = msg.magX / mag_normalizer;
+        mag_msg.vector.y = msg.magY / mag_normalizer;
+        mag_msg.vector.z = msg.magZ / mag_normalizer;
+        mag_pub.publish(mag_msg);
+    }
+    else
+    {
+        ROS_WARN_THROTTLE(1, "There is something wrong with the magnetometer readings (Magnitude is extremely small).");
+    }
+
+    navdata_pub.publish(msg);
     imu_pub.publish(imu_msg);
 }
+
+#define NAVDATA_STRUCTS_SOURCE
+#include "NavdataMessageDefinitions.h"
+#undef NAVDATA_STRUCTS_SOURCE
 
 void ARDroneDriver::publish_tf()
 {
@@ -688,16 +768,99 @@ void controlCHandler (int signal)
 
 //extern "C" int custom_main(int argc, char** argv)
 int main(int argc, char** argv)
-{        
-        // We need to implement our own Signal handler instead of ROS to shutdown
-        // the SDK threads correctly.
+{
+    C_RESULT res = C_FAIL;
+    char * drone_ip_address = NULL;
 
-        ros::init(argc, argv, "ardrone_driver", ros::init_options::NoSigintHandler);
-        
-        signal (SIGABRT, &controlCHandler);
-        signal (SIGTERM, &controlCHandler);
-        signal (SIGINT, &controlCHandler);
+    // We need to implement our own Signal handler instead of ROS to shutdown
+    // the SDK threads correctly.
 
-        return ardrone_tool_main(argc, argv);
+    ros::init(argc, argv, "ardrone_driver", ros::init_options::NoSigintHandler);
+    
+    signal (SIGABRT, &controlCHandler);
+    signal (SIGTERM, &controlCHandler);
+    signal (SIGINT, &controlCHandler);
+
+    // Now to setup the drone and communication channels
+    // We do this here because calling ardrone_tool_main uses an old
+    // function initialization and is no longer recommended by parrot
+    // I've based this section off the ControlEngine's initialization
+    // routine (distributed with ARDrone SDK 2.0 Examples) as well as
+    // the ardrone_tool_main function
+
+    // Parse command line for
+    // Backward compatibility with `-ip` command line argument
+    argc--; argv++;
+    while( argc && *argv[0] == '-' )
+    {
+        if( !strcmp(*argv, "-ip") && ( argc > 1 ) )
+        {
+            drone_ip_address = *(argv+1);
+            printf("Using custom ip address %s\n",drone_ip_address);
+            argc--; argv++;
+        }
+        argc--; argv++;
+    }
+
+    // Configure wifi
+    vp_com_wifi_config_t *config = (vp_com_wifi_config_t*)wifi_config();
+
+    if(config)
+    {
+
+        vp_os_memset( &wifi_ardrone_ip[0], 0, ARDRONE_IPADDRESS_SIZE );
+
+        // TODO: Check if IP is valid
+        if(drone_ip_address)
+        {
+          printf("===================+> %s\n", drone_ip_address);
+          strncpy( &wifi_ardrone_ip[0], drone_ip_address, ARDRONE_IPADDRESS_SIZE - 1);
+        }
+        else
+        {
+          printf("===================+> %s\n", config->server);
+          strncpy( &wifi_ardrone_ip[0], config->server, ARDRONE_IPADDRESS_SIZE - 1);
+        }
+    }
+
+    while (-1 == getDroneVersion (".", wifi_ardrone_ip, &ardroneVersion))
+    {
+        printf ("Getting AR.Drone version ...\n");
+        vp_os_delay (250);
+    }
+
+    // Setup communication channels
+    res = ardrone_tool_setup_com( NULL );
+    if( FAILED(res) )
+    {
+        PRINT("Wifi initialization failed. It means either:\n");
+        PRINT("\t* you're not root (it's mandatory because you can set up wifi connection only as root)\n");
+        PRINT("\t* wifi device is not present (on your pc or on your card)\n");
+        PRINT("\t* you set the wrong name for wifi interface (for example rausb0 instead of wlan0) \n");
+        PRINT("\t* ap is not up (reboot card or remove wifi usb dongle)\n");
+        PRINT("\t* wifi device has no antenna\n");
+    }
+    else
+    {
+        // setup the application and user profiles for the driver
+
+        char* appname = DRIVER_APPNAME;
+        char* usrname = DRIVER_USERNAME;
+        ardrone_gen_appid (appname, "2.0", app_id, app_name, APPLI_NAME_SIZE);
+        ardrone_gen_usrid (usrname, usr_id, usr_name, USER_NAME_SIZE);
+
+        // and finally initialize everything!
+        // this will then call our sdk, which then starts the ::run() method of this file as an ardrone client thread
+
+        res = ardrone_tool_init(wifi_ardrone_ip, strlen(wifi_ardrone_ip), NULL, app_name, usr_name, NULL, NULL, MAX_FLIGHT_STORING_SIZE, NULL);
+
+        while( SUCCEED(res) && ardrone_tool_exit() == FALSE )
+        {
+            res = ardrone_tool_update();
+        }
+        res = ardrone_tool_shutdown();
+    }
+    return SUCCEED(res) ? 0 : -1;
 }
+
 

@@ -10,6 +10,10 @@ navdata_pressure_raw_t shared_navdata_pressure;
 navdata_magneto_t shared_navdata_magneto;
 navdata_wind_speed_t shared_navdata_wind;
 navdata_time_t shared_arnavtime;
+navdata_unpacked_t shared_raw_navdata;
+
+bool command_disable_hover;
+bool command_always_send;
 
 vp_os_mutex_t navdata_lock;
 vp_os_mutex_t video_lock;
@@ -62,47 +66,90 @@ extern "C" {
         }
 
 
-        //TODO: Please FIX this to read default values from ros params and move them to ardrone driver
-        //Roadmap: We have the pointer to ARDroneDriver here, so it is doable to return back ros params
-        //using this class.
-        ardrone_application_default_config.bitrate_ctrl_mode = (int) rosDriver->getRosParam("~bitrate_ctrl_mode", (double) VBC_MODE_DISABLED);
+        command_disable_hover = false; //disables the drone from entering the hover state - constant dynamics rather than onboard state changes
+        command_always_send = false;   //constantly sends navdata messages to the drone, even if the messages haven't changed
+        ros::param::param("~command_disable_hover", command_disable_hover, false);
+        ros::param::param("~command_always_send"  , command_always_send,   false);
+        ROS_INFO("Hovering is %s",(command_disable_hover?"DISABLED!":"Enabled."));
+        ROS_INFO("Will %s send duplicate commands.",(command_always_send?"ALWAYS":"not"));
+
+
+        // SET SOME NON-STANDARD DEFAULT VALUES FOR THE DRIVER
+        // THESE CAN BE OVERWRITTEN BY ROS PARAMETERS (below)
+        ardrone_application_default_config.bitrate_ctrl_mode = VBC_MODE_DISABLED;
         if (IS_ARDRONE2)
         {
-            ardrone_application_default_config.max_bitrate = (int) rosDriver->getRosParam("~max_bitrate", 4000.0);
+            ardrone_application_default_config.max_bitrate = 4000;
         }
-        // TODO: Fix CAT_COMMONS
-        ardrone_application_default_config.outdoor = (bool) rosDriver->getRosParam("~outdoor", 0.0);
-        ardrone_application_default_config.flight_without_shell = (bool) rosDriver->getRosParam("~flight_without_shell", 1.0);
-        ardrone_application_default_config.altitude_max = (int) rosDriver->getRosParam("~altitude_max", 3000.0);
-        ardrone_application_default_config.altitude_min = (int) rosDriver->getRosParam("~altitude_min", 100.0);
-        ardrone_application_default_config.enemy_colors = (int) rosDriver->getRosParam("~enemy_colors", (double) ARDRONE_DETECTION_COLOR_ORANGE_YELLOW);
-        ardrone_application_default_config.enemy_without_shell = (bool) rosDriver->getRosParam("~enemy_without_shell", (double) 0.0);
-        ardrone_application_default_config.video_on_usb = 0;
-        ardrone_application_default_config.autonomous_flight = 0;
 
-
-        ardrone_application_default_config.control_vz_max = (float) rosDriver->getRosParam("~control_vz_max", 850.0);
-        ardrone_application_default_config.control_yaw = (float) rosDriver->getRosParam("~control_yaw", (100.0 /180.0) * 3.1415);
-        ardrone_application_default_config.euler_angle_max = (float) rosDriver->getRosParam("~euler_angle_max", (12.0 / 180.0) * 3.1415);
-        ardrone_application_default_config.bitrate = (int) rosDriver->getRosParam("~bitrate", 4000.0);                
-        ardrone_application_default_config.navdata_demo = (int) rosDriver->getRosParam("~navdata_demo", (double) 1);
-        ardrone_application_default_config.detect_type = (int) rosDriver->getRosParam("~detect_type", (double) CAD_TYPE_MULTIPLE_DETECTION_MODE);
-        ardrone_application_default_config.detections_select_h = rosDriver->getRosParam("~detections_select_h", 
-                (double) TAG_TYPE_MASK(TAG_TYPE_SHELL_TAG_V2));
-        ardrone_application_default_config.detections_select_v_hsync = rosDriver->getRosParam("~detections_select_v_hsync", 
-                (double) TAG_TYPE_MASK(TAG_TYPE_BLACK_ROUNDEL));
-//        ardrone_application_default_config.detections_select_v = rosDriver->getRosParam("~detections_select_v", 
-//                (double) TAG_TYPE_MASK(TAG_TYPE_BLACK_ROUNDEL));
-             
-        ardrone_application_default_config.navdata_options = NAVDATA_OPTION_FULL_MASK /*&
-        ~(NAVDATA_OPTION_MASK(NAVDATA_TRACKERS_SEND_TAG)
-        | NAVDATA_OPTION_MASK(NAVDATA_VISION_OF_TAG)
-        | NAVDATA_OPTION_MASK(NAVDATA_VISION_PERF_TAG)
-        | NAVDATA_OPTION_MASK(NAVDATA_VISION_TAG))*/;
-        
+        ardrone_application_default_config.navdata_options = NAVDATA_OPTION_FULL_MASK;        
         ardrone_application_default_config.video_channel = ZAP_CHANNEL_HORI;
         ardrone_application_default_config.control_level = (0 << CONTROL_LEVEL_COMBINED_YAW);
         ardrone_application_default_config.flying_mode = FLYING_MODE_FREE_FLIGHT;
+
+
+        // LOAD THE CUSTOM CONFIGURATION FROM ROS PARAMETERS
+        // all possible configuration parameters are stored in config_keys.h (and documented in the manual)
+        // taking inspiration from ardrone_tool_configuration.c, we define some macros that replace these parameter definitions
+        // with a function which attempts to read corresponding ros parameters, and then if successful, sets the parameter value for the drone
+        // Note that we don't actually send these parameters to the drone, otherwise they will be overwritten when the profiles are created
+        // in a later stage of the ARDrone initialization.
+
+        #undef ARDRONE_CONFIG_KEY_IMM_a10
+        #undef ARDRONE_CONFIG_KEY_REF_a10
+        #undef ARDRONE_CONFIG_KEY_STR_a10
+        #undef LOAD_PARAM_STR
+        #undef LOAD_PARAM_NUM
+
+        #define LOAD_PARAM_NUM(NAME,C_TYPE,DEFAULT)                                                                             \
+            {                                                                                                                   \
+              double param;                                                                                                     \
+              ROS_DEBUG("CHECK: "#NAME" (Default = "#DEFAULT" = %f)",(float)DEFAULT);                                           \
+              if(ros::param::get("~"#NAME,param))                                                                               \
+              {                                                                                                                 \
+                ardrone_application_default_config.NAME = (C_TYPE)param;                                                        \
+                ROS_DEBUG("SET: "#NAME" = %f (DEFAULT = %f)", (float)ardrone_application_default_config.NAME, (float)DEFAULT);  \
+              }                                                                                                                 \
+            }
+
+        #define LOAD_PARAM_STR(NAME,DEFAULT)                                                                                    \
+            {                                                                                                                   \
+              std::string param;                                                                                                \
+              ROS_DEBUG("CHECK: "#NAME" (Default = "#DEFAULT" = %s)",DEFAULT);                                                  \
+              if(ros::param::get("~"#NAME,param))                                                                               \
+              {                                                                                                                 \
+                param = param.substr(0,STRING_T_SIZE-1);                                                                        \
+                strcpy(ardrone_application_default_config.NAME , param.c_str());                                                \
+                ROS_DEBUG("SET: "#NAME" = %s (DEFAULT = %s)", ardrone_application_default_config.NAME, DEFAULT);                \      
+              }                                                                                                                 \
+            }
+
+        #define ARDRONE_CONFIG_KEY_REF_a10(KEY, NAME, INI_TYPE, C_TYPE, C_TYPE_PTR, RW, RW_CUSTOM, DEFAULT, CALLBACK, CATEGORY) //do nothing for reference-only parameters
+        #define ARDRONE_CONFIG_KEY_IMM_a10(KEY, NAME, INI_TYPE, C_TYPE, C_TYPE_PTR, RW, RW_CUSTOM, DEFAULT, CALLBACK, CATEGORY) { if(0!=strcmp(KEY,"custom") && ((RW & K_WRITE) != 0 || (RW_CUSTOM & K_WRITE) != 0)) LOAD_PARAM_NUM(NAME,C_TYPE, DEFAULT) } // parameters under the custom key are for control of application/user/session, we don't want to change these!
+        #define ARDRONE_CONFIG_KEY_STR_a10(KEY, NAME, INI_TYPE, C_TYPE, C_TYPE_PTR, RW, RW_CUSTOM, DEFAULT, CALLBACK, CATEGORY) { if(0!=strcmp(KEY,"custom") && ((RW & K_WRITE) != 0 || (RW_CUSTOM & K_WRITE) != 0)) LOAD_PARAM_STR(NAME, DEFAULT) }
+
+        #include <config_keys.h> // include the parameter definitions, which will be replaced by the above
+
+        #undef LOAD_PARAM_NUM
+        #undef LOAD_PARAM_STR
+        #undef ARDRONE_CONFIG_KEY_IMM_a10
+        #undef ARDRONE_CONFIG_KEY_REF_a10
+        #undef ARDRONE_CONFIG_KEY_STR_a10
+
+        // Now we delete any old configuration that we may have stored, this is so the profiles will be reinitialized to drone default before being updated with the potentially new set of custom parameters that we specify above.
+        // We have to do this because only non-default parameters are sent, so if we delete a ros_param, the local parameter will be not be changed (above), thus will remain default and thus won't be updated on the drone - a problem if old profiles exist.
+
+        char buffer[MULTICONFIG_ID_SIZE+1];
+        
+        sprintf(buffer,"-%s",usr_id);
+        printf("Deleting Profile %s\n",buffer);
+        ARDRONE_TOOL_CONFIGURATION_ADDEVENT (profile_id, buffer, NULL);
+
+        sprintf(buffer,"-%s",app_id);
+        printf("Deleting Application %s\n",buffer);
+        ARDRONE_TOOL_CONFIGURATION_ADDEVENT (application_id, buffer, NULL);
+
+        // Now continue with the rest of the initialization
 
         ardrone_tool_input_add(&teleop);
         uint8_t post_stages_index = 0;
@@ -190,6 +237,7 @@ extern "C" {
 
     C_RESULT navdata_custom_process(const navdata_unpacked_t * const pnd) {
         vp_os_mutex_lock(&navdata_lock);
+        shared_raw_navdata = *pnd;
         shared_navdata_detect = pnd->navdata_vision_detect;
         shared_navdata_phys = pnd->navdata_phys_measures;
         shared_navdata = pnd->navdata_demo;
