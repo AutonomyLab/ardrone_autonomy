@@ -20,9 +20,6 @@ ARDroneDriver::ARDroneDriver()
     image_pub = image_transport.advertiseCamera("ardrone/image_raw", 10);
     hori_pub = image_transport.advertiseCamera("ardrone/front/image_raw", 10);
     vert_pub = image_transport.advertiseCamera("ardrone/bottom/image_raw", 10);
-    navdata_pub = node_handle.advertise<ardrone_autonomy::Navdata>("ardrone/navdata", 25);
-    imu_pub = node_handle.advertise<sensor_msgs::Imu>("ardrone/imu", 25);
-    mag_pub = node_handle.advertise<geometry_msgs::Vector3Stamped>("ardrone/mag", 25);
     toggleCam_service = node_handle.advertiseService("ardrone/togglecam", toggleCamCallback);
     setCamChannel_service = node_handle.advertiseService("ardrone/setcamchannel",setCamChannelCallback );
     setLedAnimation_service = node_handle.advertiseService("ardrone/setledanimation", setLedAnimationCallback);
@@ -562,6 +559,7 @@ void ARDroneDriver::publish_navdata()
 {
     // Thread safe copy of interesting Navdata data
     vp_os_mutex_lock(&navdata_lock);
+    navdata_raw = shared_raw_navdata;
     navdata_detect = shared_navdata_detect;
     navdata_phys = shared_navdata_phys;
     navdata = shared_navdata;
@@ -614,7 +612,10 @@ void ARDroneDriver::publish_navdata()
         navdata.vz -= vel_bias[2];
 
     }
-    if ((navdata_pub.getNumSubscribers() == 0) && (imu_pub.getNumSubscribers() == 0) && (mag_pub.getNumSubscribers() == 0))
+
+    PublishNavdataTypes(navdata_raw); // This is defined in the template NavdataMessageDefinitions.h template file
+
+    if (!enabled_legacy_navdata || (navdata_pub.getNumSubscribers() == 0) && (imu_pub.getNumSubscribers() == 0) && (mag_pub.getNumSubscribers() == 0))
         return; // why bother, no one is listening.
     const ros::Time _now = ros::Time::now();
 
@@ -728,6 +729,10 @@ void ARDroneDriver::publish_navdata()
     navdata_pub.publish(msg);
     imu_pub.publish(imu_msg);
 }
+
+#define NAVDATA_STRUCTS_SOURCE
+#include "NavdataMessageDefinitions.h"
+#undef NAVDATA_STRUCTS_SOURCE
 
 void ARDroneDriver::publish_tf()
 {

@@ -1,0 +1,14 @@
+Header header
+float64 drone_time
+uint16 tag
+uint16 size
+int32 altitude_vision
+float32 altitude_vz
+int32 altitude_ref
+int32 altitude_raw
+float32 obs_accZ
+float32 obs_alt
+vector31 obs_x
+uint32 obs_state
+vector21 est_vb
+uint32 est_state
