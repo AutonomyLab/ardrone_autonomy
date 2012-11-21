@@ -43,87 +43,62 @@
 #ifdef NAVDATA_STRUCTS_HEADER
 	ros::Publisher pub_navdata_demo;
 	bool enabled_navdata_demo;
-
 	ros::Publisher pub_navdata_time;
 	bool enabled_navdata_time;
-
 	ros::Publisher pub_navdata_raw_measures;
 	bool enabled_navdata_raw_measures;
-
 	ros::Publisher pub_navdata_phys_measures;
 	bool enabled_navdata_phys_measures;
-
 	ros::Publisher pub_navdata_gyros_offsets;
 	bool enabled_navdata_gyros_offsets;
-
 	ros::Publisher pub_navdata_euler_angles;
 	bool enabled_navdata_euler_angles;
-
 	ros::Publisher pub_navdata_references;
 	bool enabled_navdata_references;
-
 	ros::Publisher pub_navdata_trims;
 	bool enabled_navdata_trims;
-
 	ros::Publisher pub_navdata_rc_references;
 	bool enabled_navdata_rc_references;
-
 	ros::Publisher pub_navdata_pwm;
 	bool enabled_navdata_pwm;
-
 	ros::Publisher pub_navdata_altitude;
 	bool enabled_navdata_altitude;
-
 	ros::Publisher pub_navdata_vision_raw;
 	bool enabled_navdata_vision_raw;
-
 	ros::Publisher pub_navdata_vision_of;
 	bool enabled_navdata_vision_of;
-
 	ros::Publisher pub_navdata_vision;
 	bool enabled_navdata_vision;
-
 	ros::Publisher pub_navdata_vision_perf;
 	bool enabled_navdata_vision_perf;
-
 	ros::Publisher pub_navdata_trackers_send;
 	bool enabled_navdata_trackers_send;
-
 	ros::Publisher pub_navdata_vision_detect;
 	bool enabled_navdata_vision_detect;
-
 	ros::Publisher pub_navdata_watchdog;
 	bool enabled_navdata_watchdog;
-
 	ros::Publisher pub_navdata_adc_data_frame;
 	bool enabled_navdata_adc_data_frame;
-
 	ros::Publisher pub_navdata_video_stream;
 	bool enabled_navdata_video_stream;
-
 	ros::Publisher pub_navdata_games;
 	bool enabled_navdata_games;
-
 	ros::Publisher pub_navdata_pressure_raw;
 	bool enabled_navdata_pressure_raw;
-
 	ros::Publisher pub_navdata_magneto;
 	bool enabled_navdata_magneto;
-
 	ros::Publisher pub_navdata_wind_speed;
 	bool enabled_navdata_wind_speed;
-
 	ros::Publisher pub_navdata_kalman_pressure;
 	bool enabled_navdata_kalman_pressure;
-
 	ros::Publisher pub_navdata_hdvideo_stream;
 	bool enabled_navdata_hdvideo_stream;
-
 	ros::Publisher pub_navdata_wifi;
 	bool enabled_navdata_wifi;
-
 	ros::Publisher pub_navdata_zimmu_3000;
 	bool enabled_navdata_zimmu_3000;
+
+	bool enabled_legacy_navdata;
 
 	bool initialized_navdata_publishers;
 	void PublishNavdataTypes(navdata_unpacked_t n);
@@ -136,6 +111,18 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 	{
 		initialized_navdata_publishers = true;
 
+		enabled_legacy_navdata = true;
+		ros::param::get("~enable_navdata_zimmu_3000", enabled_navdata_zimmu_3000);
+
+		if(enabled_legacy_navdata)
+		{
+			navdata_pub = node_handle.advertise<ardrone_autonomy::Navdata>("ardrone/navdata", 25);
+			imu_pub = node_handle.advertise<sensor_msgs::Imu>("ardrone/imu", 25);
+			mag_pub = node_handle.advertise<geometry_msgs::Vector3Stamped>("ardrone/mag", 25);
+		}
+
+		//-------------------------
+
 		enabled_navdata_demo = false;
 		ros::param::get("~enable_navdata_demo", enabled_navdata_demo);
 
@@ -143,6 +130,8 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 		{
 			pub_navdata_demo = node_handle.advertise<ardrone_autonomy::navdata_demo>("ardrone/navdata_demo", NAVDATA_QUEUE_SIZE);
 		}
+
+		//-------------------------
 
 		enabled_navdata_time = false;
 		ros::param::get("~enable_navdata_time", enabled_navdata_time);
@@ -152,6 +141,8 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 			pub_navdata_time = node_handle.advertise<ardrone_autonomy::navdata_time>("ardrone/navdata_time", NAVDATA_QUEUE_SIZE);
 		}
 
+		//-------------------------
+
 		enabled_navdata_raw_measures = false;
 		ros::param::get("~enable_navdata_raw_measures", enabled_navdata_raw_measures);
 
@@ -159,6 +150,8 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 		{
 			pub_navdata_raw_measures = node_handle.advertise<ardrone_autonomy::navdata_raw_measures>("ardrone/navdata_raw_measures", NAVDATA_QUEUE_SIZE);
 		}
+
+		//-------------------------
 
 		enabled_navdata_phys_measures = false;
 		ros::param::get("~enable_navdata_phys_measures", enabled_navdata_phys_measures);
@@ -168,6 +161,8 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 			pub_navdata_phys_measures = node_handle.advertise<ardrone_autonomy::navdata_phys_measures>("ardrone/navdata_phys_measures", NAVDATA_QUEUE_SIZE);
 		}
 
+		//-------------------------
+
 		enabled_navdata_gyros_offsets = false;
 		ros::param::get("~enable_navdata_gyros_offsets", enabled_navdata_gyros_offsets);
 
@@ -175,6 +170,8 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 		{
 			pub_navdata_gyros_offsets = node_handle.advertise<ardrone_autonomy::navdata_gyros_offsets>("ardrone/navdata_gyros_offsets", NAVDATA_QUEUE_SIZE);
 		}
+
+		//-------------------------
 
 		enabled_navdata_euler_angles = false;
 		ros::param::get("~enable_navdata_euler_angles", enabled_navdata_euler_angles);
@@ -184,6 +181,8 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 			pub_navdata_euler_angles = node_handle.advertise<ardrone_autonomy::navdata_euler_angles>("ardrone/navdata_euler_angles", NAVDATA_QUEUE_SIZE);
 		}
 
+		//-------------------------
+
 		enabled_navdata_references = false;
 		ros::param::get("~enable_navdata_references", enabled_navdata_references);
 
@@ -191,6 +190,8 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 		{
 			pub_navdata_references = node_handle.advertise<ardrone_autonomy::navdata_references>("ardrone/navdata_references", NAVDATA_QUEUE_SIZE);
 		}
+
+		//-------------------------
 
 		enabled_navdata_trims = false;
 		ros::param::get("~enable_navdata_trims", enabled_navdata_trims);
@@ -200,6 +201,8 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 			pub_navdata_trims = node_handle.advertise<ardrone_autonomy::navdata_trims>("ardrone/navdata_trims", NAVDATA_QUEUE_SIZE);
 		}
 
+		//-------------------------
+
 		enabled_navdata_rc_references = false;
 		ros::param::get("~enable_navdata_rc_references", enabled_navdata_rc_references);
 
@@ -207,6 +210,8 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 		{
 			pub_navdata_rc_references = node_handle.advertise<ardrone_autonomy::navdata_rc_references>("ardrone/navdata_rc_references", NAVDATA_QUEUE_SIZE);
 		}
+
+		//-------------------------
 
 		enabled_navdata_pwm = false;
 		ros::param::get("~enable_navdata_pwm", enabled_navdata_pwm);
@@ -216,6 +221,8 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 			pub_navdata_pwm = node_handle.advertise<ardrone_autonomy::navdata_pwm>("ardrone/navdata_pwm", NAVDATA_QUEUE_SIZE);
 		}
 
+		//-------------------------
+
 		enabled_navdata_altitude = false;
 		ros::param::get("~enable_navdata_altitude", enabled_navdata_altitude);
 
@@ -223,6 +230,8 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 		{
 			pub_navdata_altitude = node_handle.advertise<ardrone_autonomy::navdata_altitude>("ardrone/navdata_altitude", NAVDATA_QUEUE_SIZE);
 		}
+
+		//-------------------------
 
 		enabled_navdata_vision_raw = false;
 		ros::param::get("~enable_navdata_vision_raw", enabled_navdata_vision_raw);
@@ -232,6 +241,8 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 			pub_navdata_vision_raw = node_handle.advertise<ardrone_autonomy::navdata_vision_raw>("ardrone/navdata_vision_raw", NAVDATA_QUEUE_SIZE);
 		}
 
+		//-------------------------
+
 		enabled_navdata_vision_of = false;
 		ros::param::get("~enable_navdata_vision_of", enabled_navdata_vision_of);
 
@@ -239,6 +250,8 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 		{
 			pub_navdata_vision_of = node_handle.advertise<ardrone_autonomy::navdata_vision_of>("ardrone/navdata_vision_of", NAVDATA_QUEUE_SIZE);
 		}
+
+		//-------------------------
 
 		enabled_navdata_vision = false;
 		ros::param::get("~enable_navdata_vision", enabled_navdata_vision);
@@ -248,6 +261,8 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 			pub_navdata_vision = node_handle.advertise<ardrone_autonomy::navdata_vision>("ardrone/navdata_vision", NAVDATA_QUEUE_SIZE);
 		}
 
+		//-------------------------
+
 		enabled_navdata_vision_perf = false;
 		ros::param::get("~enable_navdata_vision_perf", enabled_navdata_vision_perf);
 
@@ -255,6 +270,8 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 		{
 			pub_navdata_vision_perf = node_handle.advertise<ardrone_autonomy::navdata_vision_perf>("ardrone/navdata_vision_perf", NAVDATA_QUEUE_SIZE);
 		}
+
+		//-------------------------
 
 		enabled_navdata_trackers_send = false;
 		ros::param::get("~enable_navdata_trackers_send", enabled_navdata_trackers_send);
@@ -264,6 +281,8 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 			pub_navdata_trackers_send = node_handle.advertise<ardrone_autonomy::navdata_trackers_send>("ardrone/navdata_trackers_send", NAVDATA_QUEUE_SIZE);
 		}
 
+		//-------------------------
+
 		enabled_navdata_vision_detect = false;
 		ros::param::get("~enable_navdata_vision_detect", enabled_navdata_vision_detect);
 
@@ -271,6 +290,8 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 		{
 			pub_navdata_vision_detect = node_handle.advertise<ardrone_autonomy::navdata_vision_detect>("ardrone/navdata_vision_detect", NAVDATA_QUEUE_SIZE);
 		}
+
+		//-------------------------
 
 		enabled_navdata_watchdog = false;
 		ros::param::get("~enable_navdata_watchdog", enabled_navdata_watchdog);
@@ -280,6 +301,8 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 			pub_navdata_watchdog = node_handle.advertise<ardrone_autonomy::navdata_watchdog>("ardrone/navdata_watchdog", NAVDATA_QUEUE_SIZE);
 		}
 
+		//-------------------------
+
 		enabled_navdata_adc_data_frame = false;
 		ros::param::get("~enable_navdata_adc_data_frame", enabled_navdata_adc_data_frame);
 
@@ -287,6 +310,8 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 		{
 			pub_navdata_adc_data_frame = node_handle.advertise<ardrone_autonomy::navdata_adc_data_frame>("ardrone/navdata_adc_data_frame", NAVDATA_QUEUE_SIZE);
 		}
+
+		//-------------------------
 
 		enabled_navdata_video_stream = false;
 		ros::param::get("~enable_navdata_video_stream", enabled_navdata_video_stream);
@@ -296,6 +321,8 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 			pub_navdata_video_stream = node_handle.advertise<ardrone_autonomy::navdata_video_stream>("ardrone/navdata_video_stream", NAVDATA_QUEUE_SIZE);
 		}
 
+		//-------------------------
+
 		enabled_navdata_games = false;
 		ros::param::get("~enable_navdata_games", enabled_navdata_games);
 
@@ -303,6 +330,8 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 		{
 			pub_navdata_games = node_handle.advertise<ardrone_autonomy::navdata_games>("ardrone/navdata_games", NAVDATA_QUEUE_SIZE);
 		}
+
+		//-------------------------
 
 		enabled_navdata_pressure_raw = false;
 		ros::param::get("~enable_navdata_pressure_raw", enabled_navdata_pressure_raw);
@@ -312,6 +341,8 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 			pub_navdata_pressure_raw = node_handle.advertise<ardrone_autonomy::navdata_pressure_raw>("ardrone/navdata_pressure_raw", NAVDATA_QUEUE_SIZE);
 		}
 
+		//-------------------------
+
 		enabled_navdata_magneto = false;
 		ros::param::get("~enable_navdata_magneto", enabled_navdata_magneto);
 
@@ -319,6 +350,8 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 		{
 			pub_navdata_magneto = node_handle.advertise<ardrone_autonomy::navdata_magneto>("ardrone/navdata_magneto", NAVDATA_QUEUE_SIZE);
 		}
+
+		//-------------------------
 
 		enabled_navdata_wind_speed = false;
 		ros::param::get("~enable_navdata_wind_speed", enabled_navdata_wind_speed);
@@ -328,6 +361,8 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 			pub_navdata_wind_speed = node_handle.advertise<ardrone_autonomy::navdata_wind_speed>("ardrone/navdata_wind_speed", NAVDATA_QUEUE_SIZE);
 		}
 
+		//-------------------------
+
 		enabled_navdata_kalman_pressure = false;
 		ros::param::get("~enable_navdata_kalman_pressure", enabled_navdata_kalman_pressure);
 
@@ -335,6 +370,8 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 		{
 			pub_navdata_kalman_pressure = node_handle.advertise<ardrone_autonomy::navdata_kalman_pressure>("ardrone/navdata_kalman_pressure", NAVDATA_QUEUE_SIZE);
 		}
+
+		//-------------------------
 
 		enabled_navdata_hdvideo_stream = false;
 		ros::param::get("~enable_navdata_hdvideo_stream", enabled_navdata_hdvideo_stream);
@@ -344,6 +381,8 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 			pub_navdata_hdvideo_stream = node_handle.advertise<ardrone_autonomy::navdata_hdvideo_stream>("ardrone/navdata_hdvideo_stream", NAVDATA_QUEUE_SIZE);
 		}
 
+		//-------------------------
+
 		enabled_navdata_wifi = false;
 		ros::param::get("~enable_navdata_wifi", enabled_navdata_wifi);
 
@@ -352,6 +391,8 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 			pub_navdata_wifi = node_handle.advertise<ardrone_autonomy::navdata_wifi>("ardrone/navdata_wifi", NAVDATA_QUEUE_SIZE);
 		}
 
+		//-------------------------
+
 		enabled_navdata_zimmu_3000 = false;
 		ros::param::get("~enable_navdata_zimmu_3000", enabled_navdata_zimmu_3000);
 
@@ -359,6 +400,8 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 		{
 			pub_navdata_zimmu_3000 = node_handle.advertise<ardrone_autonomy::navdata_zimmu_3000>("ardrone/navdata_zimmu_3000", NAVDATA_QUEUE_SIZE);
 		}
+
+		//-------------------------
 
 	}
 
@@ -474,6 +517,8 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 		pub_navdata_demo.publish(msg);
 	}
 
+	//-------------------------
+
 	if(enabled_navdata_time && pub_navdata_time.getNumSubscribers()>0)
 	{
 		ardrone_autonomy::navdata_time msg;
@@ -505,6 +550,8 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 
 		pub_navdata_time.publish(msg);
 	}
+
+	//-------------------------
 
 	if(enabled_navdata_raw_measures && pub_navdata_raw_measures.getNumSubscribers()>0)
 	{
@@ -652,6 +699,8 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 		pub_navdata_raw_measures.publish(msg);
 	}
 
+	//-------------------------
+
 	if(enabled_navdata_phys_measures && pub_navdata_phys_measures.getNumSubscribers()>0)
 	{
 		ardrone_autonomy::navdata_phys_measures msg;
@@ -734,6 +783,8 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 		pub_navdata_phys_measures.publish(msg);
 	}
 
+	//-------------------------
+
 	if(enabled_navdata_gyros_offsets && pub_navdata_gyros_offsets.getNumSubscribers()>0)
 	{
 		ardrone_autonomy::navdata_gyros_offsets msg;
@@ -766,6 +817,8 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 		
 		pub_navdata_gyros_offsets.publish(msg);
 	}
+
+	//-------------------------
 
 	if(enabled_navdata_euler_angles && pub_navdata_euler_angles.getNumSubscribers()>0)
 	{
@@ -806,6 +859,8 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 
 		pub_navdata_euler_angles.publish(msg);
 	}
+
+	//-------------------------
 
 	if(enabled_navdata_references && pub_navdata_references.getNumSubscribers()>0)
 	{
@@ -999,6 +1054,8 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 		pub_navdata_references.publish(msg);
 	}
 
+	//-------------------------
+
 	if(enabled_navdata_trims && pub_navdata_trims.getNumSubscribers()>0)
 	{
 		ardrone_autonomy::navdata_trims msg;
@@ -1046,6 +1103,8 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 
 		pub_navdata_trims.publish(msg);
 	}
+
+	//-------------------------
 
 	if(enabled_navdata_rc_references && pub_navdata_rc_references.getNumSubscribers()>0)
 	{
@@ -1110,6 +1169,8 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 
 		pub_navdata_rc_references.publish(msg);
 	}
+
+	//-------------------------
 
 	if(enabled_navdata_pwm && pub_navdata_pwm.getNumSubscribers()>0)
 	{
@@ -1335,6 +1396,8 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 		pub_navdata_pwm.publish(msg);
 	}
 
+	//-------------------------
+
 	if(enabled_navdata_altitude && pub_navdata_altitude.getNumSubscribers()>0)
 	{
 		ardrone_autonomy::navdata_altitude msg;
@@ -1442,6 +1505,8 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 		pub_navdata_altitude.publish(msg);
 	}
 
+	//-------------------------
+
 	if(enabled_navdata_vision_raw && pub_navdata_vision_raw.getNumSubscribers()>0)
 	{
 		ardrone_autonomy::navdata_vision_raw msg;
@@ -1490,6 +1555,8 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 		pub_navdata_vision_raw.publish(msg);
 	}
 
+	//-------------------------
+
 	if(enabled_navdata_vision_of && pub_navdata_vision_of.getNumSubscribers()>0)
 	{
 		ardrone_autonomy::navdata_vision_of msg;
@@ -1531,6 +1598,8 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 		
 		pub_navdata_vision_of.publish(msg);
 	}
+
+	//-------------------------
 
 	if(enabled_navdata_vision && pub_navdata_vision.getNumSubscribers()>0)
 	{
@@ -1718,6 +1787,8 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 		pub_navdata_vision.publish(msg);
 	}
 
+	//-------------------------
+
 	if(enabled_navdata_vision_perf && pub_navdata_vision_perf.getNumSubscribers()>0)
 	{
 		ardrone_autonomy::navdata_vision_perf msg;
@@ -1791,6 +1862,8 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 		pub_navdata_vision_perf.publish(msg);
 	}
 
+	//-------------------------
+
 	if(enabled_navdata_trackers_send && pub_navdata_trackers_send.getNumSubscribers()>0)
 	{
 		ardrone_autonomy::navdata_trackers_send msg;
@@ -1833,6 +1906,8 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 		
 		pub_navdata_trackers_send.publish(msg);
 	}
+
+	//-------------------------
 
 	if(enabled_navdata_vision_detect && pub_navdata_vision_detect.getNumSubscribers()>0)
 	{
@@ -1966,6 +2041,8 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 		pub_navdata_vision_detect.publish(msg);
 	}
 
+	//-------------------------
+
 	if(enabled_navdata_watchdog && pub_navdata_watchdog.getNumSubscribers()>0)
 	{
 		ardrone_autonomy::navdata_watchdog msg;
@@ -1989,6 +2066,8 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 
 		pub_navdata_watchdog.publish(msg);
 	}
+
+	//-------------------------
 
 	if(enabled_navdata_adc_data_frame && pub_navdata_adc_data_frame.getNumSubscribers()>0)
 	{
@@ -2030,6 +2109,8 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 		
 		pub_navdata_adc_data_frame.publish(msg);
 	}
+
+	//-------------------------
 
 	if(enabled_navdata_video_stream && pub_navdata_video_stream.getNumSubscribers()>0)
 	{
@@ -2159,6 +2240,8 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 		pub_navdata_video_stream.publish(msg);
 	}
 
+	//-------------------------
+
 	if(enabled_navdata_games && pub_navdata_games.getNumSubscribers()>0)
 	{
 		ardrone_autonomy::navdata_games msg;
@@ -2198,6 +2281,8 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 
 		pub_navdata_games.publish(msg);
 	}
+
+	//-------------------------
 
 	if(enabled_navdata_pressure_raw && pub_navdata_pressure_raw.getNumSubscribers()>0)
 	{
@@ -2254,6 +2339,8 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 
 		pub_navdata_pressure_raw.publish(msg);
 	}
+
+	//-------------------------
 
 	if(enabled_navdata_magneto && pub_navdata_magneto.getNumSubscribers()>0)
 	{
@@ -2397,6 +2484,8 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 		pub_navdata_magneto.publish(msg);
 	}
 
+	//-------------------------
+
 	if(enabled_navdata_wind_speed && pub_navdata_wind_speed.getNumSubscribers()>0)
 	{
 		ardrone_autonomy::navdata_wind_speed msg;
@@ -2524,6 +2613,8 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 
 		pub_navdata_wind_speed.publish(msg);
 	}
+
+	//-------------------------
 
 	if(enabled_navdata_kalman_pressure && pub_navdata_kalman_pressure.getNumSubscribers()>0)
 	{
@@ -2685,6 +2776,8 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 		pub_navdata_kalman_pressure.publish(msg);
 	}
 
+	//-------------------------
+
 	if(enabled_navdata_hdvideo_stream && pub_navdata_hdvideo_stream.getNumSubscribers()>0)
 	{
 		ardrone_autonomy::navdata_hdvideo_stream msg;
@@ -2765,6 +2858,8 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 		pub_navdata_hdvideo_stream.publish(msg);
 	}
 
+	//-------------------------
+
 	if(enabled_navdata_wifi && pub_navdata_wifi.getNumSubscribers()>0)
 	{
 		ardrone_autonomy::navdata_wifi msg;
@@ -2796,6 +2891,8 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 
 		pub_navdata_wifi.publish(msg);
 	}
+
+	//-------------------------
 
 	if(enabled_navdata_zimmu_3000 && pub_navdata_zimmu_3000.getNumSubscribers()>0)
 	{
@@ -2836,6 +2933,8 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 
 		pub_navdata_zimmu_3000.publish(msg);
 	}
+
+	//-------------------------
 
 
 }

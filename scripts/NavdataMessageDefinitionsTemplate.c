@@ -19,8 +19,10 @@
 % for item in structs:
 	ros::Publisher pub_${item['struct_name']};
 	bool enabled_${item['struct_name']};
-
 % endfor
+
+	bool enabled_legacy_navdata;
+
 	bool initialized_navdata_publishers;
 	void PublishNavdataTypes(navdata_unpacked_t n);
 #endif
@@ -32,6 +34,18 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 	{
 		initialized_navdata_publishers = true;
 
+		enabled_legacy_navdata = true;
+		ros::param::get("~enable_${item['struct_name']}", enabled_${item['struct_name']});
+
+		if(enabled_legacy_navdata)
+		{
+			navdata_pub = node_handle.advertise<ardrone_autonomy::Navdata>("ardrone/navdata", 25);
+			imu_pub = node_handle.advertise<sensor_msgs::Imu>("ardrone/imu", 25);
+			mag_pub = node_handle.advertise<geometry_msgs::Vector3Stamped>("ardrone/mag", 25);
+		}
+
+		//-------------------------
+
 % for item in structs:
 		enabled_${item['struct_name']} = false;
 		ros::param::get("~enable_${item['struct_name']}", enabled_${item['struct_name']});
@@ -40,6 +54,8 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 		{
 			pub_${item['struct_name']} = node_handle.advertise<ardrone_autonomy::${item['struct_name']}>("ardrone/${item['struct_name']}", NAVDATA_QUEUE_SIZE);
 		}
+
+		//-------------------------
 
 % endfor
 	}
@@ -68,6 +84,8 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 % endfor
 		pub_${item['struct_name']}.publish(msg);
 	}
+
+	//-------------------------
 
 % endfor
 

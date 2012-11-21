@@ -20,9 +20,6 @@ ARDroneDriver::ARDroneDriver()
     image_pub = image_transport.advertiseCamera("ardrone/image_raw", 10);
     hori_pub = image_transport.advertiseCamera("ardrone/front/image_raw", 10);
     vert_pub = image_transport.advertiseCamera("ardrone/bottom/image_raw", 10);
-    navdata_pub = node_handle.advertise<ardrone_autonomy::Navdata>("ardrone/navdata", 25);
-    imu_pub = node_handle.advertise<sensor_msgs::Imu>("ardrone/imu", 25);
-    mag_pub = node_handle.advertise<geometry_msgs::Vector3Stamped>("ardrone/mag", 25);
     toggleCam_service = node_handle.advertiseService("ardrone/togglecam", toggleCamCallback);
     setCamChannel_service = node_handle.advertiseService("ardrone/setcamchannel",setCamChannelCallback );
     setLedAnimation_service = node_handle.advertiseService("ardrone/setledanimation", setLedAnimationCallback);
@@ -618,7 +615,7 @@ void ARDroneDriver::publish_navdata()
 
     PublishNavdataTypes(navdata_raw); // This is defined in the template NavdataMessageDefinitions.h template file
 
-    if ((navdata_pub.getNumSubscribers() == 0) && (imu_pub.getNumSubscribers() == 0) && (mag_pub.getNumSubscribers() == 0))
+    if (!enabled_legacy_navdata || (navdata_pub.getNumSubscribers() == 0) && (imu_pub.getNumSubscribers() == 0) && (mag_pub.getNumSubscribers() == 0))
         return; // why bother, no one is listening.
     const ros::Time _now = ros::Time::now();
 

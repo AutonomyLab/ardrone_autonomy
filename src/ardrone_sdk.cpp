@@ -70,6 +70,8 @@ extern "C" {
         command_always_send = false;   //constantly sends navdata messages to the drone, even if the messages haven't changed
         ros::param::param("~command_disable_hover", command_disable_hover, false);
         ros::param::param("~command_always_send"  , command_always_send,   false);
+        ROS_INFO("Hovering is %s",(command_disable_hover?"DISABLED!":"Enabled."));
+        ROS_INFO("Will %s send duplicate commands.",(command_always_send?"ALWAYS":"not"));
 
 
         // SET SOME NON-STANDARD DEFAULT VALUES FOR THE DRIVER
