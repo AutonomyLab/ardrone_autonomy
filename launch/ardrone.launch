@@ -1,0 +1,27 @@
+<!-- This is a sample lanuch file, please change it based on your needs -->
+<launch>
+	<node name="ardrone_driver" pkg="ardrone_autonomy" type="ardrone_driver" output="screen" clear_params="true">
+	    <param name="outdoor" value="1" />
+	    <param name="max_bitrate" value="4000" />
+	    <param name="bitrate" value="4000" />
+	    <param name="navdata_demo" value="0" />
+	    <param name="flight_without_shell" value="0" />
+	    <param name="altitude_max" value="3000" />
+        <param name="altitude_min" value="50" />
+        <param name="euler_angle_max" value="0.21" />
+        <param name="control_vz_max" value="700" />
+	    <param name="control_yaw" value="1.75" />
+	    <param name="detect_type" value="10" />
+	    <param name="enemy_colors" value="3" />
+	    <param name="detections_select_h" value="32" />
+	    <param name="detections_select_v_hsync" value="128" />
+	    <param name="enemy_without_shell" value="0" />
+	    <param name="do_imu_caliberation" value="false" />
+	    <param name="tf_prefix" value="mydrone" />
+        <!-- Covariance Values (3x3 matrices reshaped to 1x9)-->
+        <rosparam param="cov/imu_la">[0.1, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.1]</rosparam>
+        <rosparam param="cov/imu_av">[1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]</rosparam>
+        <rosparam param="cov/imu_or">[1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 100000.0]</rosparam>
+	</node>
+</launch>
+
