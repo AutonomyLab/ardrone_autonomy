@@ -52,6 +52,10 @@ extern navdata_time_t shared_arnavtime;
 extern navdata_pressure_raw_t shared_navdata_pressure;
 extern navdata_magneto_t shared_navdata_magneto;
 extern navdata_wind_speed_t shared_navdata_wind;
+extern navdata_unpacked_t shared_raw_navdata;
+
+extern bool command_disable_hover;
+extern bool command_always_send;
 
 extern vp_os_mutex_t navdata_lock;
 extern vp_os_mutex_t video_lock;
