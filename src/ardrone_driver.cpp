@@ -699,7 +699,7 @@ void ARDroneDriver::publish_navdata()
     imu_msg.linear_acceleration.z = msg.az * 9.8;
 
     // IMU - Rotation Matrix
-    btQuaternion q;
+    tf::Quaternion q;
     q.setEulerZYX(msg.rotZ * _DEG2RAD, msg.rotY * _DEG2RAD, msg.rotX * _DEG2RAD);
     tf::quaternionTFToMsg(q, imu_msg.orientation);
 
