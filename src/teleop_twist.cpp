@@ -155,8 +155,7 @@ C_RESULT update_teleop(void)
                 (fabs(turn) < _EPS)
                 );
 
-        if(command_disable_hover) hover = 1; //force the hover flag to 1 (0 == enter hover) if we want to disable the hover state
-        if(command_always_send)   is_changed = true; //force the packet to send if so desired
+        if(cmd_vel.angular.x > _EPS || cmd_vel.angular.y > _EPS) hover=1; //set angular.x or angular.y to a non-zero value to disable entering hover
 
         control_flag |= (hover << 0);
         control_flag |= (combined_yaw << 1);
