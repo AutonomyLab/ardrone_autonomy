@@ -730,6 +730,7 @@ void ARDroneDriver::publish_navdata()
     imu_pub.publish(imu_msg);
 }
 
+// Load actual auto-generated code to publish full navdata
 #define NAVDATA_STRUCTS_SOURCE
 #include "NavdataMessageDefinitions.h"
 #undef NAVDATA_STRUCTS_SOURCE

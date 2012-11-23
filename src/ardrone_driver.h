@@ -16,6 +16,7 @@
 #include <ardrone_tool/ardrone_version.h>
 #include <ardrone_tool/ardrone_tool.h>
 
+// Load auto-generated include files for full navdata
 #define NAVDATA_STRUCTS_INCLUDES
 #include "NavdataMessageDefinitions.h"
 #undef NAVDATA_STRUCTS_INCLUDES
@@ -112,6 +113,7 @@ private:
     navdata_time_t arnavtime;
     navdata_unpacked_t navdata_raw;
 
+    // Load auto-generated declarations for full navdata
     #define NAVDATA_STRUCTS_HEADER
     #include "NavdataMessageDefinitions.h"
     #undef NAVDATA_STRUCTS_HEADER
