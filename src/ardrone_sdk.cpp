@@ -12,9 +12,6 @@ navdata_wind_speed_t shared_navdata_wind;
 navdata_time_t shared_arnavtime;
 navdata_unpacked_t shared_raw_navdata;
 
-bool command_disable_hover;
-bool command_always_send;
-
 vp_os_mutex_t navdata_lock;
 vp_os_mutex_t video_lock;
 vp_os_mutex_t twist_lock;
@@ -64,14 +61,6 @@ extern "C" {
         {
             printf("Something must be really wrong with the SDK!");
         }
-
-
-        command_disable_hover = false; //disables the drone from entering the hover state - constant dynamics rather than onboard state changes
-        command_always_send = false;   //constantly sends navdata messages to the drone, even if the messages haven't changed
-        ros::param::param("~command_disable_hover", command_disable_hover, false);
-        ros::param::param("~command_always_send"  , command_always_send,   false);
-        ROS_INFO("Hovering is %s",(command_disable_hover?"DISABLED!":"Enabled."));
-        ROS_INFO("Will %s send duplicate commands.",(command_always_send?"ALWAYS":"not"));
 
 
         // SET SOME NON-STANDARD DEFAULT VALUES FOR THE DRIVER

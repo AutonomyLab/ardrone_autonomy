@@ -24,9 +24,6 @@
 	    <param name="do_imu_caliberation" value="false" />
 	    <param name="tf_prefix" value="mydrone" />
 
-	    <param name="command_disable_hover" value="true" />
-	    <param name="command_always_send" value="true" />
-
 	    <param name="enable_navdata_demo" value="true" />
 		<param name="enable_navdata_time" value="true" />
 		<param name="enable_navdata_raw_measures" value="true" />

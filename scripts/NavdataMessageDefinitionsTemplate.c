@@ -19,6 +19,7 @@
 % for item in structs:
 	ros::Publisher pub_${item['struct_name']};
 	bool enabled_${item['struct_name']};
+	ardrone_autonomy::${item['struct_name']} ${item['struct_name']}_msg;
 % endfor
 
 	bool enabled_legacy_navdata;
@@ -30,6 +31,8 @@
 #ifdef NAVDATA_STRUCTS_SOURCE
 void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 {
+	const ros::Time now = ros::Time::now();
+
 	if(!initialized_navdata_publishers)
 	{
 		initialized_navdata_publishers = true;
@@ -63,26 +66,27 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 % for item in structs:
 	if(enabled_${item['struct_name']} && pub_${item['struct_name']}.getNumSubscribers()>0)
 	{
-		ardrone_autonomy::${item['struct_name']} msg;
-		msg.drone_time = ((double)ardrone_time_to_usec(n.navdata_time.time))/1000000.0;
+		${item['struct_name']}_msg.drone_time = ((double)ardrone_time_to_usec(n.navdata_time.time))/1000000.0;
+		${item['struct_name']}_msg.header.stamp = now;
+		${item['struct_name']}_msg.header.frame_id = droneFrameBase;
 
 % for member in item['members']:
 % if member['array_size'] is None:
 		{\
 			${format_member(item, member, None)}
-			msg.${member['name']} = m;
+			${item['struct_name']}_msg.${member['name']} = m;
 		}
 
 % else:
 		for(int i=0; i<${member['array_size']}; i++)
 		{\
 			${format_member(item, member, 'i')}
-			msg.${member['name']}.push_back(m);
+			${item['struct_name']}_msg.${member['name']}.push_back(m);
 		}
 		
 % endif
 % endfor
-		pub_${item['struct_name']}.publish(msg);
+		pub_${item['struct_name']}.publish(${item['struct_name']}_msg);
 	}
 
 	//-------------------------
