@@ -152,7 +152,9 @@ C_RESULT update_teleop(void)
                 (fabs(left_right) < _EPS) && 
                 (fabs(front_back) < _EPS) && 
                 (fabs(up_down) < _EPS) && 
-                (fabs(turn) < _EPS)
+                (fabs(turn) < _EPS) &&
+                (fabs((float) cmd_vel.angular.y) < _EPS) &&
+                (fabs((float) cmd_vel.angular.x) < _EPS)
                 );
 
         if(command_disable_hover) hover = 1; //force the hover flag to 1 (0 == enter hover) if we want to disable the hover state
