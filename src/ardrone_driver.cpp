@@ -114,7 +114,7 @@ ARDroneDriver::~ARDroneDriver()
 
 void ARDroneDriver::run()
 {
-    ros::Rate loop_rate(50);
+    ros::Rate loop_rate(looprate);
     ros::Time startTime = ros::Time::now();
     static int freq_dev = 0;
 	while (node_handle.ok())
@@ -133,7 +133,7 @@ void ARDroneDriver::run()
                          ardrone_control_config.ardrone_name,
                          (IS_ARDRONE1) ? 1 : 2,
                          ardrone_control_config.num_version_soft,
-                         shared_navdata.vbat_flying_percentage);
+                         shared_raw_navdata.navdata_demo.vbat_flying_percentage);
                 vp_os_mutex_unlock(&navdata_lock);
                 if (ardrone_control_config.num_version_soft[0] == '0')
                 {
@@ -559,30 +559,20 @@ void ARDroneDriver::publish_navdata()
     // Thread safe copy of interesting Navdata data
     vp_os_mutex_lock(&navdata_lock);
     navdata_raw = shared_raw_navdata;
-    navdata_detect = shared_navdata_detect;
-    navdata_phys = shared_navdata_phys;
-    navdata = shared_navdata;
-    arnavtime = shared_arnavtime;
-    if (IS_ARDRONE2)
-    { // This is neccessary
-        navdata_pressure = shared_navdata_pressure;
-        navdata_magneto = shared_navdata_magneto;
-        navdata_wind = shared_navdata_wind;
-    }
     vp_os_mutex_unlock(&navdata_lock);
 
 
     if ((do_caliberation) && (!caliberated))
     {
-        acc_samples[0].push_back(navdata_phys.phys_accs[ACC_X]);
-        acc_samples[1].push_back(navdata_phys.phys_accs[ACC_Y]);
-        acc_samples[2].push_back(navdata_phys.phys_accs[ACC_Z]);
-        gyro_samples[0].push_back(navdata_phys.phys_gyros[GYRO_X]);
-        gyro_samples[1].push_back(navdata_phys.phys_gyros[GYRO_Y]);
-        gyro_samples[2].push_back(navdata_phys.phys_gyros[GYRO_Z]);
-        vel_samples[0].push_back(navdata.vx);
-        vel_samples[1].push_back(navdata.vy);
-        vel_samples[2].push_back(navdata.vz);
+        acc_samples[0].push_back(navdata_raw.navdata_phys_measures.phys_accs[ACC_X]);
+        acc_samples[1].push_back(navdata_raw.navdata_phys_measures.phys_accs[ACC_Y]);
+        acc_samples[2].push_back(navdata_raw.navdata_phys_measures.phys_accs[ACC_Z]);
+        gyro_samples[0].push_back(navdata_raw.navdata_phys_measures.phys_gyros[GYRO_X]);
+        gyro_samples[1].push_back(navdata_raw.navdata_phys_measures.phys_gyros[GYRO_Y]);
+        gyro_samples[2].push_back(navdata_raw.navdata_phys_measures.phys_gyros[GYRO_Z]);
+        vel_samples[0].push_back(navdata_raw.navdata_demo.vx);
+        vel_samples[1].push_back(navdata_raw.navdata_demo.vy);
+        vel_samples[2].push_back(navdata_raw.navdata_demo.vz);
         if (acc_samples[0].size() == max_num_samples)
         {
             for (int j = 0; j < 3; j++)
@@ -594,7 +584,7 @@ void ARDroneDriver::publish_navdata()
             ROS_INFO("Bias in linear acceleration (mg): [%4.4lf, %4.4lf, %4.4lf]", acc_bias[0], acc_bias[1], acc_bias[2]);
             ROS_INFO("Bias in angular velocity (deg/s): [%4.4lf, %4.4lf, %4.4lf]", gyro_bias[0], gyro_bias[1], gyro_bias[2]);
             ROS_INFO("Bias in linear velocity (mm/s): [%4.4lf, %4.4lf, %4.4lf]", vel_bias[0], vel_bias[1], vel_bias[2]);
-            ROS_INFO("Above values (except z-axis accel) will be substracted from actual IMU data in `navdata` and `imu` topic.");
+            ROS_INFO("Above values (except z-axis accel) will be substracted from actual IMU data in `navdata_raw.navdata_demo` and `imu` topic.");
             ROS_INFO("This feature can be disabled using `do_imu_caliberation` parameter. Recaliberate using `imu_recalib` service.");
             caliberated = true;
         }
@@ -603,18 +593,21 @@ void ARDroneDriver::publish_navdata()
     {
         for (int j = 0; j < 3; j++)
         {
-            if (j != 2) navdata_phys.phys_accs[j] -= acc_bias[j];
-            navdata_phys.phys_gyros[j] -= gyro_bias[j];
+            if (j != 2) navdata_raw.navdata_phys_measures.phys_accs[j] -= acc_bias[j];
+            navdata_raw.navdata_phys_measures.phys_gyros[j] -= gyro_bias[j];
         }
-        navdata.vx -= vel_bias[0];
-        navdata.vy -= vel_bias[1];
-        navdata.vz -= vel_bias[2];
+        navdata_raw.navdata_demo.vx -= vel_bias[0];
+        navdata_raw.navdata_demo.vy -= vel_bias[1];
+        navdata_raw.navdata_demo.vz -= vel_bias[2];
 
     }
 
-    PublishNavdataTypes(navdata_raw); // This is defined in the template NavdataMessageDefinitions.h template file
+    if(!fullspeed_navdata) // only transmit this data in the loop if we're transmitting at loop speed, rather than full speed
+    {
+        PublishNavdataTypes(navdata_raw); // This function is defined in the template NavdataMessageDefinitions.h template file
+    }
 
-    if (!enabled_legacy_navdata || (navdata_pub.getNumSubscribers() == 0) && (imu_pub.getNumSubscribers() == 0) && (mag_pub.getNumSubscribers() == 0))
+    if (!enabled_legacy_navdata || ((navdata_pub.getNumSubscribers() == 0) && (imu_pub.getNumSubscribers() == 0) && (mag_pub.getNumSubscribers() == 0)))
         return; // why bother, no one is listening.
     const ros::Time _now = ros::Time::now();
 
@@ -622,37 +615,37 @@ void ARDroneDriver::publish_navdata()
 
     msg.header.stamp = _now;
     msg.header.frame_id = droneFrameBase;
-    msg.batteryPercent = navdata.vbat_flying_percentage;
-    msg.state = (navdata.ctrl_state >> 16);
+    msg.batteryPercent = navdata_raw.navdata_demo.vbat_flying_percentage;
+    msg.state = (navdata_raw.navdata_demo.ctrl_state >> 16);
     
     // positive means counterclockwise rotation around axis
-    msg.rotX = navdata.phi / 1000.0; // tilt left/right
-    msg.rotY = -navdata.theta / 1000.0; // tilt forward/backward
-    msg.rotZ = -navdata.psi / 1000.0; // orientation
+    msg.rotX = navdata_raw.navdata_demo.phi / 1000.0; // tilt left/right
+    msg.rotY = -navdata_raw.navdata_demo.theta / 1000.0; // tilt forward/backward
+    msg.rotZ = -navdata_raw.navdata_demo.psi / 1000.0; // orientation
 
-    msg.altd = navdata.altitude; // cm
-    msg.vx = navdata.vx; // mm/sec
-    msg.vy = -navdata.vy; // mm/sec
-    msg.vz = -navdata.vz; // mm/sec
-    msg.tm = arnavtime.time;
-    msg.ax = navdata_phys.phys_accs[ACC_X] / 1000.0; // g
-    msg.ay = -navdata_phys.phys_accs[ACC_Y] / 1000.0; // g
-    msg.az = -navdata_phys.phys_accs[ACC_Z] / 1000.0; // g
+    msg.altd = navdata_raw.navdata_demo.altitude; // cm
+    msg.vx = navdata_raw.navdata_demo.vx; // mm/sec
+    msg.vy = -navdata_raw.navdata_demo.vy; // mm/sec
+    msg.vz = -navdata_raw.navdata_demo.vz; // mm/sec
+    msg.tm = navdata_raw.navdata_time.time;
+    msg.ax = navdata_raw.navdata_phys_measures.phys_accs[ACC_X] / 1000.0; // g
+    msg.ay = -navdata_raw.navdata_phys_measures.phys_accs[ACC_Y] / 1000.0; // g
+    msg.az = -navdata_raw.navdata_phys_measures.phys_accs[ACC_Z] / 1000.0; // g
 
     // New stuff
 
     if (IS_ARDRONE2)
     {
-        msg.magX = (int32_t)navdata_magneto.mx;
-        msg.magY = (int32_t)navdata_magneto.my;
-        msg.magZ = (int32_t)navdata_magneto.mz;
+        msg.magX = (int32_t)navdata_raw.navdata_magneto.mx;
+        msg.magY = (int32_t)navdata_raw.navdata_magneto.my;
+        msg.magZ = (int32_t)navdata_raw.navdata_magneto.mz;
 
-        msg.pressure = navdata_pressure.Pression_meas; // typo in the SDK!
-        msg.temp = navdata_pressure.Temperature_meas;
+        msg.pressure = navdata_raw.navdata_pressure_raw.Pression_meas; // typo in the SDK!
+        msg.temp = navdata_raw.navdata_pressure_raw.Temperature_meas;
 
-        msg.wind_speed = navdata_wind.wind_speed;
-        msg.wind_angle = navdata_wind.wind_angle;
-        msg.wind_comp_angle = navdata_wind.wind_compensation_phi;
+        msg.wind_speed = navdata_raw.navdata_wind_speed.wind_speed;
+        msg.wind_angle = navdata_raw.navdata_wind_speed.wind_angle;
+        msg.wind_comp_angle = navdata_raw.navdata_wind_speed.wind_compensation_phi;
     }
     else
     {
@@ -665,8 +658,8 @@ void ARDroneDriver::publish_navdata()
     }
 
     // Tag Detection
-    msg.tags_count = navdata_detect.nb_detected;
-    for (int i = 0; i < navdata_detect.nb_detected; i++)
+    msg.tags_count = navdata_raw.navdata_vision_detect.nb_detected;
+    for (int i = 0; i < navdata_raw.navdata_vision_detect.nb_detected; i++)
     {
         /*
          * The tags_type is in raw format. In order to extract the information
@@ -679,13 +672,13 @@ void ARDroneDriver::publish_navdata()
          * Please also note that the xc, yc, width and height are in [0,1000] range
          * and must get converted back based on image resolution.
          */
-        msg.tags_type.push_back(navdata_detect.type[i]);
-        msg.tags_xc.push_back(navdata_detect.xc[i]);
-        msg.tags_yc.push_back(navdata_detect.yc[i]);
-        msg.tags_width.push_back(navdata_detect.width[i]);
-        msg.tags_height.push_back(navdata_detect.height[i]);
-        msg.tags_orientation.push_back(navdata_detect.orientation_angle[i]);
-        msg.tags_distance.push_back(navdata_detect.dist[i]);
+        msg.tags_type.push_back(navdata_raw.navdata_vision_detect.type[i]);
+        msg.tags_xc.push_back(navdata_raw.navdata_vision_detect.xc[i]);
+        msg.tags_yc.push_back(navdata_raw.navdata_vision_detect.yc[i]);
+        msg.tags_width.push_back(navdata_raw.navdata_vision_detect.width[i]);
+        msg.tags_height.push_back(navdata_raw.navdata_vision_detect.height[i]);
+        msg.tags_orientation.push_back(navdata_raw.navdata_vision_detect.orientation_angle[i]);
+        msg.tags_distance.push_back(navdata_raw.navdata_vision_detect.dist[i]);
     }
 
     /* IMU */
@@ -704,9 +697,9 @@ void ARDroneDriver::publish_navdata()
 
     // IMU - Gyro (Gyro is being sent in deg/sec)
     // TODO: Should Gyro be added to Navdata?
-    imu_msg.angular_velocity.x = navdata_phys.phys_gyros[GYRO_X] * DEG_TO_RAD;
-    imu_msg.angular_velocity.y = -navdata_phys.phys_gyros[GYRO_Y] * DEG_TO_RAD;
-    imu_msg.angular_velocity.z = -navdata_phys.phys_gyros[GYRO_Z] * DEG_TO_RAD;
+    imu_msg.angular_velocity.x = navdata_raw.navdata_phys_measures.phys_gyros[GYRO_X] * DEG_TO_RAD;
+    imu_msg.angular_velocity.y = -navdata_raw.navdata_phys_measures.phys_gyros[GYRO_Y] * DEG_TO_RAD;
+    imu_msg.angular_velocity.z = -navdata_raw.navdata_phys_measures.phys_gyros[GYRO_Z] * DEG_TO_RAD;
 
     mag_msg.header.frame_id = droneFrameBase;
     mag_msg.header.stamp = _now;

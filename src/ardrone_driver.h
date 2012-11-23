@@ -48,6 +48,10 @@ public:
     double getRosParam(char* param, double defaultVal);
     bool imuReCalibCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Response &response);
 
+    #define NAVDATA_STRUCTS_HEADER_PUBLIC
+    #include "NavdataMessageDefinitions.h"
+    #undef NAVDATA_STRUCTS_HEADER_PUBLIC
+
 private:
 	void publish_video();
 	void publish_navdata();
@@ -104,19 +108,12 @@ private:
     std::string droneFrameId;
 
     // Navdata copy
-    navdata_demo_t navdata;
-    navdata_phys_measures_t navdata_phys;
-    navdata_vision_detect_t navdata_detect;
-    navdata_pressure_raw_t navdata_pressure;
-    navdata_magneto_t navdata_magneto;
-    navdata_wind_speed_t navdata_wind;
-    navdata_time_t arnavtime;
     navdata_unpacked_t navdata_raw;
 
     // Load auto-generated declarations for full navdata
-    #define NAVDATA_STRUCTS_HEADER
+    #define NAVDATA_STRUCTS_HEADER_PRIVATE
     #include "NavdataMessageDefinitions.h"
-    #undef NAVDATA_STRUCTS_HEADER
+    #undef NAVDATA_STRUCTS_HEADER_PRIVATE
 
     /*
      * TF Frames

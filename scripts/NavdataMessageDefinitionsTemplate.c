@@ -15,7 +15,11 @@
 % endfor	
 #endif
 
-#ifdef NAVDATA_STRUCTS_HEADER
+#ifdef NAVDATA_STRUCTS_HEADER_PUBLIC
+	void PublishNavdataTypes(navdata_unpacked_t &n);
+#endif
+
+#ifdef NAVDATA_STRUCTS_HEADER_PRIVATE
 % for item in structs:
 	ros::Publisher pub_${item['struct_name']};
 	bool enabled_${item['struct_name']};
@@ -25,11 +29,10 @@
 	bool enabled_legacy_navdata;
 
 	bool initialized_navdata_publishers;
-	void PublishNavdataTypes(navdata_unpacked_t n);
 #endif
 
 #ifdef NAVDATA_STRUCTS_SOURCE
-void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
+void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t &n)
 {
 	const ros::Time now = ros::Time::now();
 
@@ -37,9 +40,7 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 	{
 		initialized_navdata_publishers = true;
 
-		enabled_legacy_navdata = true;
-		ros::param::get("~enable_${item['struct_name']}", enabled_${item['struct_name']});
-
+		ros::param::param("~enable_legacy_navdata", enabled_legacy_navdata, true);
 		if(enabled_legacy_navdata)
 		{
 			navdata_pub = node_handle.advertise<ardrone_autonomy::Navdata>("ardrone/navdata", 25);
@@ -50,9 +51,7 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 		//-------------------------
 
 % for item in structs:
-		enabled_${item['struct_name']} = false;
-		ros::param::get("~enable_${item['struct_name']}", enabled_${item['struct_name']});
-
+		ros::param::param("~enable_${item['struct_name']}", enabled_${item['struct_name']}, false);
 		if(enabled_${item['struct_name']})
 		{
 			pub_${item['struct_name']} = node_handle.advertise<ardrone_autonomy::${item['struct_name']}>("ardrone/${item['struct_name']}", NAVDATA_QUEUE_SIZE);
