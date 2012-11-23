@@ -3,13 +3,6 @@
 #include "teleop_twist.h"
 #include "ardrone_driver.h"
 
-navdata_demo_t shared_navdata;
-navdata_phys_measures_t shared_navdata_phys;
-navdata_vision_detect_t shared_navdata_detect;
-navdata_pressure_raw_t shared_navdata_pressure;
-navdata_magneto_t shared_navdata_magneto;
-navdata_wind_speed_t shared_navdata_wind;
-navdata_time_t shared_arnavtime;
 navdata_unpacked_t shared_raw_navdata;
 
 vp_os_mutex_t navdata_lock;
@@ -19,6 +12,9 @@ vp_os_mutex_t twist_lock;
 long int current_navdata_id = 0;
 
 ARDroneDriver* rosDriver;
+
+int32_t looprate;
+bool fullspeed_navdata;
 
 int32_t should_exit;
 
@@ -62,6 +58,8 @@ extern "C" {
             printf("Something must be really wrong with the SDK!");
         }
 
+        ros::param::param("~looprate",looprate,50);
+        ros::param::param("~fullspeed_navdata",fullspeed_navdata,false);
 
         // SET SOME NON-STANDARD DEFAULT VALUES FOR THE DRIVER
         // THESE CAN BE OVERWRITTEN BY ROS PARAMETERS (below)
@@ -227,18 +225,12 @@ extern "C" {
     C_RESULT navdata_custom_process(const navdata_unpacked_t * const pnd) {
         vp_os_mutex_lock(&navdata_lock);
         shared_raw_navdata = *pnd;
-        shared_navdata_detect = pnd->navdata_vision_detect;
-        shared_navdata_phys = pnd->navdata_phys_measures;
-        shared_navdata = pnd->navdata_demo;
-        shared_arnavtime = pnd->navdata_time;
-        if (IS_ARDRONE2)
-        { // This is neccessary
-            shared_navdata_pressure = pnd->navdata_pressure_raw;
-            shared_navdata_magneto = pnd->navdata_magneto;
-            shared_navdata_wind = pnd->navdata_wind_speed;
+        if(fullspeed_navdata)
+        {
+            rosDriver->PublishNavdataTypes(shared_raw_navdata); //if we're publishing navdata at full speed, publish!
         }
-        vp_os_mutex_unlock(&navdata_lock);
         current_navdata_id++;
+        vp_os_mutex_unlock(&navdata_lock);
 		return C_OK;
 	}
 

@@ -40,7 +40,11 @@
 #include <ardrone_autonomy/matrix33.h>
 #endif
 
-#ifdef NAVDATA_STRUCTS_HEADER
+#ifdef NAVDATA_STRUCTS_HEADER_PUBLIC
+	void PublishNavdataTypes(navdata_unpacked_t &n);
+#endif
+
+#ifdef NAVDATA_STRUCTS_HEADER_PRIVATE
 	ros::Publisher pub_navdata_demo;
 	bool enabled_navdata_demo;
 	ardrone_autonomy::navdata_demo navdata_demo_msg;
@@ -129,11 +133,10 @@
 	bool enabled_legacy_navdata;
 
 	bool initialized_navdata_publishers;
-	void PublishNavdataTypes(navdata_unpacked_t n);
 #endif
 
 #ifdef NAVDATA_STRUCTS_SOURCE
-void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
+void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t &n)
 {
 	const ros::Time now = ros::Time::now();
 
@@ -141,9 +144,7 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 	{
 		initialized_navdata_publishers = true;
 
-		enabled_legacy_navdata = true;
-		ros::param::get("~enable_navdata_zimmu_3000", enabled_navdata_zimmu_3000);
-
+		ros::param::param("~enable_legacy_navdata", enabled_legacy_navdata, true);
 		if(enabled_legacy_navdata)
 		{
 			navdata_pub = node_handle.advertise<ardrone_autonomy::Navdata>("ardrone/navdata", 25);
@@ -153,9 +154,7 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 
 		//-------------------------
 
-		enabled_navdata_demo = false;
-		ros::param::get("~enable_navdata_demo", enabled_navdata_demo);
-
+		ros::param::param("~enable_navdata_demo", enabled_navdata_demo, false);
 		if(enabled_navdata_demo)
 		{
 			pub_navdata_demo = node_handle.advertise<ardrone_autonomy::navdata_demo>("ardrone/navdata_demo", NAVDATA_QUEUE_SIZE);
@@ -163,9 +162,7 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 
 		//-------------------------
 
-		enabled_navdata_time = false;
-		ros::param::get("~enable_navdata_time", enabled_navdata_time);
-
+		ros::param::param("~enable_navdata_time", enabled_navdata_time, false);
 		if(enabled_navdata_time)
 		{
 			pub_navdata_time = node_handle.advertise<ardrone_autonomy::navdata_time>("ardrone/navdata_time", NAVDATA_QUEUE_SIZE);
@@ -173,9 +170,7 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 
 		//-------------------------
 
-		enabled_navdata_raw_measures = false;
-		ros::param::get("~enable_navdata_raw_measures", enabled_navdata_raw_measures);
-
+		ros::param::param("~enable_navdata_raw_measures", enabled_navdata_raw_measures, false);
 		if(enabled_navdata_raw_measures)
 		{
 			pub_navdata_raw_measures = node_handle.advertise<ardrone_autonomy::navdata_raw_measures>("ardrone/navdata_raw_measures", NAVDATA_QUEUE_SIZE);
@@ -183,9 +178,7 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 
 		//-------------------------
 
-		enabled_navdata_phys_measures = false;
-		ros::param::get("~enable_navdata_phys_measures", enabled_navdata_phys_measures);
-
+		ros::param::param("~enable_navdata_phys_measures", enabled_navdata_phys_measures, false);
 		if(enabled_navdata_phys_measures)
 		{
 			pub_navdata_phys_measures = node_handle.advertise<ardrone_autonomy::navdata_phys_measures>("ardrone/navdata_phys_measures", NAVDATA_QUEUE_SIZE);
@@ -193,9 +186,7 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 
 		//-------------------------
 
-		enabled_navdata_gyros_offsets = false;
-		ros::param::get("~enable_navdata_gyros_offsets", enabled_navdata_gyros_offsets);
-
+		ros::param::param("~enable_navdata_gyros_offsets", enabled_navdata_gyros_offsets, false);
 		if(enabled_navdata_gyros_offsets)
 		{
 			pub_navdata_gyros_offsets = node_handle.advertise<ardrone_autonomy::navdata_gyros_offsets>("ardrone/navdata_gyros_offsets", NAVDATA_QUEUE_SIZE);
@@ -203,9 +194,7 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 
 		//-------------------------
 
-		enabled_navdata_euler_angles = false;
-		ros::param::get("~enable_navdata_euler_angles", enabled_navdata_euler_angles);
-
+		ros::param::param("~enable_navdata_euler_angles", enabled_navdata_euler_angles, false);
 		if(enabled_navdata_euler_angles)
 		{
 			pub_navdata_euler_angles = node_handle.advertise<ardrone_autonomy::navdata_euler_angles>("ardrone/navdata_euler_angles", NAVDATA_QUEUE_SIZE);
@@ -213,9 +202,7 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 
 		//-------------------------
 
-		enabled_navdata_references = false;
-		ros::param::get("~enable_navdata_references", enabled_navdata_references);
-
+		ros::param::param("~enable_navdata_references", enabled_navdata_references, false);
 		if(enabled_navdata_references)
 		{
 			pub_navdata_references = node_handle.advertise<ardrone_autonomy::navdata_references>("ardrone/navdata_references", NAVDATA_QUEUE_SIZE);
@@ -223,9 +210,7 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 
 		//-------------------------
 
-		enabled_navdata_trims = false;
-		ros::param::get("~enable_navdata_trims", enabled_navdata_trims);
-
+		ros::param::param("~enable_navdata_trims", enabled_navdata_trims, false);
 		if(enabled_navdata_trims)
 		{
 			pub_navdata_trims = node_handle.advertise<ardrone_autonomy::navdata_trims>("ardrone/navdata_trims", NAVDATA_QUEUE_SIZE);
@@ -233,9 +218,7 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 
 		//-------------------------
 
-		enabled_navdata_rc_references = false;
-		ros::param::get("~enable_navdata_rc_references", enabled_navdata_rc_references);
-
+		ros::param::param("~enable_navdata_rc_references", enabled_navdata_rc_references, false);
 		if(enabled_navdata_rc_references)
 		{
 			pub_navdata_rc_references = node_handle.advertise<ardrone_autonomy::navdata_rc_references>("ardrone/navdata_rc_references", NAVDATA_QUEUE_SIZE);
@@ -243,9 +226,7 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 
 		//-------------------------
 
-		enabled_navdata_pwm = false;
-		ros::param::get("~enable_navdata_pwm", enabled_navdata_pwm);
-
+		ros::param::param("~enable_navdata_pwm", enabled_navdata_pwm, false);
 		if(enabled_navdata_pwm)
 		{
 			pub_navdata_pwm = node_handle.advertise<ardrone_autonomy::navdata_pwm>("ardrone/navdata_pwm", NAVDATA_QUEUE_SIZE);
@@ -253,9 +234,7 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 
 		//-------------------------
 
-		enabled_navdata_altitude = false;
-		ros::param::get("~enable_navdata_altitude", enabled_navdata_altitude);
-
+		ros::param::param("~enable_navdata_altitude", enabled_navdata_altitude, false);
 		if(enabled_navdata_altitude)
 		{
 			pub_navdata_altitude = node_handle.advertise<ardrone_autonomy::navdata_altitude>("ardrone/navdata_altitude", NAVDATA_QUEUE_SIZE);
@@ -263,9 +242,7 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 
 		//-------------------------
 
-		enabled_navdata_vision_raw = false;
-		ros::param::get("~enable_navdata_vision_raw", enabled_navdata_vision_raw);
-
+		ros::param::param("~enable_navdata_vision_raw", enabled_navdata_vision_raw, false);
 		if(enabled_navdata_vision_raw)
 		{
 			pub_navdata_vision_raw = node_handle.advertise<ardrone_autonomy::navdata_vision_raw>("ardrone/navdata_vision_raw", NAVDATA_QUEUE_SIZE);
@@ -273,9 +250,7 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 
 		//-------------------------
 
-		enabled_navdata_vision_of = false;
-		ros::param::get("~enable_navdata_vision_of", enabled_navdata_vision_of);
-
+		ros::param::param("~enable_navdata_vision_of", enabled_navdata_vision_of, false);
 		if(enabled_navdata_vision_of)
 		{
 			pub_navdata_vision_of = node_handle.advertise<ardrone_autonomy::navdata_vision_of>("ardrone/navdata_vision_of", NAVDATA_QUEUE_SIZE);
@@ -283,9 +258,7 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 
 		//-------------------------
 
-		enabled_navdata_vision = false;
-		ros::param::get("~enable_navdata_vision", enabled_navdata_vision);
-
+		ros::param::param("~enable_navdata_vision", enabled_navdata_vision, false);
 		if(enabled_navdata_vision)
 		{
 			pub_navdata_vision = node_handle.advertise<ardrone_autonomy::navdata_vision>("ardrone/navdata_vision", NAVDATA_QUEUE_SIZE);
@@ -293,9 +266,7 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 
 		//-------------------------
 
-		enabled_navdata_vision_perf = false;
-		ros::param::get("~enable_navdata_vision_perf", enabled_navdata_vision_perf);
-
+		ros::param::param("~enable_navdata_vision_perf", enabled_navdata_vision_perf, false);
 		if(enabled_navdata_vision_perf)
 		{
 			pub_navdata_vision_perf = node_handle.advertise<ardrone_autonomy::navdata_vision_perf>("ardrone/navdata_vision_perf", NAVDATA_QUEUE_SIZE);
@@ -303,9 +274,7 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 
 		//-------------------------
 
-		enabled_navdata_trackers_send = false;
-		ros::param::get("~enable_navdata_trackers_send", enabled_navdata_trackers_send);
-
+		ros::param::param("~enable_navdata_trackers_send", enabled_navdata_trackers_send, false);
 		if(enabled_navdata_trackers_send)
 		{
 			pub_navdata_trackers_send = node_handle.advertise<ardrone_autonomy::navdata_trackers_send>("ardrone/navdata_trackers_send", NAVDATA_QUEUE_SIZE);
@@ -313,9 +282,7 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 
 		//-------------------------
 
-		enabled_navdata_vision_detect = false;
-		ros::param::get("~enable_navdata_vision_detect", enabled_navdata_vision_detect);
-
+		ros::param::param("~enable_navdata_vision_detect", enabled_navdata_vision_detect, false);
 		if(enabled_navdata_vision_detect)
 		{
 			pub_navdata_vision_detect = node_handle.advertise<ardrone_autonomy::navdata_vision_detect>("ardrone/navdata_vision_detect", NAVDATA_QUEUE_SIZE);
@@ -323,9 +290,7 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 
 		//-------------------------
 
-		enabled_navdata_watchdog = false;
-		ros::param::get("~enable_navdata_watchdog", enabled_navdata_watchdog);
-
+		ros::param::param("~enable_navdata_watchdog", enabled_navdata_watchdog, false);
 		if(enabled_navdata_watchdog)
 		{
 			pub_navdata_watchdog = node_handle.advertise<ardrone_autonomy::navdata_watchdog>("ardrone/navdata_watchdog", NAVDATA_QUEUE_SIZE);
@@ -333,9 +298,7 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 
 		//-------------------------
 
-		enabled_navdata_adc_data_frame = false;
-		ros::param::get("~enable_navdata_adc_data_frame", enabled_navdata_adc_data_frame);
-
+		ros::param::param("~enable_navdata_adc_data_frame", enabled_navdata_adc_data_frame, false);
 		if(enabled_navdata_adc_data_frame)
 		{
 			pub_navdata_adc_data_frame = node_handle.advertise<ardrone_autonomy::navdata_adc_data_frame>("ardrone/navdata_adc_data_frame", NAVDATA_QUEUE_SIZE);
@@ -343,9 +306,7 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 
 		//-------------------------
 
-		enabled_navdata_video_stream = false;
-		ros::param::get("~enable_navdata_video_stream", enabled_navdata_video_stream);
-
+		ros::param::param("~enable_navdata_video_stream", enabled_navdata_video_stream, false);
 		if(enabled_navdata_video_stream)
 		{
 			pub_navdata_video_stream = node_handle.advertise<ardrone_autonomy::navdata_video_stream>("ardrone/navdata_video_stream", NAVDATA_QUEUE_SIZE);
@@ -353,9 +314,7 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 
 		//-------------------------
 
-		enabled_navdata_games = false;
-		ros::param::get("~enable_navdata_games", enabled_navdata_games);
-
+		ros::param::param("~enable_navdata_games", enabled_navdata_games, false);
 		if(enabled_navdata_games)
 		{
 			pub_navdata_games = node_handle.advertise<ardrone_autonomy::navdata_games>("ardrone/navdata_games", NAVDATA_QUEUE_SIZE);
@@ -363,9 +322,7 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 
 		//-------------------------
 
-		enabled_navdata_pressure_raw = false;
-		ros::param::get("~enable_navdata_pressure_raw", enabled_navdata_pressure_raw);
-
+		ros::param::param("~enable_navdata_pressure_raw", enabled_navdata_pressure_raw, false);
 		if(enabled_navdata_pressure_raw)
 		{
 			pub_navdata_pressure_raw = node_handle.advertise<ardrone_autonomy::navdata_pressure_raw>("ardrone/navdata_pressure_raw", NAVDATA_QUEUE_SIZE);
@@ -373,9 +330,7 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 
 		//-------------------------
 
-		enabled_navdata_magneto = false;
-		ros::param::get("~enable_navdata_magneto", enabled_navdata_magneto);
-
+		ros::param::param("~enable_navdata_magneto", enabled_navdata_magneto, false);
 		if(enabled_navdata_magneto)
 		{
 			pub_navdata_magneto = node_handle.advertise<ardrone_autonomy::navdata_magneto>("ardrone/navdata_magneto", NAVDATA_QUEUE_SIZE);
@@ -383,9 +338,7 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 
 		//-------------------------
 
-		enabled_navdata_wind_speed = false;
-		ros::param::get("~enable_navdata_wind_speed", enabled_navdata_wind_speed);
-
+		ros::param::param("~enable_navdata_wind_speed", enabled_navdata_wind_speed, false);
 		if(enabled_navdata_wind_speed)
 		{
 			pub_navdata_wind_speed = node_handle.advertise<ardrone_autonomy::navdata_wind_speed>("ardrone/navdata_wind_speed", NAVDATA_QUEUE_SIZE);
@@ -393,9 +346,7 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 
 		//-------------------------
 
-		enabled_navdata_kalman_pressure = false;
-		ros::param::get("~enable_navdata_kalman_pressure", enabled_navdata_kalman_pressure);
-
+		ros::param::param("~enable_navdata_kalman_pressure", enabled_navdata_kalman_pressure, false);
 		if(enabled_navdata_kalman_pressure)
 		{
 			pub_navdata_kalman_pressure = node_handle.advertise<ardrone_autonomy::navdata_kalman_pressure>("ardrone/navdata_kalman_pressure", NAVDATA_QUEUE_SIZE);
@@ -403,9 +354,7 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 
 		//-------------------------
 
-		enabled_navdata_hdvideo_stream = false;
-		ros::param::get("~enable_navdata_hdvideo_stream", enabled_navdata_hdvideo_stream);
-
+		ros::param::param("~enable_navdata_hdvideo_stream", enabled_navdata_hdvideo_stream, false);
 		if(enabled_navdata_hdvideo_stream)
 		{
 			pub_navdata_hdvideo_stream = node_handle.advertise<ardrone_autonomy::navdata_hdvideo_stream>("ardrone/navdata_hdvideo_stream", NAVDATA_QUEUE_SIZE);
@@ -413,9 +362,7 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 
 		//-------------------------
 
-		enabled_navdata_wifi = false;
-		ros::param::get("~enable_navdata_wifi", enabled_navdata_wifi);
-
+		ros::param::param("~enable_navdata_wifi", enabled_navdata_wifi, false);
 		if(enabled_navdata_wifi)
 		{
 			pub_navdata_wifi = node_handle.advertise<ardrone_autonomy::navdata_wifi>("ardrone/navdata_wifi", NAVDATA_QUEUE_SIZE);
@@ -423,9 +370,7 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t n)
 
 		//-------------------------
 
-		enabled_navdata_zimmu_3000 = false;
-		ros::param::get("~enable_navdata_zimmu_3000", enabled_navdata_zimmu_3000);
-
+		ros::param::param("~enable_navdata_zimmu_3000", enabled_navdata_zimmu_3000, false);
 		if(enabled_navdata_zimmu_3000)
 		{
 			pub_navdata_zimmu_3000 = node_handle.advertise<ardrone_autonomy::navdata_zimmu_3000>("ardrone/navdata_zimmu_3000", NAVDATA_QUEUE_SIZE);

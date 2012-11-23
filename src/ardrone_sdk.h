@@ -45,18 +45,14 @@ extern video_decoder_config_t vec;
 
 
 #define NB_DRIVER_POST_STAGES   10
-extern navdata_vision_detect_t shared_navdata_detect;
-extern navdata_phys_measures_t shared_navdata_phys;
-extern navdata_demo_t shared_navdata;
-extern navdata_time_t shared_arnavtime;
-extern navdata_pressure_raw_t shared_navdata_pressure;
-extern navdata_magneto_t shared_navdata_magneto;
-extern navdata_wind_speed_t shared_navdata_wind;
 extern navdata_unpacked_t shared_raw_navdata;
 
 extern vp_os_mutex_t navdata_lock;
 extern vp_os_mutex_t video_lock;
 extern vp_os_mutex_t twist_lock;
+
+extern int32_t looprate;
+extern bool fullspeed_navdata;
 
 extern int32_t should_exit;
 
