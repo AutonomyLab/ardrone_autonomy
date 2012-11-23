@@ -68,14 +68,16 @@ bool flatTrimCallback(std_srvs::Empty::Request &request, std_srvs::Empty::Respon
 
 void cmdVelCallback(const geometry_msgs::TwistConstPtr &msg)
 {
-    const double maxHorizontalSpeed = 1.0; // use 0.1f for testing and 1 for the real thing
     vp_os_mutex_lock(&twist_lock);
-	cmd_vel.linear.x  = max(min(-msg->linear.x, maxHorizontalSpeed), -maxHorizontalSpeed);
-	cmd_vel.linear.y  = max(min(-msg->linear.y, maxHorizontalSpeed), -maxHorizontalSpeed);
+    // Main 4DOF
+    cmd_vel.linear.x  = max(min(-msg->linear.x, 1.0), -1.0);
+    cmd_vel.linear.y  = max(min(-msg->linear.y, 1.0), -1.0);
 	cmd_vel.linear.z  = max(min(msg->linear.z, 1.0), -1.0);
-    cmd_vel.angular.x = 0.0;
-    cmd_vel.angular.y = 0.0;
 	cmd_vel.angular.z = max(min(-msg->angular.z, 1.0), -1.0);
+    // These 2DOF just change the auto hover behaviour
+    // No bound() required
+    cmd_vel.angular.x = msg->angular.x;
+    cmd_vel.angular.y = msg->angular.y;
     vp_os_mutex_unlock(&twist_lock);
 }
 
@@ -147,17 +149,20 @@ C_RESULT update_teleop(void)
         int32_t control_flag = 0x00;
         int32_t combined_yaw = 0x00;
         
-        int32_t hover = (int32_t) 
-                !(
+        // Auto hover detection based on ~0 values for 4DOF cmd_vel
+        int32_t hover = (int32_t)
+                (
                 (fabs(left_right) < _EPS) && 
                 (fabs(front_back) < _EPS) && 
                 (fabs(up_down) < _EPS) && 
-                (fabs(turn) < _EPS)
+                (fabs(turn) < _EPS) &&
+                // Set angular.x or angular.y to a non-zero value to disable entering hover
+                // even when 4DOF control command is ~0
+                (fabs(cmd_vel.angular.x) < _EPS) &&
+                (fabs(cmd_vel.angular.y) < _EPS)
                 );
 
-        if(cmd_vel.angular.x > _EPS || cmd_vel.angular.y > _EPS) hover=1; //set angular.x or angular.y to a non-zero value to disable entering hover
-
-        control_flag |= (hover << 0);
+        control_flag |= ((1 - hover) << 0);
         control_flag |= (combined_yaw << 1);
         //ROS_INFO (">>> Control Flag: %d", control_flag);
         
