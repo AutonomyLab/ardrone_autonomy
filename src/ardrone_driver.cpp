@@ -115,7 +115,7 @@ ARDroneDriver::~ARDroneDriver()
 void ARDroneDriver::run()
 {
     ros::Rate loop_rate(looprate);
-    ros::Time startTime = ros::Time::now();
+    const ros::Time startTime = ros::Time::now();
     static int freq_dev = 0;
 	while (node_handle.ok())
 	{
@@ -153,10 +153,10 @@ void ARDroneDriver::run()
             }
             if (freq_dev == 0) publish_tf();
 
-            freq_dev = (freq_dev + 1) % 5; // ~10Hz TF publish
+            freq_dev = (freq_dev + 1) % 5; // (looprate / 5)Hz  TF publish (TODO: Make TF publish rate fixed)
         }
         ros::spinOnce();
-		loop_rate.sleep();
+        loop_rate.sleep();
 	}
     printf("ROS loop terminated ... \n");
 }
