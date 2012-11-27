@@ -137,7 +137,7 @@ void ARDroneDriver::run()
                          ardrone_control_config.num_version_soft,
                          shared_raw_navdata.navdata_demo.vbat_flying_percentage);
                 ROS_INFO("Navdata Publish Settings:");
-                //ROS_INFO("    Legacy Mode: %s", enabled_legacy_navdata ? "On" : "Off"); //Bug: This is being inited after in the NavdataMessage*.h
+                ROS_INFO("    Legacy Mode: %s", enabled_legacy_navdata ? "On" : "Off"); //Bug: This is being inited after in the NavdataMessage*.h
                 ROS_INFO("    ROS Loop Rate: %d", looprate);
                 ROS_INFO("    Instant New Navdata Publish: %s", fullspeed_navdata ? "On" : "Off");
                 // TODO: Enabled Navdata Demo
@@ -225,6 +225,11 @@ void ARDroneDriver::configureDrone()
     #undef ARDRONE_CONFIG_KEY_IMM_a10
     #undef ARDRONE_CONFIG_KEY_REF_a10
     #undef ARDRONE_CONFIG_KEY_STR_a10
+
+
+    #define NAVDATA_STRUCTS_INITIALIZE
+    #include "NavdataMessageDefinitions.h"
+    #undef NAVDATA_STRUCTS_INITIALIZE
 }
 
 void ARDroneDriver::resetCaliberation()
