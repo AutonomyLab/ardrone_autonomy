@@ -552,6 +552,7 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t &n)
 			navdata_raw_measures_msg.size = m;
 		}
 
+		navdata_raw_measures_msg.raw_gyros.clear();
 		for(int i=0; i<NB_GYROS; i++)
 		{			
 			int16_t c = n.navdata_raw_measures.raw_gyros[i];
@@ -561,6 +562,7 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t &n)
 			navdata_raw_measures_msg.raw_gyros.push_back(m);
 		}
 		
+		navdata_raw_measures_msg.raw_gyros_110.clear();
 		for(int i=0; i<2; i++)
 		{			
 			int16_t c = n.navdata_raw_measures.raw_gyros_110[i];
@@ -717,6 +719,7 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t &n)
 			navdata_phys_measures_msg.gyro_temp = m;
 		}
 
+		navdata_phys_measures_msg.phys_accs.clear();
 		for(int i=0; i<NB_ACCS; i++)
 		{			
 			float32_t c = n.navdata_phys_measures.phys_accs[i];
@@ -726,6 +729,7 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t &n)
 			navdata_phys_measures_msg.phys_accs.push_back(m);
 		}
 		
+		navdata_phys_measures_msg.phys_gyros.clear();
 		for(int i=0; i<NB_GYROS; i++)
 		{			
 			float32_t c = n.navdata_phys_measures.phys_gyros[i];
@@ -786,6 +790,7 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t &n)
 			navdata_gyros_offsets_msg.size = m;
 		}
 
+		navdata_gyros_offsets_msg.offset_g.clear();
 		for(int i=0; i<NB_GYROS; i++)
 		{			
 			float32_t c = n.navdata_gyros_offsets.offset_g[i];
@@ -1566,6 +1571,7 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t &n)
 			navdata_vision_of_msg.size = m;
 		}
 
+		navdata_vision_of_msg.of_dx.clear();
 		for(int i=0; i<5; i++)
 		{			
 			float32_t c = n.navdata_vision_of.of_dx[i];
@@ -1575,6 +1581,7 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t &n)
 			navdata_vision_of_msg.of_dx.push_back(m);
 		}
 		
+		navdata_vision_of_msg.of_dy.clear();
 		for(int i=0; i<5; i++)
 		{			
 			float32_t c = n.navdata_vision_of.of_dy[i];
@@ -1840,6 +1847,7 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t &n)
 			navdata_vision_perf_msg.time_update = m;
 		}
 
+		navdata_vision_perf_msg.time_custom.clear();
 		for(int i=0; i<NAVDATA_MAX_CUSTOM_TIME_SAVE; i++)
 		{			
 			float32_t c = n.navdata_vision_perf.time_custom[i];
@@ -1876,6 +1884,7 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t &n)
 			navdata_trackers_send_msg.size = m;
 		}
 
+		navdata_trackers_send_msg.locked.clear();
 		for(int i=0; i<DEFAULT_NB_TRACKERS_WIDTH * DEFAULT_NB_TRACKERS_HEIGHT; i++)
 		{			
 			int32_t c = n.navdata_trackers_send.locked[i];
@@ -1885,6 +1894,7 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t &n)
 			navdata_trackers_send_msg.locked.push_back(m);
 		}
 		
+		navdata_trackers_send_msg.point.clear();
 		for(int i=0; i<DEFAULT_NB_TRACKERS_WIDTH * DEFAULT_NB_TRACKERS_HEIGHT; i++)
 		{			
 			screen_point_t c = n.navdata_trackers_send.point[i];
@@ -1930,6 +1940,7 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t &n)
 			navdata_vision_detect_msg.nb_detected = m;
 		}
 
+		navdata_vision_detect_msg.type.clear();
 		for(int i=0; i<NB_NAVDATA_DETECTION_RESULTS; i++)
 		{			
 			uint32_t c = n.navdata_vision_detect.type[i];
@@ -1939,6 +1950,7 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t &n)
 			navdata_vision_detect_msg.type.push_back(m);
 		}
 		
+		navdata_vision_detect_msg.xc.clear();
 		for(int i=0; i<NB_NAVDATA_DETECTION_RESULTS; i++)
 		{			
 			uint32_t c = n.navdata_vision_detect.xc[i];
@@ -1948,6 +1960,7 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t &n)
 			navdata_vision_detect_msg.xc.push_back(m);
 		}
 		
+		navdata_vision_detect_msg.yc.clear();
 		for(int i=0; i<NB_NAVDATA_DETECTION_RESULTS; i++)
 		{			
 			uint32_t c = n.navdata_vision_detect.yc[i];
@@ -1957,6 +1970,7 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t &n)
 			navdata_vision_detect_msg.yc.push_back(m);
 		}
 		
+		navdata_vision_detect_msg.width.clear();
 		for(int i=0; i<NB_NAVDATA_DETECTION_RESULTS; i++)
 		{			
 			uint32_t c = n.navdata_vision_detect.width[i];
@@ -1966,6 +1980,7 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t &n)
 			navdata_vision_detect_msg.width.push_back(m);
 		}
 		
+		navdata_vision_detect_msg.height.clear();
 		for(int i=0; i<NB_NAVDATA_DETECTION_RESULTS; i++)
 		{			
 			uint32_t c = n.navdata_vision_detect.height[i];
@@ -1975,6 +1990,7 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t &n)
 			navdata_vision_detect_msg.height.push_back(m);
 		}
 		
+		navdata_vision_detect_msg.dist.clear();
 		for(int i=0; i<NB_NAVDATA_DETECTION_RESULTS; i++)
 		{			
 			uint32_t c = n.navdata_vision_detect.dist[i];
@@ -1984,6 +2000,7 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t &n)
 			navdata_vision_detect_msg.dist.push_back(m);
 		}
 		
+		navdata_vision_detect_msg.orientation_angle.clear();
 		for(int i=0; i<NB_NAVDATA_DETECTION_RESULTS; i++)
 		{			
 			float32_t c = n.navdata_vision_detect.orientation_angle[i];
@@ -1993,6 +2010,7 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t &n)
 			navdata_vision_detect_msg.orientation_angle.push_back(m);
 		}
 		
+		navdata_vision_detect_msg.rotation.clear();
 		for(int i=0; i<NB_NAVDATA_DETECTION_RESULTS; i++)
 		{			
 			matrix33_t c = n.navdata_vision_detect.rotation[i];
@@ -2010,6 +2028,7 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t &n)
 			navdata_vision_detect_msg.rotation.push_back(m);
 		}
 		
+		navdata_vision_detect_msg.translation.clear();
 		for(int i=0; i<NB_NAVDATA_DETECTION_RESULTS; i++)
 		{			
 			vector31_t c = n.navdata_vision_detect.translation[i];
@@ -2021,6 +2040,7 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t &n)
 			navdata_vision_detect_msg.translation.push_back(m);
 		}
 		
+		navdata_vision_detect_msg.camera_source.clear();
 		for(int i=0; i<NB_NAVDATA_DETECTION_RESULTS; i++)
 		{			
 			uint32_t c = n.navdata_vision_detect.camera_source[i];
@@ -2092,6 +2112,7 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t &n)
 			navdata_adc_data_frame_msg.version = m;
 		}
 
+		navdata_adc_data_frame_msg.data_frame.clear();
 		for(int i=0; i<32; i++)
 		{			
 			uint8_t c = n.navdata_adc_data_frame.data_frame[i];
