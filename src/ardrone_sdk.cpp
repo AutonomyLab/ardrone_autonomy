@@ -224,6 +224,7 @@ extern "C" {
 
     C_RESULT navdata_custom_process(const navdata_unpacked_t * const pnd) {
         vp_os_mutex_lock(&navdata_lock);
+        // TODO: This is expensive, too (1908 Bytes)!
         shared_raw_navdata = *pnd;
         if(fullspeed_navdata)
         {

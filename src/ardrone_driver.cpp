@@ -557,6 +557,8 @@ void ARDroneDriver::publish_video()
 void ARDroneDriver::publish_navdata()
 {
     // Thread safe copy of interesting Navdata data
+    // TODO: This is a very expensive task, can we optimize here?
+    // maybe ignoring the copy when it is not needed.
     vp_os_mutex_lock(&navdata_lock);
     navdata_raw = shared_raw_navdata;
     vp_os_mutex_unlock(&navdata_lock);
@@ -627,7 +629,9 @@ void ARDroneDriver::publish_navdata()
     msg.vx = navdata_raw.navdata_demo.vx; // mm/sec
     msg.vy = -navdata_raw.navdata_demo.vy; // mm/sec
     msg.vz = -navdata_raw.navdata_demo.vz; // mm/sec
-    msg.tm = navdata_raw.navdata_time.time;
+    //msg.tm = navdata_raw.navdata_time.time;
+    // First 21 bits (LSB) are usecs + 11 HSB are seconds
+    msg.tm = (navdata_raw.navdata_time.time & 0x001FFFFF) + (navdata_raw.navdata_time.time >> 21)*1000000;
     msg.ax = navdata_raw.navdata_phys_measures.phys_accs[ACC_X] / 1000.0; // g
     msg.ay = -navdata_raw.navdata_phys_measures.phys_accs[ACC_Y] / 1000.0; // g
     msg.az = -navdata_raw.navdata_phys_measures.phys_accs[ACC_Z] / 1000.0; // g

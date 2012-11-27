@@ -88,7 +88,7 @@ Information received from the drone will be published to the `ardrone/navdata` t
 * `altd`: Estimated altitude (mm)
 * `vx`, `vy`, `vz`: Linear velocity (mm/s) [TBA: Convention]
 * `ax`, `ay`, `az`: Linear acceleration (g) [TBA: Convention]
-* `tm`: Timestamp of the data returned by the Drone returned as a packed uint32 (sec:11; usec:21)
+* `tm`: Timestamp of the data returned by the Drone returned as number of micro-seconds passed since Drone's bootup.
 
 ### IMU data
 
