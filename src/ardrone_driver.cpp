@@ -8,7 +8,9 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 ARDroneDriver::ARDroneDriver()
-    : image_transport(node_handle)
+    : image_transport(node_handle),
+      // Ugly: This has been defined in the template file. Cleaner way to guarantee initilaztion?
+      initialized_navdata_publishers(false)
 {
     inited = false;
     last_frame_id = -1;
@@ -134,6 +136,17 @@ void ARDroneDriver::run()
                          (IS_ARDRONE1) ? 1 : 2,
                          ardrone_control_config.num_version_soft,
                          shared_raw_navdata.navdata_demo.vbat_flying_percentage);
+                ROS_INFO("Navdata Publish Settings:");
+                ROS_INFO("    Legacy Mode: %s", enabled_legacy_navdata ? "On" : "Off");
+                if (fullspeed_navdata)
+                {
+                    ROS_INFO("    Nominal update rate: Full Speed");
+                }
+                else
+                {
+                    ROS_INFO("    Nominal update rate: %d Hz", looprate);
+                }
+                // TODO: Enabled Navdata Demo
                 vp_os_mutex_unlock(&navdata_lock);
                 if (ardrone_control_config.num_version_soft[0] == '0')
                 {
@@ -611,6 +624,7 @@ void ARDroneDriver::publish_navdata()
 
     if (!enabled_legacy_navdata || ((navdata_pub.getNumSubscribers() == 0) && (imu_pub.getNumSubscribers() == 0) && (mag_pub.getNumSubscribers() == 0)))
         return; // why bother, no one is listening.
+
     const ros::Time _now = ros::Time::now();
 
     ardrone_autonomy::Navdata msg;
