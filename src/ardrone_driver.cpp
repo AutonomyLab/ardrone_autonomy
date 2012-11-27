@@ -140,6 +140,7 @@ void ARDroneDriver::run()
                 ROS_INFO("    Legacy Mode: %s", enabled_legacy_navdata ? "On" : "Off"); //Bug: This is being inited after in the NavdataMessage*.h
                 ROS_INFO("    ROS Loop Rate: %d", looprate);
                 ROS_INFO("    Instant New Navdata Publish: %s", fullspeed_navdata ? "On" : "Off");
+                ROS_INFO("    Drone Send Speed: %s", ardrone_application_default_config.navdata_demo==0 ? "200Hz (navdata_demo=0)" : "15Hz (navdata_demo=1)");
                 // TODO: Enabled Navdata Demo
                 vp_os_mutex_unlock(&navdata_lock);
                 if (ardrone_control_config.num_version_soft[0] == '0')
