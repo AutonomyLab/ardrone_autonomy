@@ -77,6 +77,7 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t &n)
 		}
 
 % else:
+		${item['struct_name']}_msg.${member['name']}.clear();
 		for(int i=0; i<${member['array_size']}; i++)
 		{\
 			${format_member(item, member, 'i')}
