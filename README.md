@@ -226,6 +226,22 @@ comments for enhancements
 
 ## FAQ
 
+### Where should I go next? Is there any ROS package or stack that can be used as a tutorial/sample to use ardrone_autonomy?
+
+Absolutely. Here are some examples:
+
+- [falkor_ardrone](https://github.com/FalkorSystems/falkor_ardrone)
+
+"falkor_ardrone" is a ROS package which uses the "ardrone_autonomy" package to implement autonomous control functionality on an AR.Drone.
+
+- [tum_ardrone](http://www.ros.org/wiki/tum_ardrone)
+
+State Estimation, Autopilot and GUI for ardrone.
+
+- [arl_ardrone_examples](https://github.com/parcon/arl_ardrone_examples)
+
+This ROS stack includes a series of very basic nodes to show users how to develop applications that use the ardrone_autonomy drivers for the AR drone 1.0 and 2.0 quadrotor robot.
+
 ### How can I report a bug, submit patches or ask for a feature?
 
 `github` offers a nice and convenient issue tracking and social coding platform, it can be used for bug reports and pull/feature request. This is the preferred method. You can also contact the author directly.
