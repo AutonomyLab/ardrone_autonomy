@@ -31,11 +31,7 @@
 	bool initialized_navdata_publishers;
 #endif
 
-#ifdef NAVDATA_STRUCTS_SOURCE
-void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t &n)
-{
-	const ros::Time now = ros::Time::now();
-
+#ifdef NAVDATA_STRUCTS_INITIALIZE
 	if(!initialized_navdata_publishers)
 	{
 		initialized_navdata_publishers = true;
@@ -61,37 +57,46 @@ void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t &n)
 
 % endfor
 	}
+#endif
 
-% for item in structs:
-	if(enabled_${item['struct_name']} && pub_${item['struct_name']}.getNumSubscribers()>0)
+#ifdef NAVDATA_STRUCTS_SOURCE
+void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t &n)
+{
+	const ros::Time now = ros::Time::now();
+
+	if(initialized_navdata_publishers)
 	{
-		${item['struct_name']}_msg.drone_time = ((double)ardrone_time_to_usec(n.navdata_time.time))/1000000.0;
-		${item['struct_name']}_msg.header.stamp = now;
-		${item['struct_name']}_msg.header.frame_id = droneFrameBase;
+% for item in structs:
+		if(enabled_${item['struct_name']} && pub_${item['struct_name']}.getNumSubscribers()>0)
+		{
+			${item['struct_name']}_msg.drone_time = ((double)ardrone_time_to_usec(n.navdata_time.time))/1000000.0;
+			${item['struct_name']}_msg.header.stamp = now;
+			${item['struct_name']}_msg.header.frame_id = droneFrameBase;
 
 % for member in item['members']:
 % if member['array_size'] is None:
-		{\
-			${format_member(item, member, None)}
-			${item['struct_name']}_msg.${member['name']} = m;
-		}
+			{\
+				${format_member(item, member, None)}
+				${item['struct_name']}_msg.${member['name']} = m;
+			}
 
 % else:
-		for(int i=0; i<${member['array_size']}; i++)
-		{\
-			${format_member(item, member, 'i')}
-			${item['struct_name']}_msg.${member['name']}.push_back(m);
-		}
-		
+			${item['struct_name']}_msg.${member['name']}.clear();
+			for(int i=0; i<${member['array_size']}; i++)
+			{\
+				${format_member(item, member, 'i')}
+				${item['struct_name']}_msg.${member['name']}.push_back(m);
+			}
+			
 % endif
 % endfor
-		pub_${item['struct_name']}.publish(${item['struct_name']}_msg);
-	}
+			pub_${item['struct_name']}.publish(${item['struct_name']}_msg);
+		}
 
-	//-------------------------
+		//-------------------------
 
 % endfor
-
+	}
 }
 #endif
 
