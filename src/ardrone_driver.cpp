@@ -137,7 +137,7 @@ void ARDroneDriver::run()
                          ardrone_control_config.num_version_soft,
                          shared_raw_navdata.navdata_demo.vbat_flying_percentage);
                 ROS_INFO("Navdata Publish Settings:");
-                ROS_INFO("    Legacy Mode: %s", enabled_legacy_navdata ? "On" : "Off");
+                //ROS_INFO("    Legacy Mode: %s", enabled_legacy_navdata ? "On" : "Off"); //Bug: This is being inited after in the NavdataMessage*.h
                 ROS_INFO("    ROS Loop Rate: %d", looprate);
                 ROS_INFO("    Instant New Navdata Publish: %s", fullspeed_navdata ? "On" : "Off");
                 // TODO: Enabled Navdata Demo
@@ -153,8 +153,8 @@ void ARDroneDriver::run()
             vp_os_mutex_unlock(&video_lock);
             if (copy_current_frame_id != last_frame_id)
             {
-                publish_video();                                
                 last_frame_id = copy_current_frame_id;
+                publish_video();
             }
 
             vp_os_mutex_lock(&navdata_lock);
@@ -162,8 +162,8 @@ void ARDroneDriver::run()
             vp_os_mutex_unlock(&navdata_lock);
             if (copy_current_navdata_id != last_navdata_id)
             {
-                publish_navdata();
                 last_navdata_id = copy_current_navdata_id;
+                publish_navdata();                
             }
             if (freq_dev == 0) publish_tf();
 
