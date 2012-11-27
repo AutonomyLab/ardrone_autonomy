@@ -102,6 +102,9 @@ private:
 
     long int last_frame_id;
     long int last_navdata_id;
+    long int copy_current_frame_id;
+    long int copy_current_navdata_id;
+
 	int flying_state;
 
     bool inited;

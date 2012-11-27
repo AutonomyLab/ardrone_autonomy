@@ -138,14 +138,8 @@ void ARDroneDriver::run()
                          shared_raw_navdata.navdata_demo.vbat_flying_percentage);
                 ROS_INFO("Navdata Publish Settings:");
                 ROS_INFO("    Legacy Mode: %s", enabled_legacy_navdata ? "On" : "Off");
-                if (fullspeed_navdata)
-                {
-                    ROS_INFO("    Nominal update rate: Full Speed");
-                }
-                else
-                {
-                    ROS_INFO("    Nominal update rate: %d Hz", looprate);
-                }
+                ROS_INFO("    ROS Loop Rate: %d", looprate);
+                ROS_INFO("    Instant New Navdata Publish: %s", fullspeed_navdata ? "On" : "Off");
                 // TODO: Enabled Navdata Demo
                 vp_os_mutex_unlock(&navdata_lock);
                 if (ardrone_control_config.num_version_soft[0] == '0')
@@ -154,15 +148,22 @@ void ARDroneDriver::run()
                 }
             }
         } else {
-            if (current_frame_id != last_frame_id)
+            vp_os_mutex_lock(&video_lock);
+            copy_current_frame_id = current_frame_id;
+            vp_os_mutex_unlock(&video_lock);
+            if (copy_current_frame_id != last_frame_id)
             {
                 publish_video();                                
-                last_frame_id = current_frame_id;
+                last_frame_id = copy_current_frame_id;
             }
-            if (current_navdata_id != last_navdata_id)
+
+            vp_os_mutex_lock(&navdata_lock);
+            copy_current_navdata_id = current_navdata_id;
+            vp_os_mutex_unlock(&navdata_lock);
+            if (copy_current_navdata_id != last_navdata_id)
             {
                 publish_navdata();
-                last_navdata_id = current_navdata_id;
+                last_navdata_id = copy_current_navdata_id;
             }
             if (freq_dev == 0) publish_tf();
 
