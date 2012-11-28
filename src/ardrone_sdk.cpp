@@ -16,6 +16,7 @@ ARDroneDriver* rosDriver;
 
 int32_t looprate;
 bool fullspeed_navdata;
+bool fullspeed_video;
 
 int32_t should_exit;
 
@@ -61,6 +62,7 @@ extern "C" {
 
         ros::param::param("~looprate",looprate,50);
         ros::param::param("~fullspeed_navdata",fullspeed_navdata,false);
+        ros::param::param("~fullspeed_video",fullspeed_video,false);
 
         // SET SOME NON-STANDARD DEFAULT VALUES FOR THE DRIVER
         // THESE CAN BE OVERWRITTEN BY ROS PARAMETERS (below)

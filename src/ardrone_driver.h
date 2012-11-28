@@ -1,6 +1,7 @@
 #ifndef _ARDRONE_DRIVER_H_
 #define _ARDRONE_DRIVER_H_
 
+class ARDroneDriver;
 #include <ros/ros.h>
 #include <image_transport/image_transport.h>
 #include <tf/transform_broadcaster.h>
@@ -52,8 +53,8 @@ public:
     #include "NavdataMessageDefinitions.h"
     #undef NAVDATA_STRUCTS_HEADER_PUBLIC
 
+    void publish_video();
 private:
-	void publish_video();
 	void publish_navdata();
     void publish_tf();
     bool readCovParams(std::string param_name, boost::array<double, 9> &cov_array);

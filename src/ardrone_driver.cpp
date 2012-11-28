@@ -140,6 +140,7 @@ void ARDroneDriver::run()
                 ROS_INFO("    Legacy Mode: %s", enabled_legacy_navdata ? "On" : "Off"); //Bug: This is being inited after in the NavdataMessage*.h
                 ROS_INFO("    ROS Loop Rate: %d", looprate);
                 ROS_INFO("    Instant New Navdata Publish: %s", fullspeed_navdata ? "On" : "Off");
+                ROS_INFO("    Instant New Video Publish: %s", fullspeed_video ? "On" : "Off");
                 ROS_INFO("    Drone Send Speed: %s", ardrone_application_default_config.navdata_demo==0 ? "200Hz (navdata_demo=0)" : "15Hz (navdata_demo=1)");
                 // TODO: Enabled Navdata Demo
                 vp_os_mutex_unlock(&navdata_lock);
@@ -149,13 +150,16 @@ void ARDroneDriver::run()
                 }
             }
         } else {
-            vp_os_mutex_lock(&video_lock);
-            copy_current_frame_id = current_frame_id;
-            vp_os_mutex_unlock(&video_lock);
-            if (copy_current_frame_id != last_frame_id)
+            if(!fullspeed_video)
             {
-                last_frame_id = copy_current_frame_id;
-                publish_video();
+                vp_os_mutex_lock(&video_lock);
+                copy_current_frame_id = current_frame_id;
+                vp_os_mutex_unlock(&video_lock);
+                if (copy_current_frame_id != last_frame_id)
+                {
+                    last_frame_id = copy_current_frame_id;
+                    publish_video();
+                }
             }
 
             vp_os_mutex_lock(&navdata_lock);
@@ -366,9 +370,9 @@ void ARDroneDriver::publish_video()
         image_msg.step = D1_STREAM_WIDTH*3;
         image_msg.data.resize(D1_STREAM_WIDTH*D1_STREAM_HEIGHT*3);
 
-        vp_os_mutex_lock(&video_lock);
+        if(!fullspeed_video) vp_os_mutex_lock(&video_lock);
         std::copy(buffer, buffer+(D1_STREAM_WIDTH*D1_STREAM_HEIGHT*3), image_msg.data.begin());
-        vp_os_mutex_unlock(&video_lock);
+        if(!fullspeed_video) vp_os_mutex_unlock(&video_lock);
 
         if (cam_state == ZAP_CHANNEL_HORI)
         {
@@ -394,14 +398,14 @@ void ARDroneDriver::publish_video()
             image_msg.data.clear();
             image_msg.data.resize(D1_VERTSTREAM_WIDTH*D1_VERTSTREAM_HEIGHT*3);
             _it = image_msg.data.begin();
-            vp_os_mutex_lock(&video_lock);
+            if(!fullspeed_video) vp_os_mutex_lock(&video_lock);
             for (int row = 0; row < D1_VERTSTREAM_HEIGHT ; row++)
             {
                 int _b = row * D1_STREAM_WIDTH * 3;
                 int _e = _b + image_msg.step;
                 _it = std::copy(buffer + _b, buffer + _e, _it);
             }
-            vp_os_mutex_unlock(&video_lock);
+            if(!fullspeed_video) vp_os_mutex_unlock(&video_lock);
 
             cinfo_msg_vert.width = D1_VERTSTREAM_WIDTH;
             cinfo_msg_vert.height = D1_VERTSTREAM_HEIGHT;
@@ -424,14 +428,14 @@ void ARDroneDriver::publish_video()
             image_msg.data.clear();
             image_msg.data.resize((D1_STREAM_WIDTH - D1_MODE2_PIP_WIDTH)*D1_STREAM_HEIGHT*3);
             _it = image_msg.data.begin();
-            vp_os_mutex_lock(&video_lock);
+            if(!fullspeed_video) vp_os_mutex_lock(&video_lock);
             for (int row = 0; row < D1_STREAM_HEIGHT; row++)
             {
                 int _b = (row * D1_STREAM_WIDTH * 3) + (D1_MODE2_PIP_WIDTH * 3);
                 int _e = _b + image_msg.step;
                 _it = std::copy(buffer + _b, buffer + _e, _it);
             }
-            vp_os_mutex_unlock(&video_lock);
+            if(!fullspeed_video) vp_os_mutex_unlock(&video_lock);
 
             cinfo_msg_hori.width = D1_STREAM_WIDTH - D1_MODE2_PIP_WIDTH;
             cinfo_msg_hori.height = D1_STREAM_HEIGHT;
@@ -446,14 +450,14 @@ void ARDroneDriver::publish_video()
             image_msg.data.clear();
             image_msg.data.resize(D1_MODE2_PIP_WIDTH * D1_MODE2_PIP_HEIGHT * 3);
             _it = image_msg.data.begin();
-            vp_os_mutex_lock(&video_lock);
+            if(!fullspeed_video) vp_os_mutex_lock(&video_lock);
             for (int row = 0; row < D1_MODE2_PIP_HEIGHT; row++)
             {
                 int _b = row * D1_STREAM_WIDTH * 3;
                 int _e = _b + image_msg.step;
                 _it = std::copy(buffer + _b, buffer + _e, _it);
             }
-            vp_os_mutex_unlock(&video_lock);
+            if(!fullspeed_video) vp_os_mutex_unlock(&video_lock);
 
             cinfo_msg_vert.width = D1_MODE2_PIP_WIDTH;
             cinfo_msg_vert.height = D1_MODE2_PIP_HEIGHT;
@@ -479,9 +483,9 @@ void ARDroneDriver::publish_video()
             {
                 int _b = (row * (D1_STREAM_WIDTH * 3)) + (D1_MODE3_PIP_WIDTH * 3);
                 int _e = _b + image_msg.step;
-                vp_os_mutex_lock(&video_lock);
+                if(!fullspeed_video) vp_os_mutex_lock(&video_lock);
                 _it = std::copy(buffer + _b, buffer + _e, _it);
-                vp_os_mutex_unlock(&video_lock);
+                if(!fullspeed_video) vp_os_mutex_unlock(&video_lock);
             }
 
             cinfo_msg_vert.width = D1_VERTSTREAM_WIDTH - D1_MODE3_PIP_WIDTH;
@@ -497,13 +501,13 @@ void ARDroneDriver::publish_video()
             image_msg.data.clear();
             image_msg.data.resize(D1_MODE3_PIP_WIDTH * D1_MODE3_PIP_HEIGHT * 3);
             _it = image_msg.data.begin();
-            vp_os_mutex_lock(&video_lock);
+            if(!fullspeed_video) vp_os_mutex_lock(&video_lock);
             for (int row = 0; row < D1_MODE3_PIP_HEIGHT; row++)
             {
                 int _b = row * D1_STREAM_WIDTH * 3;
                 int _e = _b + image_msg.step;
                 _it = std::copy(buffer + _b, buffer + _e, _it);
-            }vp_os_mutex_unlock(&video_lock);
+            }if(!fullspeed_video) vp_os_mutex_unlock(&video_lock);
 
             cinfo_msg_hori.width = D1_MODE3_PIP_WIDTH;
             cinfo_msg_hori.height = D1_MODE3_PIP_HEIGHT;
@@ -544,9 +548,9 @@ void ARDroneDriver::publish_video()
         image_msg.is_bigendian = false;
         image_msg.step = D2_STREAM_WIDTH*3;
         image_msg.data.resize(D2_STREAM_WIDTH*D2_STREAM_HEIGHT*3);
-        vp_os_mutex_lock(&video_lock);
+        if(!fullspeed_video) vp_os_mutex_lock(&video_lock);
         std::copy(buffer, buffer+(D2_STREAM_WIDTH*D2_STREAM_HEIGHT*3), image_msg.data.begin());
-        vp_os_mutex_unlock(&video_lock);
+        if(!fullspeed_video) vp_os_mutex_unlock(&video_lock);
         // We only put the width and height in here.
 
 
@@ -574,17 +578,8 @@ void ARDroneDriver::publish_video()
 	
 }
 
-void ARDroneDriver::publish_navdata()
+void ARDroneDriver::publish_navdata(navdata_unpacked_t &navdata_raw, const ros::Time &navdata_receive_time)
 {
-    // Thread safe copy of interesting Navdata data
-    // TODO: This is a very expensive task, can we optimize here?
-    // maybe ignoring the copy when it is not needed.
-    vp_os_mutex_lock(&navdata_lock);
-    navdata_raw = shared_raw_navdata;
-    navdata_receive_time = shared_navdata_receive_time;
-    vp_os_mutex_unlock(&navdata_lock);
-
-
     if ((do_caliberation) && (!caliberated))
     {
         acc_samples[0].push_back(navdata_raw.navdata_phys_measures.phys_accs[ACC_X]);
