@@ -2,6 +2,7 @@
 #define _VIDEO_H_
 
 #include "ardrone_sdk.h"
+#include "ardrone_driver.h"
 
 // The maximum memory allocation
 #define MAX_STREAM_WIDTH 640

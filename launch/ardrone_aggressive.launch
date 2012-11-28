@@ -64,7 +64,8 @@
 
 	<!-- Do we want to publish new-style navdata when received (true), or every time the ros-loop runs (false)? -->
 	<!-- (does not affect legacy navdata, which is always published at ros-loop rate) -->
-		<param name="fullspeed_navdata" value="true" />
+		<param name="realtime_navdata" value="true" />
+		<param name="realtime_video" value="true" />
 
 	<!-- Covariance Values (3x3 matrices reshaped to 1x9)-->
         <rosparam param="cov/imu_la">[0.1, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.1]</rosparam>

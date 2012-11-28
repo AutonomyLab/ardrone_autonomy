@@ -18,6 +18,10 @@ extern "C" C_RESULT export_stage_transform( void *cfg, vp_api_io_data_t *in, vp_
     vp_os_mutex_lock(&video_lock);
 	memcpy(buffer, in->buffers[0], in->size);
     current_frame_id++;
+    if(realtime_video)
+    {
+    	rosDriver->publish_video();
+    }
     vp_os_mutex_unlock(&video_lock);
 //    vp_os_mutex_unlock(&video_update_lock);	
  	return (SUCCESS);

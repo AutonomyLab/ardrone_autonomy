@@ -16,7 +16,7 @@
 #endif
 
 #ifdef NAVDATA_STRUCTS_HEADER_PUBLIC
-	void PublishNavdataTypes(navdata_unpacked_t &n);
+	void PublishNavdataTypes(const navdata_unpacked_t &n, const ros::Time &received);
 #endif
 
 #ifdef NAVDATA_STRUCTS_HEADER_PRIVATE
@@ -60,17 +60,15 @@
 #endif
 
 #ifdef NAVDATA_STRUCTS_SOURCE
-void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t &n)
+void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t &n, ros::Time &received)
 {
-	const ros::Time now = ros::Time::now();
-
 	if(initialized_navdata_publishers)
 	{
 % for item in structs:
 		if(enabled_${item['struct_name']} && pub_${item['struct_name']}.getNumSubscribers()>0)
 		{
 			${item['struct_name']}_msg.drone_time = ((double)ardrone_time_to_usec(n.navdata_time.time))/1000000.0;
-			${item['struct_name']}_msg.header.stamp = now;
+			${item['struct_name']}_msg.header.stamp = received;
 			${item['struct_name']}_msg.header.frame_id = droneFrameBase;
 
 % for member in item['members']:

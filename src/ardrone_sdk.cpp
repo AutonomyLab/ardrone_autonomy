@@ -1,9 +1,10 @@
 #include "ardrone_sdk.h"
 #include "video.h"
 #include "teleop_twist.h"
-#include "ardrone_driver.h"
 
-navdata_unpacked_t shared_raw_navdata;
+
+navdata_unpacked_t *shared_raw_navdata;
+ros::Time shared_navdata_receive_time;
 
 vp_os_mutex_t navdata_lock;
 vp_os_mutex_t video_lock;
@@ -14,7 +15,8 @@ long int current_navdata_id = 0;
 ARDroneDriver* rosDriver;
 
 int32_t looprate;
-bool fullspeed_navdata;
+bool realtime_navdata;
+bool realtime_video;
 
 int32_t should_exit;
 
@@ -59,7 +61,8 @@ extern "C" {
         }
 
         ros::param::param("~looprate",looprate,50);
-        ros::param::param("~fullspeed_navdata",fullspeed_navdata,false);
+        ros::param::param("~realtime_navdata",realtime_navdata,false);
+        ros::param::param("~realtime_video",realtime_video,false);
 
         // SET SOME NON-STANDARD DEFAULT VALUES FOR THE DRIVER
         // THESE CAN BE OVERWRITTEN BY ROS PARAMETERS (below)
@@ -224,12 +227,15 @@ extern "C" {
 
     C_RESULT navdata_custom_process(const navdata_unpacked_t * const pnd) {
         vp_os_mutex_lock(&navdata_lock);
-        // TODO: This is expensive, too (1908 Bytes)!
-        shared_raw_navdata = *pnd;
-        if(fullspeed_navdata)
+        shared_navdata_receive_time = ros::Time::now();
+        shared_raw_navdata = (navdata_unpacked_t*)pnd;
+
+        if(realtime_navdata)
         {
-            rosDriver->PublishNavdataTypes(shared_raw_navdata); //if we're publishing navdata at full speed, publish!
+            rosDriver->PublishNavdataTypes(*shared_raw_navdata, shared_navdata_receive_time); //if we're publishing navdata at full speed, publish!
+            rosDriver->publish_navdata(*shared_raw_navdata, shared_navdata_receive_time);
         }
+
         current_navdata_id++;
         vp_os_mutex_unlock(&navdata_lock);
 		return C_OK;
