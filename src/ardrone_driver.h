@@ -112,6 +112,7 @@ private:
 
     // Navdata copy
     navdata_unpacked_t navdata_raw;
+    ros::Time navdata_receive_time;
 
     // Load auto-generated declarations for full navdata
     #define NAVDATA_STRUCTS_HEADER_PRIVATE

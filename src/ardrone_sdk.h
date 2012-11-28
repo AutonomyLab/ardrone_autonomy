@@ -43,9 +43,11 @@ extern "C" {
 extern video_decoder_config_t vec;
 }
 
+#include "ardrone_driver.h"
 
 #define NB_DRIVER_POST_STAGES   10
 extern navdata_unpacked_t shared_raw_navdata;
+extern ros::Time shared_navdata_receive_time;
 
 extern vp_os_mutex_t navdata_lock;
 extern vp_os_mutex_t video_lock;

@@ -581,6 +581,7 @@ void ARDroneDriver::publish_navdata()
     // maybe ignoring the copy when it is not needed.
     vp_os_mutex_lock(&navdata_lock);
     navdata_raw = shared_raw_navdata;
+    navdata_receive_time = shared_navdata_receive_time;
     vp_os_mutex_unlock(&navdata_lock);
 
 
@@ -626,17 +627,15 @@ void ARDroneDriver::publish_navdata()
 
     if(!fullspeed_navdata) // only transmit this data in the loop if we're transmitting at loop speed, rather than full speed
     {
-        PublishNavdataTypes(navdata_raw); // This function is defined in the template NavdataMessageDefinitions.h template file
+        PublishNavdataTypes(navdata_raw, navdata_receive_time); // This function is defined in the template NavdataMessageDefinitions.h template file
     }
 
     if (!enabled_legacy_navdata || ((navdata_pub.getNumSubscribers() == 0) && (imu_pub.getNumSubscribers() == 0) && (mag_pub.getNumSubscribers() == 0)))
         return; // why bother, no one is listening.
 
-    const ros::Time _now = ros::Time::now();
-
     ardrone_autonomy::Navdata msg;
 
-    msg.header.stamp = _now;
+    msg.header.stamp = navdata_receive_time;
     msg.header.frame_id = droneFrameBase;
     msg.batteryPercent = navdata_raw.navdata_demo.vbat_flying_percentage;
     msg.state = (navdata_raw.navdata_demo.ctrl_state >> 16);
@@ -708,7 +707,7 @@ void ARDroneDriver::publish_navdata()
 
     /* IMU */
     imu_msg.header.frame_id = droneFrameBase;
-    imu_msg.header.stamp = _now;
+    imu_msg.header.stamp = navdata_receive_time;
 
     // IMU - Linear Acc
     imu_msg.linear_acceleration.x = msg.ax * 9.8;
@@ -727,7 +726,7 @@ void ARDroneDriver::publish_navdata()
     imu_msg.angular_velocity.z = -navdata_raw.navdata_phys_measures.phys_gyros[GYRO_Z] * DEG_TO_RAD;
 
     mag_msg.header.frame_id = droneFrameBase;
-    mag_msg.header.stamp = _now;
+    mag_msg.header.stamp = navdata_receive_time;
     const float mag_normalizer = sqrt( msg.magX * msg.magX + msg.magY * msg.magY + msg.magZ * msg.magZ );
 
     // TODO: Check if it is really needed that magnetometer message includes normalized value
