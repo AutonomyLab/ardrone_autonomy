@@ -2,6 +2,7 @@
 #define _ARDRONE_DRIVER_H_
 
 class ARDroneDriver;
+
 #include <ros/ros.h>
 #include <image_transport/image_transport.h>
 #include <tf/transform_broadcaster.h>
@@ -54,8 +55,9 @@ public:
     #undef NAVDATA_STRUCTS_HEADER_PUBLIC
 
     void publish_video();
+    void publish_navdata(navdata_unpacked_t &navdata_raw, const ros::Time &navdata_receive_time);
+
 private:
-	void publish_navdata();
     void publish_tf();
     bool readCovParams(std::string param_name, boost::array<double, 9> &cov_array);
     double calcAverage(std::vector<double> &vec);
@@ -110,10 +112,6 @@ private:
 
     bool inited;
     std::string droneFrameId;
-
-    // Navdata copy
-    navdata_unpacked_t navdata_raw;
-    ros::Time navdata_receive_time;
 
     // Load auto-generated declarations for full navdata
     #define NAVDATA_STRUCTS_HEADER_PRIVATE

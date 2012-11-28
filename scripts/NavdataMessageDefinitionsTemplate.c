@@ -16,7 +16,7 @@
 #endif
 
 #ifdef NAVDATA_STRUCTS_HEADER_PUBLIC
-	void PublishNavdataTypes(navdata_unpacked_t &n, ros::Time &received);
+	void PublishNavdataTypes(const navdata_unpacked_t &n, const ros::Time &received);
 #endif
 
 #ifdef NAVDATA_STRUCTS_HEADER_PRIVATE

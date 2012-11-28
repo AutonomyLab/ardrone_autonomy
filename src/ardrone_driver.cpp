@@ -135,7 +135,7 @@ void ARDroneDriver::run()
                          ardrone_control_config.ardrone_name,
                          (IS_ARDRONE1) ? 1 : 2,
                          ardrone_control_config.num_version_soft,
-                         shared_raw_navdata.navdata_demo.vbat_flying_percentage);
+                         shared_raw_navdata->navdata_demo.vbat_flying_percentage);
                 ROS_INFO("Navdata Publish Settings:");
                 ROS_INFO("    Legacy Mode: %s", enabled_legacy_navdata ? "On" : "Off"); //Bug: This is being inited after in the NavdataMessage*.h
                 ROS_INFO("    ROS Loop Rate: %d", looprate);
@@ -162,13 +162,26 @@ void ARDroneDriver::run()
                 }
             }
 
-            vp_os_mutex_lock(&navdata_lock);
-            copy_current_navdata_id = current_navdata_id;
-            vp_os_mutex_unlock(&navdata_lock);
-            if (copy_current_navdata_id != last_navdata_id)
+            if(!fullspeed_navdata)
             {
-                last_navdata_id = copy_current_navdata_id;
-                publish_navdata();                
+                vp_os_mutex_lock(&navdata_lock);
+                copy_current_navdata_id = current_navdata_id;
+                vp_os_mutex_unlock(&navdata_lock);
+                if (copy_current_navdata_id != last_navdata_id)
+                {
+                    vp_os_mutex_lock(&navdata_lock);
+                    last_navdata_id = copy_current_navdata_id;
+                    
+                    // Thread safe copy of interesting Navdata data
+                    // TODO: This is a very expensive task, can we optimize here?
+                    // maybe ignoring the copy when it is not needed.
+                    navdata_unpacked_t navdata_raw = *shared_raw_navdata;
+                    ros::Time navdata_receive_time = shared_navdata_receive_time;
+                    vp_os_mutex_unlock(&navdata_lock);
+
+                    PublishNavdataTypes(navdata_raw, navdata_receive_time); // This function is defined in the template NavdataMessageDefinitions.h template file
+                    publish_navdata(navdata_raw, navdata_receive_time);                
+                }
             }
             if (freq_dev == 0) publish_tf();
 
@@ -618,11 +631,6 @@ void ARDroneDriver::publish_navdata(navdata_unpacked_t &navdata_raw, const ros::
         navdata_raw.navdata_demo.vy -= vel_bias[1];
         navdata_raw.navdata_demo.vz -= vel_bias[2];
 
-    }
-
-    if(!fullspeed_navdata) // only transmit this data in the loop if we're transmitting at loop speed, rather than full speed
-    {
-        PublishNavdataTypes(navdata_raw, navdata_receive_time); // This function is defined in the template NavdataMessageDefinitions.h template file
     }
 
     if (!enabled_legacy_navdata || ((navdata_pub.getNumSubscribers() == 0) && (imu_pub.getNumSubscribers() == 0) && (mag_pub.getNumSubscribers() == 0)))

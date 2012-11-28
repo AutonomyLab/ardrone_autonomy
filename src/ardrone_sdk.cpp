@@ -3,7 +3,7 @@
 #include "teleop_twist.h"
 
 
-navdata_unpacked_t shared_raw_navdata;
+navdata_unpacked_t *shared_raw_navdata;
 ros::Time shared_navdata_receive_time;
 
 vp_os_mutex_t navdata_lock;
@@ -227,14 +227,15 @@ extern "C" {
 
     C_RESULT navdata_custom_process(const navdata_unpacked_t * const pnd) {
         vp_os_mutex_lock(&navdata_lock);
-        // TODO: This is expensive, too (1908 Bytes)!
-        shared_raw_navdata = *pnd;
         shared_navdata_receive_time = ros::Time::now();
+        shared_raw_navdata = (navdata_unpacked_t*)pnd;
 
         if(fullspeed_navdata)
         {
-            rosDriver->PublishNavdataTypes(shared_raw_navdata,shared_navdata_receive_time); //if we're publishing navdata at full speed, publish!
+            rosDriver->PublishNavdataTypes(*shared_raw_navdata, shared_navdata_receive_time); //if we're publishing navdata at full speed, publish!
+            rosDriver->publish_navdata(*shared_raw_navdata, shared_navdata_receive_time);
         }
+
         current_navdata_id++;
         vp_os_mutex_unlock(&navdata_lock);
 		return C_OK;
