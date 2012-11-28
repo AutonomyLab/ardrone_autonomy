@@ -1,9 +1,10 @@
 #include "ardrone_sdk.h"
 #include "video.h"
 #include "teleop_twist.h"
-#include "ardrone_driver.h"
+
 
 navdata_unpacked_t shared_raw_navdata;
+ros::Time shared_navdata_receive_time;
 
 vp_os_mutex_t navdata_lock;
 vp_os_mutex_t video_lock;
@@ -226,9 +227,11 @@ extern "C" {
         vp_os_mutex_lock(&navdata_lock);
         // TODO: This is expensive, too (1908 Bytes)!
         shared_raw_navdata = *pnd;
+        shared_navdata_receive_time = ros::Time::now();
+
         if(fullspeed_navdata)
         {
-            rosDriver->PublishNavdataTypes(shared_raw_navdata); //if we're publishing navdata at full speed, publish!
+            rosDriver->PublishNavdataTypes(shared_raw_navdata,shared_navdata_receive_time); //if we're publishing navdata at full speed, publish!
         }
         current_navdata_id++;
         vp_os_mutex_unlock(&navdata_lock);
