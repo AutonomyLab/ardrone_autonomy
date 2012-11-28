@@ -57,8 +57,8 @@ extern vp_os_mutex_t video_lock;
 extern vp_os_mutex_t twist_lock;
 
 extern int32_t looprate;
-extern bool fullspeed_navdata;
-extern bool fullspeed_video;
+extern bool realtime_navdata;
+extern bool realtime_video;
 
 extern int32_t should_exit;
 

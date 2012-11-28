@@ -15,8 +15,8 @@ long int current_navdata_id = 0;
 ARDroneDriver* rosDriver;
 
 int32_t looprate;
-bool fullspeed_navdata;
-bool fullspeed_video;
+bool realtime_navdata;
+bool realtime_video;
 
 int32_t should_exit;
 
@@ -61,8 +61,8 @@ extern "C" {
         }
 
         ros::param::param("~looprate",looprate,50);
-        ros::param::param("~fullspeed_navdata",fullspeed_navdata,false);
-        ros::param::param("~fullspeed_video",fullspeed_video,false);
+        ros::param::param("~realtime_navdata",realtime_navdata,false);
+        ros::param::param("~realtime_video",realtime_video,false);
 
         // SET SOME NON-STANDARD DEFAULT VALUES FOR THE DRIVER
         // THESE CAN BE OVERWRITTEN BY ROS PARAMETERS (below)
@@ -230,7 +230,7 @@ extern "C" {
         shared_navdata_receive_time = ros::Time::now();
         shared_raw_navdata = (navdata_unpacked_t*)pnd;
 
-        if(fullspeed_navdata)
+        if(realtime_navdata)
         {
             rosDriver->PublishNavdataTypes(*shared_raw_navdata, shared_navdata_receive_time); //if we're publishing navdata at full speed, publish!
             rosDriver->publish_navdata(*shared_raw_navdata, shared_navdata_receive_time);
