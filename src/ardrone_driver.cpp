@@ -137,11 +137,11 @@ void ARDroneDriver::run()
                          ardrone_control_config.num_version_soft,
                          shared_raw_navdata->navdata_demo.vbat_flying_percentage);
                 ROS_INFO("Navdata Publish Settings:");
-                ROS_INFO("    Legacy Mode: %s", enabled_legacy_navdata ? "On" : "Off"); //Bug: This is being inited after in the NavdataMessage*.h
+                ROS_INFO("    Legacy Mode: %s", enabled_legacy_navdata ? "On" : "Off");
                 ROS_INFO("    ROS Loop Rate: %d", looprate);
-                ROS_INFO("    Instant New Navdata Publish: %s", realtime_navdata ? "On" : "Off");
-                ROS_INFO("    Instant New Video Publish: %s", realtime_video ? "On" : "Off");
-                ROS_INFO("    Drone Send Speed: %s", ardrone_application_default_config.navdata_demo==0 ? "200Hz (navdata_demo=0)" : "15Hz (navdata_demo=1)");
+                ROS_INFO("    Realtime Navdata Publish: %s", realtime_navdata ? "On" : "Off");
+                ROS_INFO("    Realtime Video Publish: %s", realtime_video ? "On" : "Off");
+                ROS_INFO("    Drone Navdata Send Speed: %s", ardrone_application_default_config.navdata_demo==0 ? "200Hz (navdata_demo=0)" : "15Hz (navdata_demo=1)");
                 // TODO: Enabled Navdata Demo
                 vp_os_mutex_unlock(&navdata_lock);
                 if (ardrone_control_config.num_version_soft[0] == '0')
@@ -150,7 +150,7 @@ void ARDroneDriver::run()
                 }
             }
         } else {
-            if(!realtime_video)
+            if (!realtime_video)
             {
                 vp_os_mutex_lock(&video_lock);
                 copy_current_frame_id = current_frame_id;
@@ -162,7 +162,7 @@ void ARDroneDriver::run()
                 }
             }
 
-            if(!realtime_navdata)
+            if (!realtime_navdata)
             {
                 vp_os_mutex_lock(&navdata_lock);
                 copy_current_navdata_id = current_navdata_id;
@@ -636,56 +636,54 @@ void ARDroneDriver::publish_navdata(navdata_unpacked_t &navdata_raw, const ros::
     if (!enabled_legacy_navdata || ((navdata_pub.getNumSubscribers() == 0) && (imu_pub.getNumSubscribers() == 0) && (mag_pub.getNumSubscribers() == 0)))
         return; // why bother, no one is listening.
 
-    ardrone_autonomy::Navdata msg;
-
-    msg.header.stamp = navdata_receive_time;
-    msg.header.frame_id = droneFrameBase;
-    msg.batteryPercent = navdata_raw.navdata_demo.vbat_flying_percentage;
-    msg.state = (navdata_raw.navdata_demo.ctrl_state >> 16);
+    legacynavdata_msg.header.stamp = navdata_receive_time;
+    legacynavdata_msg.header.frame_id = droneFrameBase;
+    legacynavdata_msg.batteryPercent = navdata_raw.navdata_demo.vbat_flying_percentage;
+    legacynavdata_msg.state = (navdata_raw.navdata_demo.ctrl_state >> 16);
     
     // positive means counterclockwise rotation around axis
-    msg.rotX = navdata_raw.navdata_demo.phi / 1000.0; // tilt left/right
-    msg.rotY = -navdata_raw.navdata_demo.theta / 1000.0; // tilt forward/backward
-    msg.rotZ = -navdata_raw.navdata_demo.psi / 1000.0; // orientation
+    legacynavdata_msg.rotX = navdata_raw.navdata_demo.phi / 1000.0; // tilt left/right
+    legacynavdata_msg.rotY = -navdata_raw.navdata_demo.theta / 1000.0; // tilt forward/backward
+    legacynavdata_msg.rotZ = -navdata_raw.navdata_demo.psi / 1000.0; // orientation
 
-    msg.altd = navdata_raw.navdata_demo.altitude; // cm
-    msg.vx = navdata_raw.navdata_demo.vx; // mm/sec
-    msg.vy = -navdata_raw.navdata_demo.vy; // mm/sec
-    msg.vz = -navdata_raw.navdata_demo.vz; // mm/sec
+    legacynavdata_msg.altd = navdata_raw.navdata_demo.altitude; // cm
+    legacynavdata_msg.vx = navdata_raw.navdata_demo.vx; // mm/sec
+    legacynavdata_msg.vy = -navdata_raw.navdata_demo.vy; // mm/sec
+    legacynavdata_msg.vz = -navdata_raw.navdata_demo.vz; // mm/sec
     //msg.tm = navdata_raw.navdata_time.time;
     // First 21 bits (LSB) are usecs + 11 HSB are seconds
-    msg.tm = (navdata_raw.navdata_time.time & 0x001FFFFF) + (navdata_raw.navdata_time.time >> 21)*1000000;
-    msg.ax = navdata_raw.navdata_phys_measures.phys_accs[ACC_X] / 1000.0; // g
-    msg.ay = -navdata_raw.navdata_phys_measures.phys_accs[ACC_Y] / 1000.0; // g
-    msg.az = -navdata_raw.navdata_phys_measures.phys_accs[ACC_Z] / 1000.0; // g
+    legacynavdata_msg.tm = (navdata_raw.navdata_time.time & 0x001FFFFF) + (navdata_raw.navdata_time.time >> 21)*1000000;
+    legacynavdata_msg.ax = navdata_raw.navdata_phys_measures.phys_accs[ACC_X] / 1000.0; // g
+    legacynavdata_msg.ay = -navdata_raw.navdata_phys_measures.phys_accs[ACC_Y] / 1000.0; // g
+    legacynavdata_msg.az = -navdata_raw.navdata_phys_measures.phys_accs[ACC_Z] / 1000.0; // g
 
     // New stuff
 
     if (IS_ARDRONE2)
     {
-        msg.magX = (int32_t)navdata_raw.navdata_magneto.mx;
-        msg.magY = (int32_t)navdata_raw.navdata_magneto.my;
-        msg.magZ = (int32_t)navdata_raw.navdata_magneto.mz;
+        legacynavdata_msg.magX = (int32_t)navdata_raw.navdata_magneto.mx;
+        legacynavdata_msg.magY = (int32_t)navdata_raw.navdata_magneto.my;
+        legacynavdata_msg.magZ = (int32_t)navdata_raw.navdata_magneto.mz;
 
-        msg.pressure = navdata_raw.navdata_pressure_raw.Pression_meas; // typo in the SDK!
-        msg.temp = navdata_raw.navdata_pressure_raw.Temperature_meas;
+        legacynavdata_msg.pressure = navdata_raw.navdata_pressure_raw.Pression_meas; // typo in the SDK!
+        legacynavdata_msg.temp = navdata_raw.navdata_pressure_raw.Temperature_meas;
 
-        msg.wind_speed = navdata_raw.navdata_wind_speed.wind_speed;
-        msg.wind_angle = navdata_raw.navdata_wind_speed.wind_angle;
-        msg.wind_comp_angle = navdata_raw.navdata_wind_speed.wind_compensation_phi;
+        legacynavdata_msg.wind_speed = navdata_raw.navdata_wind_speed.wind_speed;
+        legacynavdata_msg.wind_angle = navdata_raw.navdata_wind_speed.wind_angle;
+        legacynavdata_msg.wind_comp_angle = navdata_raw.navdata_wind_speed.wind_compensation_phi;
     }
     else
     {
-        msg.magX = msg.magY = msg.magZ = 0;
-        msg.pressure = 0.0;
-        msg.temp = 0.0;
-        msg.wind_speed = 0.0;
-        msg.wind_angle = 0.0;
-        msg.wind_comp_angle = 0.0;
+        legacynavdata_msg.magX = legacynavdata_msg.magY = legacynavdata_msg.magZ = 0;
+        legacynavdata_msg.pressure = 0.0;
+        legacynavdata_msg.temp = 0.0;
+        legacynavdata_msg.wind_speed = 0.0;
+        legacynavdata_msg.wind_angle = 0.0;
+        legacynavdata_msg.wind_comp_angle = 0.0;
     }
 
     // Tag Detection
-    msg.tags_count = navdata_raw.navdata_vision_detect.nb_detected;
+    legacynavdata_msg.tags_count = navdata_raw.navdata_vision_detect.nb_detected;
     for (int i = 0; i < navdata_raw.navdata_vision_detect.nb_detected; i++)
     {
         /*
@@ -699,13 +697,13 @@ void ARDroneDriver::publish_navdata(navdata_unpacked_t &navdata_raw, const ros::
          * Please also note that the xc, yc, width and height are in [0,1000] range
          * and must get converted back based on image resolution.
          */
-        msg.tags_type.push_back(navdata_raw.navdata_vision_detect.type[i]);
-        msg.tags_xc.push_back(navdata_raw.navdata_vision_detect.xc[i]);
-        msg.tags_yc.push_back(navdata_raw.navdata_vision_detect.yc[i]);
-        msg.tags_width.push_back(navdata_raw.navdata_vision_detect.width[i]);
-        msg.tags_height.push_back(navdata_raw.navdata_vision_detect.height[i]);
-        msg.tags_orientation.push_back(navdata_raw.navdata_vision_detect.orientation_angle[i]);
-        msg.tags_distance.push_back(navdata_raw.navdata_vision_detect.dist[i]);
+        legacynavdata_msg.tags_type.push_back(navdata_raw.navdata_vision_detect.type[i]);
+        legacynavdata_msg.tags_xc.push_back(navdata_raw.navdata_vision_detect.xc[i]);
+        legacynavdata_msg.tags_yc.push_back(navdata_raw.navdata_vision_detect.yc[i]);
+        legacynavdata_msg.tags_width.push_back(navdata_raw.navdata_vision_detect.width[i]);
+        legacynavdata_msg.tags_height.push_back(navdata_raw.navdata_vision_detect.height[i]);
+        legacynavdata_msg.tags_orientation.push_back(navdata_raw.navdata_vision_detect.orientation_angle[i]);
+        legacynavdata_msg.tags_distance.push_back(navdata_raw.navdata_vision_detect.dist[i]);
     }
 
     /* IMU */
@@ -713,13 +711,13 @@ void ARDroneDriver::publish_navdata(navdata_unpacked_t &navdata_raw, const ros::
     imu_msg.header.stamp = navdata_receive_time;
 
     // IMU - Linear Acc
-    imu_msg.linear_acceleration.x = msg.ax * 9.8;
-    imu_msg.linear_acceleration.y = msg.ay * 9.8;
-    imu_msg.linear_acceleration.z = msg.az * 9.8;
+    imu_msg.linear_acceleration.x = legacynavdata_msg.ax * 9.8;
+    imu_msg.linear_acceleration.y = legacynavdata_msg.ay * 9.8;
+    imu_msg.linear_acceleration.z = legacynavdata_msg.az * 9.8;
 
     // IMU - Rotation Matrix
     tf::Quaternion q;
-    q.setEulerZYX(msg.rotZ * _DEG2RAD, msg.rotY * _DEG2RAD, msg.rotX * _DEG2RAD);
+    q.setEulerZYX(legacynavdata_msg.rotZ * _DEG2RAD, legacynavdata_msg.rotY * _DEG2RAD, legacynavdata_msg.rotX * _DEG2RAD);
     tf::quaternionTFToMsg(q, imu_msg.orientation);
 
     // IMU - Gyro (Gyro is being sent in deg/sec)
@@ -730,14 +728,14 @@ void ARDroneDriver::publish_navdata(navdata_unpacked_t &navdata_raw, const ros::
 
     mag_msg.header.frame_id = droneFrameBase;
     mag_msg.header.stamp = navdata_receive_time;
-    const float mag_normalizer = sqrt( msg.magX * msg.magX + msg.magY * msg.magY + msg.magZ * msg.magZ );
+    const float mag_normalizer = sqrt( legacynavdata_msg.magX * legacynavdata_msg.magX + legacynavdata_msg.magY * legacynavdata_msg.magY + legacynavdata_msg.magZ * legacynavdata_msg.magZ );
 
     // TODO: Check if it is really needed that magnetometer message includes normalized value
     if (fabs(mag_normalizer) > 1e-9f)
     {
-        mag_msg.vector.x = msg.magX / mag_normalizer;
-        mag_msg.vector.y = msg.magY / mag_normalizer;
-        mag_msg.vector.z = msg.magZ / mag_normalizer;
+        mag_msg.vector.x = legacynavdata_msg.magX / mag_normalizer;
+        mag_msg.vector.y = legacynavdata_msg.magY / mag_normalizer;
+        mag_msg.vector.z = legacynavdata_msg.magZ / mag_normalizer;
         mag_pub.publish(mag_msg);
     }
     else
@@ -745,7 +743,7 @@ void ARDroneDriver::publish_navdata(navdata_unpacked_t &navdata_raw, const ros::
         ROS_WARN_THROTTLE(1, "There is something wrong with the magnetometer readings (Magnitude is extremely small).");
     }
 
-    navdata_pub.publish(msg);
+    navdata_pub.publish(legacynavdata_msg);
     imu_pub.publish(imu_msg);
 }
 

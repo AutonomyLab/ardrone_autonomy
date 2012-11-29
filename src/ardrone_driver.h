@@ -129,6 +129,7 @@ private:
     // Huge part of IMU message is constant, let's fill'em once.
     sensor_msgs::Imu imu_msg;
     geometry_msgs::Vector3Stamped mag_msg;
+    ardrone_autonomy::Navdata legacynavdata_msg;
 
     // Manual IMU caliberation
     bool do_caliberation;
