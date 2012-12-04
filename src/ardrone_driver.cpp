@@ -682,7 +682,15 @@ void ARDroneDriver::publish_navdata(navdata_unpacked_t &navdata_raw, const ros::
         legacynavdata_msg.wind_comp_angle = 0.0;
     }
 
-    // Tag Detection
+    // Tag Detection, need to clear vectors first because it's a member variable now
+    legacynavdata_msg.tags_type.clear();
+    legacynavdata_msg.tags_xc.clear();
+    legacynavdata_msg.tags_yc.clear();
+    legacynavdata_msg.tags_width.clear();
+    legacynavdata_msg.tags_height.clear();
+    legacynavdata_msg.tags_orientation.clear();
+    legacynavdata_msg.tags_distance.clear();
+
     legacynavdata_msg.tags_count = navdata_raw.navdata_vision_detect.nb_detected;
     for (int i = 0; i < navdata_raw.navdata_vision_detect.nb_detected; i++)
     {
