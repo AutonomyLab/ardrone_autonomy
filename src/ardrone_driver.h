@@ -89,6 +89,7 @@ private:
 	ros::ServiceServer setLedAnimation_service;
     ros::ServiceServer imuReCalib_service;
     ros::ServiceServer flatTrim_service;
+    ros::ServiceServer setFlightAnimation_service;
 	
 	/*
 	 * Orange Green : 1

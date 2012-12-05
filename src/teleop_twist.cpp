@@ -58,6 +58,19 @@ bool setLedAnimationCallback(ardrone_autonomy::LedAnim::Request& request, ardron
     return true;
 }
 
+bool setFlightAnimationCallback(ardrone_autonomy::FlightAnim::Request &request, ardrone_autonomy::FlightAnim::Response &response)
+{
+    char param[20];
+    const int anim_type = request.type % ARDRONE_NB_ANIM_MAYDAY;
+    const int anim_duration = (request.duration > 0) ? request.duration : MAYDAY_TIMEOUT[anim_type];
+    snprintf(param, sizeof (param), "%d,%d", anim_type, anim_duration);
+    vp_os_mutex_lock(&twist_lock);
+    ARDRONE_TOOL_CONFIGURATION_ADDEVENT(flight_anim, param, NULL);
+    vp_os_mutex_unlock(&twist_lock);
+    response.result = true;
+    return true;
+}
+
 bool flatTrimCallback(std_srvs::Empty::Request &request, std_srvs::Empty::Response &response)
 {
     vp_os_mutex_lock(&twist_lock);

@@ -168,13 +168,33 @@ Calling `ardrone/setledanimation` service will invoke one of 14 pre-defined LED 
 * `float32 freq`: The frequency of the animation in Hz
 * `uint8 duration`: The duration of the animation in Seconds.
 
-The `type` parameter will map [in order] to one of these animations:
+The `type` parameter will map [in order] to one of these animations (check `srv/LedAnim.srv` for more details):
 
         BLINK_GREEN_RED, BLINK_GREEN, BLINK_RED, BLINK_ORANGE,
         SNAKE_GREEN_RED, FIRE, STANDARD, RED, GREEN, RED_SNAKE,BLANK,
         LEFT_GREEN_RIGHT_RED, LEFT_RED_RIGHT_GREEN, BLINK_STANDARD`
 
 You can test these animations in command line using commands like `rosservice call /ardrone/setledanimation 1 4 5`
+
+### Flight Animations
+
+Calling `ardrone/setflightanimation` service will execute one of 20 pre-defined flight animations for the drone. The paramaters are:
+
+* `uint8 type`: The type of flight animation, a number in range [0..19]
+* `uint16 duration`: The duration of the animation. Use 0 for default duration (recommended)
+
+The `type` paramater will map [in order] to one of these pre-defined animations (check `srv/FlightAnim.srv` for more details):
+
+    ARDRONE_ANIM_PHI_M30_DEG, ARDRONE_ANIM_PHI_30_DEG, ARDRONE_ANIM_THETA_M30_DEG, ARDRONE_ANIM_THETA_30_DEG,
+    ARDRONE_ANIM_THETA_20DEG_YAW_200DEG, ARDRONE_ANIM_THETA_20DEG_YAW_M200DEG, ARDRONE_ANIM_TURNAROUND,
+    ARDRONE_ANIM_TURNAROUND_GODOWN, ARDRONE_ANIM_YAW_SHAKE, ARDRONE_ANIM_YAW_DANCE, ARDRONE_ANIM_PHI_DANCE,
+    ARDRONE_ANIM_THETA_DANCE, ARDRONE_ANIM_VZ_DANCE, ARDRONE_ANIM_WAVE, ARDRONE_ANIM_PHI_THETA_MIXED,
+    ARDRONE_ANIM_DOUBLE_PHI_THETA_MIXED, ARDRONE_ANIM_FLIP_AHEAD, ARDRONE_ANIM_FLIP_BEHIND, ARDRONE_ANIM_FLIP_LEFT,
+    ARDRONE_ANIM_FLIP_RIGHT
+
+You can test these animations in command line using commands like `rosservice call /ardrone/setflightanimation 1 0` while drone is flying.
+
+Please be extra cautious about using animations, especially flip animations.
 
 ### IMU Calibration
 
