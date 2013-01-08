@@ -6,7 +6,7 @@
 
 ### Updates
 
-- *January XX 2013*: Zero-command without hovering ([More info](https://github.com/AutonomyLab/ardrone_autonomy/xxx)). Selective Navdata ([More info](https://github.com/AutonomyLab/ardrone_autonomy/xxx)).
+- *January XX 2013*: ROS Groovy support. Zero-command without hovering ([More info](https://github.com/AutonomyLab/ardrone_autonomy/xxx)). Full Navdata support ([More info](https://github.com/AutonomyLab/ardrone_autonomy/xxx)). Flight Animations.
 - *November 9 2012*: Critical Bug in sending configurations to drone fixed and more parameters are supported ([More info](https://github.com/AutonomyLab/ardrone_autonomy/issues/24)). Seperate topic for magnetometer data added ([More info](https://github.com/AutonomyLab/ardrone_autonomy/pull/25)).
 - *September 5 2012*: Experimental automatic IMU bias removal.
 - *August 27 2012*: Thread-safe SDK data access. Synchronized `navdata` and `camera` topics.
