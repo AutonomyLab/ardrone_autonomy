@@ -6,7 +6,7 @@
 
 ### Updates
 
-- *January XX 2013*: "auto-hover" enable/disable ([More info](https://github.com/AutonomyLab/ardrone_autonomy/xxx). Selective Navdata ([More info](https://github.com/AutonomyLab/ardrone_autonomy/xxx).
+- *January XX 2013*: Zero-command without hovering ([More info](https://github.com/AutonomyLab/ardrone_autonomy/xxx)). Selective Navdata ([More info](https://github.com/AutonomyLab/ardrone_autonomy/xxx)).
 - *November 9 2012*: Critical Bug in sending configurations to drone fixed and more parameters are supported ([More info](https://github.com/AutonomyLab/ardrone_autonomy/issues/24)). Seperate topic for magnetometer data added ([More info](https://github.com/AutonomyLab/ardrone_autonomy/pull/25)).
 - *September 5 2012*: Experimental automatic IMU bias removal.
 - *August 27 2012*: Thread-safe SDK data access. Synchronized `navdata` and `camera` topics.
@@ -261,7 +261,8 @@ The Parrot's license, copyright and disclaimer for `ARDroneLib` are included wit
 
 ## Contributors
 
-- [Mike Hamer](https://github.com/mikehamer) - Added support for proper SDK2 way of configuring the Drone via parameter (critical bug fix). [More Info](https://github.com/AutonomyLab/ardrone_autonomy/pull/26)
+- [Mike Hamer](https://github.com/mikehamer) - Added support for proper SDK2 way of configuring the Drone via parameter (critical bug fix). [More Info](https://github.com/AutonomyLab/ardrone_autonomy/pull/26). Selective Navdata. Zero-command without hovering.
+- [Jacokb Engel](https://github.com/JakobEngel) - 
 - [Sameer Parekh](https://github.com/sameerparekh) - [Seperate Magnetometer Topic](https://github.com/AutonomyLab/ardrone_autonomy/pull/25)
 - [Devmax](https://github.com/devmax) - [Flat Trim](https://github.com/AutonomyLab/ardrone_autonomy/issues/18) + Various
 comments for enhancements
