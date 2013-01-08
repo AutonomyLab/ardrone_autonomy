@@ -6,7 +6,7 @@
 
 ### Updates
 
-- *January XX 2013*: 
+- *January XX 2013*: "auto-hover" enable/disable ([More info](https://github.com/AutonomyLab/ardrone_autonomy/xxx). Selective Navdata ([More info](https://github.com/AutonomyLab/ardrone_autonomy/xxx).
 - *November 9 2012*: Critical Bug in sending configurations to drone fixed and more parameters are supported ([More info](https://github.com/AutonomyLab/ardrone_autonomy/issues/24)). Seperate topic for magnetometer data added ([More info](https://github.com/AutonomyLab/ardrone_autonomy/pull/25)).
 - *September 5 2012*: Experimental automatic IMU bias removal.
 - *August 27 2012*: Thread-safe SDK data access. Synchronized `navdata` and `camera` topics.
@@ -61,7 +61,7 @@ The driver's executable node is `ardrone_driver`. You can either use `rosrun ard
 
 The driver's main loop is being executed in 50Hz, however the data publish rate is device and configuration dependent. Basically, the data will be published when a new data arrives. For example, `navdata` and `imu` update frequencies is 15Hz if `navdata_demo` parameter is set to true, otherwise it will be 50Hz.
 
-### Navigation Data
+### Legacy Navigation Data
 
 Information received from the drone will be published to the `ardrone/navdata` topic. The message type is `ardrone_autonomy::Navdata` and contains the following information:
 
@@ -91,6 +91,9 @@ Information received from the drone will be published to the `ardrone/navdata` t
 * `ax`, `ay`, `az`: Linear acceleration (g) [TBA: Convention]
 * `tm`: Timestamp of the data returned by the Drone returned as number of micro-seconds passed since Drone's bootup.
 
+
+**NOTE:** The legacy Navdata publishing can be disabled by setting the `enable_legacy_navdata` parameter to `False` (legacy navdata is enabled by default).
+
 ### IMU data
 
 The linear acceleration, angular velocity and orientation from the `Navdata` is also published to a standard ROS [`sensor_msgs/Imu`](http://www.ros.org/doc/api/sensor_msgs/html/msg/Imu.html) message. The units are all metric and the reference frame is in `Base` frame. This topic is experimental. The covariance values are specified by specific parameters.
@@ -98,6 +101,20 @@ The linear acceleration, angular velocity and orientation from the `Navdata` is 
 ### Megnetometer Data
 
 The normalized magnetometer readings are also published to `ardrone/mag` topic as a standard ROS [`geometry_msgs/Vector3Stamped`](http://www.ros.org/doc/api/geometry_msgs/html/msg/Vector3Stamped.html) message.
+
+### Selective Navdata (Advanced)
+
+You can access almost all sensor readings, debug values and status reports sent from the AR-Drone by using "Selective Navdata". If you set any of following parameters to "True", their corresponding `Navdata` information will be published to a seperate topic. For example if you enable `enable_navdata_time`, the driver will publish AR-Drone time information to `ardrone/navdata_time` topic. Most of the names are self-explaintory. Please consult AR-Drone SDK 2.0's documentation (or source code) for more information. All paramaters are set to False by default.
+
+<pre>
+enable_navdata_trims	        enable_navdata_rc_references 	enable_navdata_pwm	            enable_navdata_altitude	
+enable_navdata_vision_raw 	    enable_navdata_vision_of	    enable_navdata_vision	        enable_navdata_vision_perf	
+enable_navdata_trackers_send	enable_navdata_vision_detect	enable_navdata_watchdog	        enable_navdata_adc_data_frame	
+enable_navdata_video_stream	    enable_navdata_games	        enable_navdata_pressure_raw	    enable_navdata_magneto	
+enable_navdata_wind_speed	    enable_navdata_kalman_pressure	enable_navdata_hdvideo_stream	enable_navdata_wifi	enable_navdata_zimmu_3000	
+</pre>
+
+**HINT:** You can `rostopic type ardrone/navdata_time | rosmsg show` command for each topic to inspect its published message's data structure.
 
 ### Cameras
 
@@ -236,6 +253,7 @@ These parameters control the behaviour of the driver.
 * `root_frame` - The default root in drone's `tf` tree (0: _link, 1: _frontcam, 2: _bottomcam) - Default: 0
 * `cov/imu_la`, `cov/imu_av` & `cov/imu_or`: List of 9 covariance values to be used in `imu`'s topic linear acceleration, angular velocity and orientation fields respectively - Default: 0.0 for all members (Please check the FAQ section for a sample launch file that shows how to set these values)
 * `do_imu_calibration`: [EXPERIMENTAL] Should the drone cancel the biases in IMU data - Default: 0
+* `enable_legacy_navdata`: Enable legacy `Navdata` publish - Default: True
 
 ## License
 
