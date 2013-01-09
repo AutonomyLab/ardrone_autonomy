@@ -59,7 +59,24 @@ The driver's executable node is `ardrone_driver`. You can either use `rosrun ard
 
 ### Update Frequencies
 
-The driver's main loop is being executed in 50Hz, however the data publish rate is device and configuration dependent. Basically, the data will be published when a new data arrives. For example, `navdata` and `imu` update frequencies is 15Hz if `navdata_demo` parameter is set to true, otherwise it will be 50Hz.
+**Drone Update Frequencies**: The drone's data transmission update frequency depends on `navdata_demo` paramater. When it is 1, the transmission frequency will be 15Hz, otherwise it will be 200Hz. (`navdata_demo` is a numeric parameter not boolean, so please use 1 and 0 (not True/False) to set/unset it)
+
+**Driver Update Frequencies": The driver can operate in two modes: real-time or fixed rate. When the `realtime_navdata` paramater is set to True, the driver will publish the recieved information instantly. However when it is set to False, the driver will cache the most recent recieved data, then it will publish that at a fixed rate, configured by `looprate` parameter. The default configuration is: `realtime_navdata=False` and `looprate=50`. 
+
+Please note that if the `looprate` is smaller than the drone's transmission frequency, there will be dataloss. The driver's initial debug output shows the current configuration. You can also use `rostopic hz` command to check the publish rate of the driver.
+
+<pre>
+
+# Default Setting - 50Hz non-realtime update, the drone transmission rate is 200Hz
+rosrun ardrone_autonomy ardrone_driver _realtime_navdata:=False  _navdata_demo:=0
+
+# 200Hz real-time update
+rosrun ardrone_autonomy ardrone_driver _realtime_navdata:=True _navdata_demo:=0
+
+# 15Hz real-rime update
+rosrun ardrone_autonomy ardrone_driver _realtime_navdata:=True _navdata_demo:=1
+
+</pre>
 
 ### Legacy Navigation Data
 
@@ -144,6 +161,10 @@ The detected tags' type and position in Drone's camera frame will be published t
 * `tags_orientation[]`: For the tags that support orientation, this is the vector that contains the tag orientation expressed in degrees [0..360).
 
 By default, the driver will configure the drone to look for _oriented roundels_ using bottom camera and _2D tags v2_ on indoor shells (_orange-yellow_) using front camera. For information on how to extract information from `tags_type` field. Check the FAQ section in the end.
+
+### Update Frequencies
+
+TBA.
 
 ## Sending Commands to AR-Drone
 
