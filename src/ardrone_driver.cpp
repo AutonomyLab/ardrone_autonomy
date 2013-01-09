@@ -138,8 +138,8 @@ void ARDroneDriver::run()
                          ardrone_control_config.num_version_soft,
                          shared_raw_navdata->navdata_demo.vbat_flying_percentage);
                 ROS_INFO("Navdata Publish Settings:");
-                ROS_INFO("    Legacy Mode: %s", enabled_legacy_navdata ? "On" : "Off");
-                ROS_INFO("    ROS Loop Rate: %d", looprate);
+                ROS_INFO("    Legacy Navdata Mode: %s", enabled_legacy_navdata ? "On" : "Off");
+                ROS_INFO("    ROS Loop Rate: %d Hz", looprate);
                 ROS_INFO("    Realtime Navdata Publish: %s", realtime_navdata ? "On" : "Off");
                 ROS_INFO("    Realtime Video Publish: %s", realtime_video ? "On" : "Off");
                 ROS_INFO("    Drone Navdata Send Speed: %s", ardrone_application_default_config.navdata_demo==0 ? "200Hz (navdata_demo=0)" : "15Hz (navdata_demo=1)");
@@ -208,7 +208,7 @@ void ARDroneDriver::configureDrone()
     {                                                                                                      \
         if(ardrone_application_default_config.NAME!=DEFAULT)                                               \
         {                                                                                                  \
-            ROS_INFO("SEND: "#CATEGORY"/"#NAME" = %f (DEFAULT = %f)", (float)ardrone_application_default_config.NAME, (float)DEFAULT);           \
+            ROS_INFO("  SEND: "#CATEGORY"/"#NAME" = %f (DEFAULT = %f)", (float)ardrone_application_default_config.NAME, (float)DEFAULT);           \
             ARDRONE_TOOL_CONFIGURATION_ADDEVENT (NAME, &ardrone_application_default_config.NAME, NULL);    \
         }                                                                                                  \
     }
