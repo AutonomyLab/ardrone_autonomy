@@ -7,7 +7,7 @@
 ### Updates
 
 - *January 9 2013*: ROS Groovy support. Support for zero-command without hovering ([More info](https://github.com/AutonomyLab/ardrone_autonomy/pull/34)). Full configurable Navdata support ([More info](https://github.com/AutonomyLab/ardrone_autonomy/pull/31)). Support for "Flight Animations". Support for Real-time navdata and video publishing ([More info](https://github.com/AutonomyLab/ardrone_autonomy/pull/44)). Support for configurable data publishing rate.
-- *November 9 2012*: Critical Bug in sending configurations to drone fixed and more parameters are supported ([More info](https://github.com/AutonomyLab/ardrone_autonomy/issues/24)). Seperate topic for magnetometer data added ([More info](https://github.com/AutonomyLab/ardrone_autonomy/pull/25)).
+- *November 9 2012*: Critical Bug in sending configurations to drone fixed and more parameters are supported ([More info](https://github.com/AutonomyLab/ardrone_autonomy/issues/24)). Separate topic for magnetometer data added ([More info](https://github.com/AutonomyLab/ardrone_autonomy/pull/25)).
 - *September 5 2012*: Experimental automatic IMU bias removal.
 - *August 27 2012*: Thread-safe SDK data access. Synchronized `navdata` and `camera` topics.
 - *August 20 2012*: The driver is now provides ROS standard camera interface.
@@ -59,11 +59,11 @@ The driver's executable node is `ardrone_driver`. You can either use `rosrun ard
 
 ### Update Frequencies :new:
 
-**Drone Update Frequencies**: The drone's data transmission update frequency depends on `navdata_demo` paramater. When it is 1, the transmission frequency will be 15Hz, otherwise it will be 200Hz. (`navdata_demo` is a numeric parameter not boolean, so use 1 and 0 (not True/False) to set/unset it)
+**Drone Update Frequencies**: The drone's data transmission update frequency depends on `navdata_demo` parameter. When it is 1, the transmission frequency will be 15Hz, otherwise it will be 200Hz. (`navdata_demo` is a numeric parameter not Boolean, so use 1 and 0 (not True/False) to set/unset it)
 
-**Driver Update Frequencies**: The driver can operate in two modes: real-time or fixed rate. When the `realtime_navdata` paramater is set to True, the driver will publish the recieved information instantly. However when it is set to False, the driver will cache the most recent recieved data, then it will publish that at a fixed rate, configured by `looprate` parameter. The default configuration is: `realtime_navdata=False` and `looprate=50`. 
+**Driver Update Frequencies**: The driver can operate in two modes: real-time or fixed rate. When the `realtime_navdata` parameter is set to True, the driver will publish the received information instantly. However when it is set to False, the driver will cache the most recent received data, then it will publish that at a fixed rate, configured by `looprate` parameter. The default configuration is: `realtime_navdata=False` and `looprate=50`. 
 
-Please note that if the `looprate` is smaller than the drone's transmission frequency, there will be data loss. The driver's startup output shows the current configuration. You can also use `rostopic hz` command to check the publish rate of the driver.
+Please note that if the `looprate` is smaller than the drone's transmission frequency, there will be data loss. The driver's start-up output shows the current configuration. You can also use `rostopic hz` command to check the publish rate of the driver.
 
 <pre>
 # Default Setting - 50Hz non-realtime update, the drone transmission rate is 200Hz
@@ -104,7 +104,7 @@ Information received from the drone will be published to the `ardrone/navdata` t
 * `altd`: Estimated altitude (mm)
 * `vx`, `vy`, `vz`: Linear velocity (mm/s) [TBA: Convention]
 * `ax`, `ay`, `az`: Linear acceleration (g) [TBA: Convention]
-* `tm`: Timestamp of the data returned by the Drone returned as number of micro-seconds passed since Drone's bootup.
+* `tm`: Timestamp of the data returned by the Drone returned as number of micro-seconds passed since Drone's boot-up.
 
 
 **NOTE:** The legacy Navdata publishing can be disabled by setting the `enable_legacy_navdata` parameter to `False` (legacy navdata is enabled by default).
@@ -113,13 +113,13 @@ Information received from the drone will be published to the `ardrone/navdata` t
 
 The linear acceleration, angular velocity and orientation from the `Navdata` is also published to a standard ROS [`sensor_msgs/Imu`](http://www.ros.org/doc/api/sensor_msgs/html/msg/Imu.html) message. The units are all metric and the reference frame is in `Base` frame. This topic is experimental. The covariance values are specified by specific parameters.
 
-### Megnetometer Data
+### Magnetometer Data
 
 The normalized magnetometer readings are also published to `ardrone/mag` topic as a standard ROS [`geometry_msgs/Vector3Stamped`](http://www.ros.org/doc/api/geometry_msgs/html/msg/Vector3Stamped.html) message.
 
 ### Selective Navdata (Advanced) :new:
 
-You can access almost all sensor readings, debug values and status reports sent from the AR-Drone by using "Selective Navdata". If you set any of following parameters to "True", their corresponding `Navdata` information will be published to a seperate topic. For example if you enable `enable_navdata_time`, the driver will publish AR-Drone time information to `ardrone/navdata_time` topic. Most of the names are self-explaintory. Please consult AR-Drone SDK 2.0's documentation (or source code) for more information. All paramaters are set to False by default.
+You can access almost all sensor readings, debug values and status reports sent from the AR-Drone by using "Selective Navdata". If you set any of following parameters to "True", their corresponding `Navdata` information will be published to a separate topic. For example if you enable `enable_navdata_time`, the driver will publish AR-Drone time information to `ardrone/navdata_time` topic. Most of the names are self-explanatory. Please consult AR-Drone SDK 2.0's documentation (or source code) for more information. All parameters are set to False by default.
 
 <pre>
 enable_navdata_trims	        enable_navdata_rc_references 	enable_navdata_pwm	            enable_navdata_altitude	
@@ -219,12 +219,12 @@ You can test these animations in command line using commands like `rosservice ca
 
 ### Flight Animations :new:
 
-Calling `ardrone/setflightanimation` service will execute one of 20 pre-defined flight animations for the drone. The paramaters are:
+Calling `ardrone/setflightanimation` service will execute one of 20 pre-defined flight animations for the drone. The parameters are:
 
 * `uint8 type`: The type of flight animation, a number in range [0..19]
 * `uint16 duration`: The duration of the animation. Use 0 for default duration (recommended)
 
-The `type` paramater will map [in order] to one of these pre-defined animations (check `srv/FlightAnim.srv` for more details):
+The `type` parameter will map [in order] to one of these pre-defined animations (check `srv/FlightAnim.srv` for more details):
 
     ARDRONE_ANIM_PHI_M30_DEG, ARDRONE_ANIM_PHI_30_DEG, ARDRONE_ANIM_THETA_M30_DEG, ARDRONE_ANIM_THETA_30_DEG,
     ARDRONE_ANIM_THETA_20DEG_YAW_200DEG, ARDRONE_ANIM_THETA_20DEG_YAW_M200DEG, ARDRONE_ANIM_TURNAROUND,
@@ -243,13 +243,13 @@ If `do_imu_caliberation` parameter is set to true, calling `ardrone/imu_recalib`
 
 ### Flat Trim
 
-Calling `ardrone/flattrim` service without any parameter will send a "Flat Trim" request to AR-Drone to re-caliberate its rotation estimates assuming that it is on a flat surface. Do not call this service while Drone is flying or while the drone is not actually on a flat surface.
+Calling `ardrone/flattrim` service without any parameter will send a "Flat Trim" request to AR-Drone to re-calibrate its rotation estimates assuming that it is on a flat surface. Do not call this service while Drone is flying or while the drone is not actually on a flat surface.
 
 ## Parameters
 
 ### AR-Drone Specific Parameters
 
-The parameters listed below are named according to AR-Drone's SDK 2.0 configuration. Unless you set the parameters using `rosparam` or in your `launch` file, the default values will be used. These values are applied during driver's initialization phase. Please refer to AR-Drone SDK 2.0's [developer's guide](https://projects.ardrone.org/projects/show/ardrone-api/) for information about valid values. Not all the parameters will be needed during regular usage of the AR-Drone, please consult the example lanuch file `launch/ardrone.launch` for frequent parameters.
+The parameters listed below are named according to AR-Drone's SDK 2.0 configuration. Unless you set the parameters using `rosparam` or in your `launch` file, the default values will be used. These values are applied during driver's initialization phase. Please refer to AR-Drone SDK 2.0's [developer's guide](https://projects.ardrone.org/projects/show/ardrone-api/) for information about valid values. Not all the parameters will be needed during regular usage of the AR-Drone, please consult the example launch file `launch/ardrone.launch` for frequent parameters.
 
     altitude, altitude_max, altitude_min, ardrone_name, autonomous_flight, bitrate, bitrate_ctrl_mode, 
     bitrate_storage, codec_fps, com_watchdog, control_iphone_tilt, control_level, control_vz_max, 
@@ -322,7 +322,7 @@ The ARDrone 2.0 SDK has been patched to 1) Enable the lib only build 2) Make its
 
 ### Why the wifi bandwidth usage is too much?
 
-The driver has been configured by default to use the maximum bandwidth allowed to ensure the best quality video stream possible (please take a look at default values in parameters section). That is the reason why the picture quality received from Drone 2.0 using this driver is far better than what you usually get using other softwares. If for any reason you prefer the lower quality* video stream, change `bitrate_ctrl_mode`, `max_bitrate` and `bitrate` parameters to the default values provided by the AR-Drone developer guide.
+The driver has been configured by default to use the maximum bandwidth allowed to ensure the best quality video stream possible (please take a look at default values in parameters section). That is the reason why the picture quality received from Drone 2.0 using this driver is far better than what you usually get using other software. If for any reason you prefer the lower quality* video stream, change `bitrate_ctrl_mode`, `max_bitrate` and `bitrate` parameters to the default values provided by the AR-Drone developer guide.
 
 (*) Please note that lower quality does not mean lower resolution. By configuring AR-Drone to use bitrate control with limits, the picture gets blurry when there is a movement.
 
