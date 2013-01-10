@@ -57,13 +57,13 @@ The driver's executable node is `ardrone_driver`. You can either use `rosrun ard
 
 ## Reading from AR-Drone
 
-### Update Frequencies
+### :new: Update Frequencies
 
-**Drone Update Frequencies**: The drone's data transmission update frequency depends on `navdata_demo` paramater. When it is 1, the transmission frequency will be 15Hz, otherwise it will be 200Hz. (`navdata_demo` is a numeric parameter not boolean, so please use 1 and 0 (not True/False) to set/unset it)
+**Drone Update Frequencies**: The drone's data transmission update frequency depends on `navdata_demo` paramater. When it is 1, the transmission frequency will be 15Hz, otherwise it will be 200Hz. (`navdata_demo` is a numeric parameter not boolean, so use 1 and 0 (not True/False) to set/unset it)
 
-**Driver Update Frequencies": The driver can operate in two modes: real-time or fixed rate. When the `realtime_navdata` paramater is set to True, the driver will publish the recieved information instantly. However when it is set to False, the driver will cache the most recent recieved data, then it will publish that at a fixed rate, configured by `looprate` parameter. The default configuration is: `realtime_navdata=False` and `looprate=50`. 
+**Driver Update Frequencies**: The driver can operate in two modes: real-time or fixed rate. When the `realtime_navdata` paramater is set to True, the driver will publish the recieved information instantly. However when it is set to False, the driver will cache the most recent recieved data, then it will publish that at a fixed rate, configured by `looprate` parameter. The default configuration is: `realtime_navdata=False` and `looprate=50`. 
 
-Please note that if the `looprate` is smaller than the drone's transmission frequency, there will be dataloss. The driver's initial debug output shows the current configuration. You can also use `rostopic hz` command to check the publish rate of the driver.
+Please note that if the `looprate` is smaller than the drone's transmission frequency, there will be data loss. The driver's startup output shows the current configuration. You can also use `rostopic hz` command to check the publish rate of the driver.
 
 <pre>
 
@@ -119,7 +119,7 @@ The linear acceleration, angular velocity and orientation from the `Navdata` is 
 
 The normalized magnetometer readings are also published to `ardrone/mag` topic as a standard ROS [`geometry_msgs/Vector3Stamped`](http://www.ros.org/doc/api/geometry_msgs/html/msg/Vector3Stamped.html) message.
 
-### Selective Navdata (Advanced)
+### :new: Selective Navdata (Advanced)
 
 You can access almost all sensor readings, debug values and status reports sent from the AR-Drone by using "Selective Navdata". If you set any of following parameters to "True", their corresponding `Navdata` information will be published to a seperate topic. For example if you enable `enable_navdata_time`, the driver will publish AR-Drone time information to `ardrone/navdata_time` topic. Most of the names are self-explaintory. Please consult AR-Drone SDK 2.0's documentation (or source code) for more information. All paramaters are set to False by default.
 
@@ -184,7 +184,7 @@ In order to fly the drone after takeoff, you can publish a message of type [`geo
 
 The range for each component should be between -1.0 and 1.0. The maximum range can be configured using ROS parameters discussed later in this document. 
 
-### Hover Modes 
+### :new: Hover Modes 
 
 `geometry_msgs::Twist` has two other member variable called `angular.x` and `angular.y` which can be used to enable/disable "auto-hover" mode. "auto-hover" is enabled when all six components are set to **zero**. If you want the drone not to enter "auto hover" mode in cases you set the first four components to zero, set `angular.x` and `angular.y` to arbitrary **non-zero** values.
 
@@ -219,7 +219,7 @@ The `type` parameter will map [in order] to one of these animations (check `srv/
 
 You can test these animations in command line using commands like `rosservice call /ardrone/setledanimation 1 4 5`
 
-### Flight Animations
+### :new: Flight Animations
 
 Calling `ardrone/setflightanimation` service will execute one of 20 pre-defined flight animations for the drone. The paramaters are:
 
