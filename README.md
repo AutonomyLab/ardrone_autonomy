@@ -6,7 +6,7 @@
 
 ### Updates
 
-- *January XX 2013*: ROS Groovy support. Zero-command without hovering ([More info](https://github.com/AutonomyLab/ardrone_autonomy/xxx)). Full Navdata support ([More info](https://github.com/AutonomyLab/ardrone_autonomy/xxx)). Flight Animations.
+- *January 9 2013*: ROS Groovy support. Support for zero-command without hovering ([More info](https://github.com/AutonomyLab/ardrone_autonomy/pull/34)). Full configurable Navdata support ([More info](https://github.com/AutonomyLab/ardrone_autonomy/pull/31)). Support for "Flight Animations". Support for Real-time navdata and video publishing ([More info](https://github.com/AutonomyLab/ardrone_autonomy/pull/44)). Support for configurable data publishing rate.
 - *November 9 2012*: Critical Bug in sending configurations to drone fixed and more parameters are supported ([More info](https://github.com/AutonomyLab/ardrone_autonomy/issues/24)). Seperate topic for magnetometer data added ([More info](https://github.com/AutonomyLab/ardrone_autonomy/pull/25)).
 - *September 5 2012*: Experimental automatic IMU bias removal.
 - *August 27 2012*: Thread-safe SDK data access. Synchronized `navdata` and `camera` topics.
@@ -57,7 +57,7 @@ The driver's executable node is `ardrone_driver`. You can either use `rosrun ard
 
 ## Reading from AR-Drone
 
-### :new: Update Frequencies
+### Update Frequencies :new:
 
 **Drone Update Frequencies**: The drone's data transmission update frequency depends on `navdata_demo` paramater. When it is 1, the transmission frequency will be 15Hz, otherwise it will be 200Hz. (`navdata_demo` is a numeric parameter not boolean, so use 1 and 0 (not True/False) to set/unset it)
 
@@ -66,7 +66,6 @@ The driver's executable node is `ardrone_driver`. You can either use `rosrun ard
 Please note that if the `looprate` is smaller than the drone's transmission frequency, there will be data loss. The driver's startup output shows the current configuration. You can also use `rostopic hz` command to check the publish rate of the driver.
 
 <pre>
-
 # Default Setting - 50Hz non-realtime update, the drone transmission rate is 200Hz
 rosrun ardrone_autonomy ardrone_driver _realtime_navdata:=False  _navdata_demo:=0
 
@@ -75,7 +74,6 @@ rosrun ardrone_autonomy ardrone_driver _realtime_navdata:=True _navdata_demo:=0
 
 # 15Hz real-rime update
 rosrun ardrone_autonomy ardrone_driver _realtime_navdata:=True _navdata_demo:=1
-
 </pre>
 
 ### Legacy Navigation Data
@@ -119,7 +117,7 @@ The linear acceleration, angular velocity and orientation from the `Navdata` is 
 
 The normalized magnetometer readings are also published to `ardrone/mag` topic as a standard ROS [`geometry_msgs/Vector3Stamped`](http://www.ros.org/doc/api/geometry_msgs/html/msg/Vector3Stamped.html) message.
 
-### :new: Selective Navdata (Advanced)
+### Selective Navdata (Advanced) :new:
 
 You can access almost all sensor readings, debug values and status reports sent from the AR-Drone by using "Selective Navdata". If you set any of following parameters to "True", their corresponding `Navdata` information will be published to a seperate topic. For example if you enable `enable_navdata_time`, the driver will publish AR-Drone time information to `ardrone/navdata_time` topic. Most of the names are self-explaintory. Please consult AR-Drone SDK 2.0's documentation (or source code) for more information. All paramaters are set to False by default.
 
@@ -184,7 +182,7 @@ In order to fly the drone after takeoff, you can publish a message of type [`geo
 
 The range for each component should be between -1.0 and 1.0. The maximum range can be configured using ROS parameters discussed later in this document. 
 
-### :new: Hover Modes 
+### Hover Modes :new:
 
 `geometry_msgs::Twist` has two other member variable called `angular.x` and `angular.y` which can be used to enable/disable "auto-hover" mode. "auto-hover" is enabled when all six components are set to **zero**. If you want the drone not to enter "auto hover" mode in cases you set the first four components to zero, set `angular.x` and `angular.y` to arbitrary **non-zero** values.
 
@@ -219,7 +217,7 @@ The `type` parameter will map [in order] to one of these animations (check `srv/
 
 You can test these animations in command line using commands like `rosservice call /ardrone/setledanimation 1 4 5`
 
-### :new: Flight Animations
+### Flight Animations :new:
 
 Calling `ardrone/setflightanimation` service will execute one of 20 pre-defined flight animations for the drone. The paramaters are:
 
@@ -282,8 +280,8 @@ The Parrot's license, copyright and disclaimer for `ARDroneLib` are included wit
 
 ## Contributors
 
-- [Mike Hamer](https://github.com/mikehamer) - Added support for proper SDK2 way of configuring the Drone via parameter (critical bug fix). [More Info](https://github.com/AutonomyLab/ardrone_autonomy/pull/26). Selective Navdata. Zero-command without hovering.
-- [Jacokb Engel](https://github.com/JakobEngel) - 
+- [Mike Hamer](https://github.com/mikehamer) - Added support for proper SDK2 way of configuring the Drone via parameter (critical bug fix) ([More Info](https://github.com/AutonomyLab/ardrone_autonomy/pull/26)). Support for zero-command without hovering ([More info](https://github.com/AutonomyLab/ardrone_autonomy/pull/34)). Full configurable Navdata support ([More info](https://github.com/AutonomyLab/ardrone_autonomy/pull/31)). Support for Real-time navdata and video publishing ([More info](https://github.com/AutonomyLab/ardrone_autonomy/pull/44)). Support for configurable data publishing rate.
+- [Jacokb Engel](https://github.com/JakobEngel)
 - [Sameer Parekh](https://github.com/sameerparekh) - [Seperate Magnetometer Topic](https://github.com/AutonomyLab/ardrone_autonomy/pull/25)
 - [Devmax](https://github.com/devmax) - [Flat Trim](https://github.com/AutonomyLab/ardrone_autonomy/issues/18) + Various
 comments for enhancements
@@ -306,6 +304,11 @@ State Estimation, Autopilot and GUI for ardrone.
 - [arl_ardrone_examples](https://github.com/parcon/arl_ardrone_examples)
 
 This ROS stack includes a series of very basic nodes to show users how to develop applications that use the ardrone_autonomy drivers for the AR drone 1.0 and 2.0 quadrotor robot.
+
+- [AR Drone Tutorials](https://github.com/mikehamer/ardrone_tutorials)
+
+This repository contains the source-code for the Up and flying with the AR.Drone and ROS tutorial series, published on [Robohub](http://www.robohub.org).
+
 
 ### How can I report a bug, submit patches or ask for a feature?
 
@@ -376,10 +379,14 @@ After successful calibration, press the `commit` button in the UI. The driver wi
 
 Yes, you can check the `launch` folder for sample lanuch file.
 
+### Can I control multiple drones using a single PC? or can I make my drone connect to a wireless router?
+
+With some hacking yes! This [wiki page](https://github.com/AutonomyLab/ardrone_autonomy/wiki/Multiple-AR-Drones) contains some information regarding this issue.
+
 ## TODO
 
 * Make the `tf` publish optional.
-* Add separate topic for drone's debug stream (`navdata_demo`)
 * Add the currently selected camera name to `Navdata`
+* [DONE] Add separate topic for drone's debug stream (`navdata_demo`)
 * [DONE] Make the `togglecam` service accept parameters
 * [DONE] Enrich `Navdata` with magneto meter and baro meter information
