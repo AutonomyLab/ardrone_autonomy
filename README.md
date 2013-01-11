@@ -10,21 +10,21 @@
 	- [Installation Steps](#installation-steps)
 - [How to Run](#how-to-run)
 - [Reading from AR-Drone](#reading-from-ar-drone)
-	- [Update Frequencies ](#update-frequencies-new)
+	- [Update Frequencies ](#update-frequencies-new) :new:
 	- [Legacy Navigation Data](#legacy-navigation-data)
 	- [IMU data](#imu-data)
 	- [Magnetometer Data](#magnetometer-data)
-	- [Selective Navdata (Advanced) ](#selective-navdata-advanced-new)
+	- [Selective Navdata (Advanced) ](#selective-navdata-advanced-new) :new:
 	- [Cameras](#cameras)
 	- [Tag Detection](#tag-detection)
-	- [Update Frequencies](#update-frequencies)
+	- [Update Frequencies](#update-frequencies) :new:
 - [Sending Commands to AR-Drone](#sending-commands-to-ar-drone)
-	- [Hover Modes ](#hover-modes-new)
+	- [Hover Modes ](#hover-modes-new) :new:
 - [Coordinate Frames](#coordinate-frames)
 - [Services](#services)
 	- [Toggle AR-Drone's Camera](#toggle-ar-drones-camera)
 	- [LED Animations](#led-animations)
-	- [Flight Animations ](#flight-animations-new)
+	- [Flight Animations ](#flight-animations-new) :new:
 	- [IMU Calibration](#imu-calibration)
 	- [Flat Trim](#flat-trim)
 - [Parameters](#parameters)
