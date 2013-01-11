@@ -1,10 +1,42 @@
 # ardrone_autonomy : A ROS Driver for ARDrone 1.0 & 2.0
 
-## Introduction
-
 "ardrone_autonomy" is a [ROS](http://ros.org/ "Robot Operating System") driver for [Parrot AR-Drone](http://http://ardrone.parrot.com/parrot-ar-drone/select-site) quadrocopter. This driver is based on official [AR-Drone SDK](https://projects.ardrone.org/) version 2.0 and supports both AR-Drone 1.0 and 2.0. "ardrone_autonomy" is a fork of [AR-Drone Brown](http://code.google.com/p/brown-ros-pkg/wiki/ardrone_brown) driver. This package has been developed in [Autonomy Lab](http://autonomy.cs.sfu.ca) of [Simon Fraser University](http://www.sfu.ca) by [Mani Monajjemi](http://sfu.ca/~mmonajje).
 
-### Updates
+## Table of Contents
+
+- [Updates](#updates)
+- [Installation](#installation)
+	- [Pre-requirements](#pre-requirements)
+	- [Installation Steps](#installation-steps)
+- [How to Run](#how-to-run)
+- [Reading from AR-Drone](#reading-from-ar-drone)
+	- [Update Frequencies ](#update-frequencies-new)
+	- [Legacy Navigation Data](#legacy-navigation-data)
+	- [IMU data](#imu-data)
+	- [Magnetometer Data](#magnetometer-data)
+	- [Selective Navdata (Advanced) ](#selective-navdata-advanced-new)
+	- [Cameras](#cameras)
+	- [Tag Detection](#tag-detection)
+	- [Update Frequencies](#update-frequencies)
+- [Sending Commands to AR-Drone](#sending-commands-to-ar-drone)
+	- [Hover Modes ](#hover-modes-new)
+- [Coordinate Frames](#coordinate-frames)
+- [Services](#services)
+	- [Toggle AR-Drone's Camera](#toggle-ar-drones-camera)
+	- [LED Animations](#led-animations)
+	- [Flight Animations ](#flight-animations-new)
+	- [IMU Calibration](#imu-calibration)
+	- [Flat Trim](#flat-trim)
+- [Parameters](#parameters)
+	- [AR-Drone Specific Parameters](#ar-drone-specific-parameters)
+	- [Other Parameters](#other-parameters)
+- [License](#license)
+- [Contributors](#contributors)
+- [FAQ](#faq)
+
+
+
+## Updates
 
 - *January 9 2013*: ROS Groovy support. Support for zero-command without hovering ([More info](https://github.com/AutonomyLab/ardrone_autonomy/pull/34)). Full configurable Navdata support ([More info](https://github.com/AutonomyLab/ardrone_autonomy/pull/31)). Support for "Flight Animations". Support for Real-time navdata and video publishing ([More info](https://github.com/AutonomyLab/ardrone_autonomy/pull/44)). Support for configurable data publishing rate.
 - *November 9 2012*: Critical Bug in sending configurations to drone fixed and more parameters are supported ([More info](https://github.com/AutonomyLab/ardrone_autonomy/issues/24)). Separate topic for magnetometer data added ([More info](https://github.com/AutonomyLab/ardrone_autonomy/pull/25)).
