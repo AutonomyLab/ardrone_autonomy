@@ -1,5 +1,6 @@
 #include "teleop_twist.h"
 #include "ardrone_autonomy/LedAnim.h"
+#include "utils/ardrone_date.h"
 
 inline float max(float a, float b) { return a > b ? a : b; }
 inline float min(float a, float b) { return a < b ? a : b; }
@@ -47,6 +48,34 @@ bool toggleCamCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Respo
     fprintf(stderr, "\nSetting camera channel to : %d.\n", cam_state);
     return true;
 }
+
+// ros service callback to turn on and off camera recording
+bool setRecordCallback(ardrone_autonomy::RecordEnable::Request &request, ardrone_autonomy::RecordEnable::Response& response)
+{
+  char record_command[ARDRONE_DATE_MAXSIZE + 64];
+  int32_t new_codec;
+
+  if( request.enable == true ) {
+    char date[ARDRONE_DATE_MAXSIZE];
+    time_t t = time(NULL);
+    // For some reason the linker can't find this, so we'll just do it manually, cutting and pasting
+    //    ardrone_time2date(t, ARDRONE_FILE_DATE_FORMAT, date);
+    strftime(date, ARDRONE_DATE_MAXSIZE, ARDRONE_FILE_DATE_FORMAT, localtime(&t));
+    snprintf(record_command, sizeof(record_command), "%d,%s", USERBOX_CMD_START, date);
+    new_codec = MP4_360P_H264_720P_CODEC;
+  } else {
+    snprintf(record_command, sizeof(record_command), "%d", USERBOX_CMD_STOP );
+    new_codec = H264_360P_CODEC;
+  }
+
+  vp_os_mutex_lock(&twist_lock);
+  ARDRONE_TOOL_CONFIGURATION_ADDEVENT (video_codec, &new_codec, NULL );
+  ARDRONE_TOOL_CONFIGURATION_ADDEVENT (userbox_cmd, record_command, NULL );
+  vp_os_mutex_unlock(&twist_lock);
+
+  response.result = true;
+  return true;
+}    
 
 bool setLedAnimationCallback(ardrone_autonomy::LedAnim::Request& request, ardrone_autonomy::LedAnim::Response& response)
 {
