@@ -27,6 +27,7 @@
 	- [Flight Animations ](#flight-animations-new) :new:
 	- [IMU Calibration](#imu-calibration)
 	- [Flat Trim](#flat-trim)
+	- [Record to USB Stick](#record-usb)
 - [Parameters](#parameters)
 	- [AR-Drone Specific Parameters](#ar-drone-specific-parameters)
 	- [Other Parameters](#other-parameters)
@@ -276,6 +277,10 @@ If `do_imu_caliberation` parameter is set to true, calling `ardrone/imu_recalib`
 ### Flat Trim
 
 Calling `ardrone/flattrim` service without any parameter will send a "Flat Trim" request to AR-Drone to re-calibrate its rotation estimates assuming that it is on a flat surface. Do not call this service while Drone is flying or while the drone is not actually on a flat surface.
+
+### Record to USB Stick
+
+Calling `ardrone/setrecord` service will enable and disable recording to the USB stick. The service takes a simple `1` to enable or `0` to disable. So you can turn on recording to the USB stick with `rosservice call /ardrone/setrecord 1`
 
 ## Parameters
 

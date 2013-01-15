@@ -27,6 +27,7 @@ ARDroneDriver::ARDroneDriver()
     setLedAnimation_service = node_handle.advertiseService("ardrone/setledanimation", setLedAnimationCallback);
     flatTrim_service = node_handle.advertiseService("ardrone/flattrim", flatTrimCallback);
     setFlightAnimation_service = node_handle.advertiseService("ardrone/setflightanimation", setFlightAnimationCallback);
+    setRecord_service = node_handle.advertiseService("ardrone/setrecord", setRecordCallback );
 
     /*
         To be honest, I am not sure why advertising a service using class members should be this complicated!

@@ -8,6 +8,7 @@
 #include <ardrone_autonomy/CamSelect.h>
 #include <ardrone_autonomy/LedAnim.h>
 #include <ardrone_autonomy/FlightAnim.h>
+#include <ardrone_autonomy/RecordEnable.h>
 
 #define _EPS 1.0e-6 
 
@@ -24,6 +25,7 @@ bool toggleCamCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Respo
 bool setLedAnimationCallback(ardrone_autonomy::LedAnim::Request& request, ardrone_autonomy::LedAnim::Response& response);
 bool flatTrimCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response);
 bool setFlightAnimationCallback(ardrone_autonomy::FlightAnim::Request& request, ardrone_autonomy::FlightAnim::Response& response);
+bool setRecordCallback(ardrone_autonomy::RecordEnable::Request &request, ardrone_autonomy::RecordEnable::Response& response);
 
 //All global drone configs that should be sent on init
 
