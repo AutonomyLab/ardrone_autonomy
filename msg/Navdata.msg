@@ -52,6 +52,12 @@ float32 ax
 float32 ay
 float32 az
 
+#motor commands (unit 0 to 255)
+uint8 motor1
+uint8 motor2
+uint8 motor3
+uint8 motor4
+
 #Tags in Vision Detectoion
 uint32 tags_count
 uint32[] tags_type

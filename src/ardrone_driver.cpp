@@ -659,6 +659,11 @@ void ARDroneDriver::publish_navdata(navdata_unpacked_t &navdata_raw, const ros::
     legacynavdata_msg.ay = -navdata_raw.navdata_phys_measures.phys_accs[ACC_Y] / 1000.0; // g
     legacynavdata_msg.az = -navdata_raw.navdata_phys_measures.phys_accs[ACC_Z] / 1000.0; // g
 
+    legacynavdata_msg.motor1 = navdata_raw.navdata_pwm.motor1;
+    legacynavdata_msg.motor2 = navdata_raw.navdata_pwm.motor2;
+    legacynavdata_msg.motor3 = navdata_raw.navdata_pwm.motor3;
+    legacynavdata_msg.motor4 = navdata_raw.navdata_pwm.motor4;
+
     // New stuff
 
     if (IS_ARDRONE2)

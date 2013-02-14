@@ -27,7 +27,7 @@
 	- [Flight Animations ](#flight-animations-new) :new:
 	- [IMU Calibration](#imu-calibration)
 	- [Flat Trim](#flat-trim)
-	- [Record to USB Stick](#record-usb)
+    - [Record to USB Stick](#record-usb) :new:
 - [Parameters](#parameters)
 	- [AR-Drone Specific Parameters](#ar-drone-specific-parameters)
 	- [Other Parameters](#other-parameters)
@@ -39,6 +39,7 @@
 
 ## Updates
 
+- *February 13 2013*: Support for USB key recording ([More info](https://github.com/AutonomyLab/ardrone_autonomy/pull/53)). Motor PWM added to legacy Navdata.
 - *January 9 2013*: ROS Groovy support. Support for zero-command without hovering ([More info](https://github.com/AutonomyLab/ardrone_autonomy/pull/34)). Full configurable Navdata support ([More info](https://github.com/AutonomyLab/ardrone_autonomy/pull/31)). Support for "Flight Animations". Support for Real-time navdata and video publishing ([More info](https://github.com/AutonomyLab/ardrone_autonomy/pull/44)). Support for configurable data publishing rate.
 - *November 9 2012*: Critical Bug in sending configurations to drone fixed and more parameters are supported ([More info](https://github.com/AutonomyLab/ardrone_autonomy/issues/24)). Separate topic for magnetometer data added ([More info](https://github.com/AutonomyLab/ardrone_autonomy/pull/25)).
 - *September 5 2012*: Experimental automatic IMU bias removal.
@@ -135,6 +136,7 @@ Information received from the drone will be published to the `ardrone/navdata` t
 * `wind_angle`: Estimated wind angle (AR-Drone 2.0 Only) (TBA: Unit)
 * `wind_comp_angle`: Estimated wind angle compensation (AR-Drone 2.0 Only) (TBA: Unit)
 * `altd`: Estimated altitude (mm)
+* `motor1..4`: Motor PWM values
 * `vx`, `vy`, `vz`: Linear velocity (mm/s) [TBA: Convention]
 * `ax`, `ay`, `az`: Linear acceleration (g) [TBA: Convention]
 * `tm`: Timestamp of the data returned by the Drone returned as number of micro-seconds passed since Drone's boot-up.
@@ -319,7 +321,7 @@ The Parrot's license, copyright and disclaimer for `ARDroneLib` are included wit
 
 - [Mike Hamer](https://github.com/mikehamer) - Added support for proper SDK2 way of configuring the Drone via parameter (critical bug fix) ([More Info](https://github.com/AutonomyLab/ardrone_autonomy/pull/26)). Support for zero-command without hovering ([More info](https://github.com/AutonomyLab/ardrone_autonomy/pull/34)). Full configurable Navdata support ([More info](https://github.com/AutonomyLab/ardrone_autonomy/pull/31)). Support for Real-time navdata and video publishing ([More info](https://github.com/AutonomyLab/ardrone_autonomy/pull/44)). Support for configurable data publishing rate.
 - [Jacokb Engel](https://github.com/JakobEngel)
-- [Sameer Parekh](https://github.com/sameerparekh) - [Seperate Magnetometer Topic](https://github.com/AutonomyLab/ardrone_autonomy/pull/25)
+- [Sameer Parekh](https://github.com/sameerparekh) - [Turn on and off USB stick recording](https://github.com/AutonomyLab/ardrone_autonomy/pull/53) - [Seperate Magnetometer Topic](https://github.com/AutonomyLab/ardrone_autonomy/pull/25)
 - [Devmax](https://github.com/devmax) - [Flat Trim](https://github.com/AutonomyLab/ardrone_autonomy/issues/18) + Various
 comments for enhancements
 - [Rachel Brindle](https://github.com/younata) - [Enhanced Navdata for AR-Drone 2.0](https://github.com/AutonomyLab/ardrone_autonomy/pull/2)
