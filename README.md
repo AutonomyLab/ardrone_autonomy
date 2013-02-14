@@ -27,7 +27,7 @@
 	- [Flight Animations ](#flight-animations-new) :new:
 	- [IMU Calibration](#imu-calibration)
 	- [Flat Trim](#flat-trim)
-    - [Record to USB Stick](#record-usb) :new:
+    - [Record to USB Stick](#record-to-usb-stick) :new:
 - [Parameters](#parameters)
 	- [AR-Drone Specific Parameters](#ar-drone-specific-parameters)
 	- [Other Parameters](#other-parameters)
