@@ -44,6 +44,8 @@ ARDroneDriver::ARDroneDriver()
     droneFrameIMU = droneFrameId + "_imu";
     droneFrameFrontCam = droneFrameId + "_frontcam";
     droneFrameBottomCam = droneFrameId + "_bottomcam";
+    frontCamRotation = (ros::param::get("~front_cam_rotation", frontCamRotation)) ? frontCamRotation : 0.0;
+    ROS_INFO("Front Camera Rotation: %4.2lf", frontCamRotation);
 
     drone_root_frame = (ros::param::get("~root_frame", drone_root_frame)) ? drone_root_frame : ROOT_FRAME_BASE;
     drone_root_frame = drone_root_frame % ROOT_FRAME_NUM;
@@ -81,7 +83,7 @@ ARDroneDriver::ARDroneDriver()
     // TODO: Precise values for Drone1 & Drone2
     tf_base_front = tf::StampedTransform(
                 tf::Transform(
-                    tf::createQuaternionFromRPY(-90.0 * _DEG2RAD, 0.0, -90.0 * _DEG2RAD),
+                    tf::createQuaternionFromRPY(-90.0 * _DEG2RAD, 0.0, -90.0 * _DEG2RAD) * tf::createQuaternionFromRPY(frontCamRotation * _DEG2RAD, 0.0, 0.0),
                     tf::Vector3(0.21, 0.0, 0.0)),
                 ros::Time::now(), droneFrameBase, droneFrameFrontCam
                 );
