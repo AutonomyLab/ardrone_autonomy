@@ -115,6 +115,13 @@ void takeoffCallback(const std_msgs::Empty &msg)
     vp_os_mutex_unlock(&twist_lock);
 }
 
+void landOnExit(void)
+{
+    vp_os_mutex_lock(&twist_lock);
+    needs_land = true;
+    vp_os_mutex_unlock(&twist_lock);
+}
+
 C_RESULT open_teleop(void)
 {
 	return C_OK;
