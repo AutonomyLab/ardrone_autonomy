@@ -72,3 +72,7 @@ include_directories(${Boost_INCLUDE_DIRS})
 add_executable(ardrone_driver src/ardrone_driver.cpp src/video.cpp src/ardrone_sdk.cpp src/teleop_twist.cpp)
 target_link_libraries(ardrone_driver pc_ardrone avcodec avutil swscale vlib  sdk SDL ${Boost_LIBRARIES} ${catkin_LIBRARIES})
 
+#install Rules
+install(TARGETS ardrone_driver RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
+
