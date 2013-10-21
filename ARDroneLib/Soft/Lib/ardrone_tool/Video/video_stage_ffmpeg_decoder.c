@@ -214,19 +214,18 @@ void ffmpeg_decoder_dumpPave (parrot_video_encapsulation_t *PaVE)
 
 static inline bool_t check_and_copy_PaVE (parrot_video_encapsulation_t *PaVE, vp_api_io_data_t *data, parrot_video_encapsulation_t *prevPaVE, bool_t *dimChanged)
 {
+    
   parrot_video_encapsulation_t *localPaVE = (parrot_video_encapsulation_t *)data->buffers[data->indexBuffer];
   if (localPaVE->signature[0] == 'P' &&
       localPaVE->signature[1] == 'a' &&
       localPaVE->signature[2] == 'V' &&
       localPaVE->signature[3] == 'E')
-    {
+  {
       //FFMPEG_DEBUG("Found a PaVE");
       vp_os_memcpy (prevPaVE, PaVE, sizeof (parrot_video_encapsulation_t)); // Make a backup of previous PaVE so we can check if things have changed
       
       vp_os_memcpy (PaVE, localPaVE, sizeof (parrot_video_encapsulation_t)); // Copy PaVE to our local one
       
-
-
 #if __FFMPEG_DEBUG_ENABLED
       printf ("------------------------------------\n");
       printf ("PREV : ");
@@ -291,7 +290,8 @@ C_RESULT ffmpeg_stage_decoding_transform(ffmpeg_stage_decoding_config_t *cfg, vp
   int	frameFinished = 0;
     
   bool_t frameDimChanged = FALSE;
-  static parrot_video_encapsulation_t PaVE, prevPaVE;
+    static parrot_video_encapsulation_t __attribute__ ((aligned (4))) PaVE;
+    static parrot_video_encapsulation_t __attribute__ ((aligned (4))) prevPaVE;
     
 #if WAIT_FOR_I_FRAME
   static bool_t waitForIFrame = TRUE;
@@ -300,7 +300,7 @@ C_RESULT ffmpeg_stage_decoding_transform(ffmpeg_stage_decoding_config_t *cfg, vp
 #ifdef NUM_SAMPLES
   static struct timeval start_time, start_time2;
   static int numsamples = 0;
-#endif	
+#endif
     
   if (0 == in->size) // No frame
     {
@@ -387,6 +387,7 @@ C_RESULT ffmpeg_stage_decoding_transform(ffmpeg_stage_decoding_config_t *cfg, vp
     }
 #endif
     
+    
   if(out->status == VP_API_STATUS_PROCESSING && (!waitForIFrame || (PaVE.frame_type == FRAME_TYPE_IDR_FRAME) || (PaVE.frame_type == FRAME_TYPE_I_FRAME))) // Processing code
     {
       waitForIFrame = FALSE;
@@ -398,6 +399,7 @@ C_RESULT ffmpeg_stage_decoding_transform(ffmpeg_stage_decoding_config_t *cfg, vp
           packet.data = ((unsigned char*)in->buffers[in->indexBuffer]);
           packet.size = in->size;
           FFMPEG_DEBUG("Size : %d", packet.size);
+            
         
 #ifdef NUM_SAMPLES
           struct timeval end_time;
@@ -443,6 +445,11 @@ C_RESULT ffmpeg_stage_decoding_transform(ffmpeg_stage_decoding_config_t *cfg, vp
             }
           else
             {
+        	  /* Skip frames are usually 7 bytes long
+        	   * and make FFMPEG return an error. It is however normal to get
+        	   * skip frames from the drone.
+        	   */
+        	  if (7!=PaVE.payload_size)
               printf ("Decoding failed for a %s\n", (PaVE.frame_type == FRAME_TYPE_P_FRAME) ? "P Frame" : "I Frame");
             }
         

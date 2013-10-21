@@ -1,4 +1,5 @@
 #include <VP_Os/vp_os_assert.h>
+#include <VP_Os/vp_os_print.h>
 #include <VP_Os/vp_os_malloc.h>
 
 #include <Maths/matrices.h>
@@ -223,12 +224,12 @@ bool_t normalize_vec( vector31_t* v )
 
 void display_matrix33(matrix33_t *m1)
 {
-    printf("( %f\t%f\t%f )\n( %f\t%f\t%f )\n( %f\t%f\t%f )\n",m1->m11,m1->m12,m1->m13,m1->m21,m1->m22,m1->m23,m1->m31,m1->m32,m1->m33);
+    PRINT("( %f\t%f\t%f )\n( %f\t%f\t%f )\n( %f\t%f\t%f )\n",m1->m11,m1->m12,m1->m13,m1->m21,m1->m22,m1->m23,m1->m31,m1->m32,m1->m33);
 }
 
 void display_vector31(vector31_t *v1)
 {
-    printf("( %f\t%f\t%f )\n", v1->x ,v1->y, v1->z);
+    PRINT("( %f\t%f\t%f )\n", v1->x ,v1->y, v1->z);
 }
 
 // matrix of size 4
@@ -408,12 +409,12 @@ void inv_mat44(matrix44_t *out, matrix44_t* m1)
 
 void display_matrix44(matrix44_t *m1)
 {
-    printf("( %f\t%f\t%f\t%f )\n( %f\t%f\t%f\t%f  )\n( %f\t%f\t%f\t%f  )\n( %f\t%f\t%f\t%f  )\n",m1->m11,m1->m12,m1->m13,m1->m14,m1->m21,m1->m22,m1->m23,m1->m24,m1->m31,m1->m32,m1->m33,m1->m34,m1->m41,m1->m42,m1->m43,m1->m44);
+    PRINT("( %f\t%f\t%f\t%f )\n( %f\t%f\t%f\t%f  )\n( %f\t%f\t%f\t%f  )\n( %f\t%f\t%f\t%f  )\n",m1->m11,m1->m12,m1->m13,m1->m14,m1->m21,m1->m22,m1->m23,m1->m24,m1->m31,m1->m32,m1->m33,m1->m34,m1->m41,m1->m42,m1->m43,m1->m44);
 }
 
 void display_vector41(vector41_t *v1)
 {
-    printf("( %f\t%f\t%f\t%f )\n", v1->x1 ,v1->x2, v1->x3, v1->x4);
+    PRINT("( %f\t%f\t%f\t%f )\n", v1->x1 ,v1->x2, v1->x3, v1->x4);
 }
 
 

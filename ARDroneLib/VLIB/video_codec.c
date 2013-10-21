@@ -257,8 +257,8 @@ C_RESULT video_decode_blockline( video_controller_t* controller, vp_api_picture_
   if (C_OK == isCodecOK &&
       NULL != controller->video_codec)
   {
-      return controller->video_codec->decode_blockline( controller, blockline, got_image );
-  }
+  return controller->video_codec->decode_blockline( controller, blockline, got_image );
+}
   else
   {
       return C_FAIL;

@@ -2,9 +2,6 @@
 #include <VP_Stages/vp_stages_frame_pipe.h>
 #include <VP_Os/vp_os_print.h>
 
-#ifdef USE_ELINUX
-#include <VP_Os/elinux/vp_os_ltt.h>
-#endif
 // Sender function
 C_RESULT
 vp_stages_frame_pipe_sender_open(vp_stages_frame_pipe_config_t *cfg)
@@ -185,6 +182,7 @@ C_RESULT
 vp_stages_frame_pipe_receiver_close(vp_stages_frame_pipe_config_t *cfg)
 {
   vp_os_free (cfg->outPicture.raw);
+  cfg->outPicture.raw = NULL;
   vp_os_cond_destroy (&(cfg->buffer_sent));
   vp_os_mutex_destroy (&(cfg->pipe_mut));
   return C_OK;

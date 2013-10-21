@@ -2,12 +2,6 @@
 
 #ifdef HAS_DO_QUANTIZE_INTRA_MB
 
-#ifdef _ECOS
-#include "config-tcm.h"
-
-        .section ".text.itcm","ax"
-#endif // ! _ECOS
-
         .global do_quantize_intra_mb
         .type   do_quantize_intra_mb, %function
 

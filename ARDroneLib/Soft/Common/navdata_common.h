@@ -210,7 +210,7 @@ static const int32_t MAYDAY_TIMEOUT[ARDRONE_NB_ANIM_MAYDAY] = {
 
 #define NAVDATA_HEADER  0x55667788
 
-#define NAVDATA_MAX_SIZE 2048
+#define NAVDATA_MAX_SIZE 4096
 #define NAVDATA_MAX_CUSTOM_TIME_SAVE 20
 
 /* !!! Warning !!! - changing the value below would break compatibility with older applications
@@ -355,7 +355,6 @@ typedef struct _navdata_raw_measures_t {
   uint16_t  nb_echo;
   uint32_t  sum_echo;
   int32_t   alt_temp_raw;
-
   int16_t   gradient;
 }_ATTRIBUTE_PACKED_ navdata_raw_measures_t;
 
@@ -395,8 +394,8 @@ typedef struct _navdata_wind_speed_t {
   uint16_t   tag;
   uint16_t   size;
 
-  float32_t wind_speed;
-  float32_t wind_angle;
+  float32_t wind_speed;			// estimated wind speed [m/s]
+  float32_t wind_angle;			// estimated wind direction in North-East frame [rad] e.g. if wind_angle is pi/4, wind is from South-West to North-East
   float32_t wind_compensation_theta;
   float32_t wind_compensation_phi;
   float32_t state_x1;

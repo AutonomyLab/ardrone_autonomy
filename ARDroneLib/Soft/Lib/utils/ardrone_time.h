@@ -7,6 +7,9 @@
 
 #include <VP_Os/vp_os_types.h>
 
+#define ARDRONE_TIME_SEC_TO_MSEC(x) ((x)*1000.f)
+#define ARDRONE_TIME_MSEC_TO_SEC(x) ((x)/1000.f)
+
 typedef struct _ardrone_timer_t
 {
   bool_t  init;

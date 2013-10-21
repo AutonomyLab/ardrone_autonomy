@@ -59,6 +59,8 @@ int getDroneVersion (const char *tempPath, const char *droneIp, ardrone_version_
 #  define ARDRONE_VERSION() 1
 # endif
 
+#define getDroneVersion(...) ARDRONE_VERSION()
+
 #endif
 
 #define IS_ARDRONE1 (1 == ARDRONE_VERSION()) // Drone 1

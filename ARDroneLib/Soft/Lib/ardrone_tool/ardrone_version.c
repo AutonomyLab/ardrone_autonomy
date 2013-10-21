@@ -6,6 +6,8 @@
 #include <stdio.h>
 
 
+#ifndef USE_ELINUX
+
 int
 compareVersions (ardrone_version_t *v1, ardrone_version_t *v2)
 {
@@ -53,6 +55,7 @@ getDroneVersion (const char *tempPath, const char *droneIp, ardrone_version_t *v
   if (FTP_FAILED (status))
     {
       vp_os_free (localName);
+      localName = NULL;
       ftpClose (&ftp);
       return -1;
     }
@@ -64,6 +67,7 @@ getDroneVersion (const char *tempPath, const char *droneIp, ardrone_version_t *v
     {
       remove (localName);
       vp_os_free (localName);
+      localName = NULL;
       return -1;
     }
 
@@ -73,12 +77,14 @@ getDroneVersion (const char *tempPath, const char *droneIp, ardrone_version_t *v
       fclose (versionFile);
       remove (localName);
       vp_os_free (localName);
+      localName = NULL;
       return -1;
     }
   
   fclose (versionFile);
   remove (localName);
   vp_os_free (localName);
+  localName = NULL;
   
   version->majorVersion = maj;
   version->minorVersion = min;
@@ -86,3 +92,5 @@ getDroneVersion (const char *tempPath, const char *droneIp, ardrone_version_t *v
 
   return 0;
 }
+
+#endif

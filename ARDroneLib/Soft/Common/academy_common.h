@@ -44,6 +44,6 @@ typedef struct _academy_user_t_
 } academy_user_t;
 
 typedef void (*academy_callback)(academy_state_t state);
-typedef void (*academy_download_new_media)(const char *mediaPath);
+typedef void (*academy_download_new_media)(const char *mediaPath, bool_t addToQueue);
 
 #endif // _ACADEMY_COMMON_H_

@@ -61,6 +61,7 @@ typedef struct _ftp_s
   int abortCurrentOp;
   _ftp_status lastStatus;
   char *lastFileList;
+  void * tag; // Allows to put any pointer to some useful data that is associated with this ftp connectionS
 } _ftp_t;
 
 /**

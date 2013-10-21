@@ -18,6 +18,7 @@ C_RESULT vlib_stage_decoding_open(vlib_stage_decoding_config_t *cfg)
   video_controller_set_format( &cfg->controller, ACQ_WIDTH, ACQ_HEIGHT );
 
   vp_os_free( cfg->controller.in_stream.bytes );
+  cfg->controller.in_stream.bytes = NULL;
 
   return C_OK;
 }

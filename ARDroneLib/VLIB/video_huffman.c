@@ -19,6 +19,7 @@ huffman_tree_t* huffman_alloc( int32_t num_max_codes, int32_t max_code_length )
 void huffman_free( huffman_tree_t* tree )
 {
   vp_os_free( tree );
+  tree = NULL;
 }
 
 C_RESULT huffman_add_codes( huffman_tree_t* tree, huffman_code_t* codes, int32_t num_codes )

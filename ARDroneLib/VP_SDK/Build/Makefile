@@ -83,7 +83,7 @@ before_check:
 
 
 #------------------------------------------------------------------------------------------------------------------------
-TARGETS=vlib parrotOS_core parrotOS_utils parrotOS_drivers parrotOS_devs parrotOS_codec libplf sdk lib app
+TARGETS=vlib libplf sdk lib app  
 
 # When building on Ubuntu, only the final application (USE_APP) depends on the above-mentioned libraries.
 # The iPhone applications do not use USE_APP; the above-mentioned libraries must therefore be built
@@ -103,9 +103,6 @@ define ADD_RULE_TEMPLATE
      build_lib: build_$(1)
   endif
   ifeq ($(USE_ANDROID),yes)
-     build_lib: build_$(1)
-  endif
-  ifeq ($(USE_LINUX), yes)
      build_lib: build_$(1)
   endif
   endif

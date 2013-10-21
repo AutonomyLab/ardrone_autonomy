@@ -99,7 +99,10 @@ vp_stages_output_buffer_stage_transform(vp_stages_output_buffer_config_t *cfg, v
     }
 
   if(in->status == VP_API_STATUS_ENDED)
-    vp_os_free(out->buffers);
+  {
+	  vp_os_free(out->buffers);
+	  out->buffers = NULL;
+  }
 
   out->status = in->status;
 

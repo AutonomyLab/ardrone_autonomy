@@ -23,20 +23,28 @@
 #endif // __MACOSX__
 
 #ifdef USE_ANDROID
-#include <android/log.h>
-#undef PRINT
-#define PRINT(_fmt_, args...)                                        \
+  #include <android/log.h>
+  #undef PRINT
+  #ifdef DEBUG_MODE
+    #define PRINT(_fmt_, args...)                                        \
     __android_log_print(ANDROID_LOG_INFO, "ARDrone", _fmt_, ##args)
+  #else
+    #define PRINT(...)
+  #endif //DEBUG_MODE
+#endif // USE_ANDROID
+
+#ifndef PRINT
+	#define PRINT printf
 #endif
 
 #ifdef DEBUG_MODE
-  #define DEBUG_PRINT_SDK(...) printf(__VA_ARGS__)
+  #define DEBUG_PRINT_SDK(...) PRINT(__VA_ARGS__)
 #else
   #define DEBUG_PRINT_SDK(...)
 #endif
 
 #ifdef DEBUG_MODE
-  #define DEBUG_PRINT(...) printf(__VA_ARGS__)
+  #define DEBUG_PRINT(...) PRINT(__VA_ARGS__)
 #else
   #define DEBUG_PRINT(...)
 #endif
