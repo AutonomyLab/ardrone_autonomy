@@ -74,6 +74,8 @@ set(SDK ${CMAKE_BINARY_DIR}/ardrone/src/ardronelib/ARDroneLib/)
 include_directories(${SDK} ${SDK}/FFMPEG/Includes ${SDK}/Soft/Common ${SDK}/Soft/Lib ${SDK}/VP_SDK ${SDK}/VP_SDK/VP_Os/linux )
 link_directories(${CATKIN_DEVEL_PREFIX}/lib/ardrone)
 
+# add catkin includes
+include_directories(${catkin_INCLUDE_DIRS})
 
 # add Boost_INCLUDE_DIRS
 include_directories(${Boost_INCLUDE_DIRS})
