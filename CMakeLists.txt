@@ -63,6 +63,8 @@ set(SDK ARDroneLib/)
 include_directories(${SDK} ${SDK}/FFMPEG/Includes ${SDK}/Soft/Common ${SDK}/Soft/Lib ${SDK}/VP_SDK ${SDK}/VP_SDK/VP_Os/linux )
 link_directories(${PROJECT_SOURCE_DIR}/lib/)
 
+# add catkin includes
+include_directories(${catkin_INCLUDE_DIRS})
 
 # add Boost_INCLUDE_DIRS
 include_directories(${Boost_INCLUDE_DIRS})
