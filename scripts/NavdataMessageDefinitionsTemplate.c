@@ -60,7 +60,7 @@
 #endif
 
 #ifdef NAVDATA_STRUCTS_SOURCE
-void ARDroneDriver::PublishNavdataTypes(navdata_unpacked_t &n, ros::Time &received)
+void ARDroneDriver::PublishNavdataTypes(const navdata_unpacked_t &n, const ros::Time &received)
 {
 	if(initialized_navdata_publishers)
 	{
