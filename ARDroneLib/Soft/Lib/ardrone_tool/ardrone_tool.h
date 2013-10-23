@@ -66,7 +66,7 @@ C_RESULT ardrone_tool_shutdown(void);
 
 void ardrone_tool_init_timers_and_mutex();
 void ardrone_tool_send_com_watchdog(void); // To send it only once
-int main();
+//int main();
 
 // There because not defined in embedded
 void api_configuration_get_ctrl_mode(void);
