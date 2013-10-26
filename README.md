@@ -10,21 +10,21 @@
 	- [Installation Steps](#installation-steps)
 - [How to Run](#how-to-run)
 - [Reading from AR-Drone](#reading-from-ar-drone)
-	- [Update Frequencies ](#update-frequencies-new) :new:
+	- [Update Frequencies ](#update-frequencies-new)
 	- [Legacy Navigation Data](#legacy-navigation-data)
 	- [IMU data](#imu-data)
 	- [Magnetometer Data](#magnetometer-data)
-	- [Selective Navdata (Advanced) ](#selective-navdata-advanced-new) :new:
+	- [Selective Navdata (Advanced) ](#selective-navdata-advanced-new)
 	- [Cameras](#cameras)
 	- [Tag Detection](#tag-detection)
-	- [Update Frequencies](#update-frequencies) :new:
+	- [Update Frequencies](#update-frequencies)
 - [Sending Commands to AR-Drone](#sending-commands-to-ar-drone)
 	- [Hover Modes ](#hover-modes-new) :new:
 - [Coordinate Frames](#coordinate-frames)
 - [Services](#services)
 	- [Toggle AR-Drone's Camera](#toggle-ar-drones-camera)
 	- [LED Animations](#led-animations)
-	- [Flight Animations ](#flight-animations-new) :new:
+	- [Flight Animations ](#flight-animations-new)
 	- [IMU Calibration](#imu-calibration)
 	- [Flat Trim](#flat-trim)
     - [Record to USB Stick](#record-to-usb-stick) :new:
@@ -33,12 +33,13 @@
 	- [Other Parameters](#other-parameters)
 - [License](#license)
 - [Contributors](#contributors)
-- [FAQ](#faq)
+- [FAQ](#faq) :new:
 
 
 
 ## Updates
 
+- *October 22 2013*: Update to Parrot SDK 2.0.1 (Fixes crashes on 2.4.x firmwares, no support for flight recorder (yet). Please check the FAQ section for instructions on how to re-compile the SDK.)
 - *February 13 2013*: Support for USB key recording ([More info](https://github.com/AutonomyLab/ardrone_autonomy/pull/53)). Motor PWM added to legacy Navdata.
 - *January 9 2013*: ROS Groovy support. Support for zero-command without hovering ([More info](https://github.com/AutonomyLab/ardrone_autonomy/pull/34)). Full configurable Navdata support ([More info](https://github.com/AutonomyLab/ardrone_autonomy/pull/31)). Support for "Flight Animations". Support for Real-time navdata and video publishing ([More info](https://github.com/AutonomyLab/ardrone_autonomy/pull/44)). Support for configurable data publishing rate.
 - *November 9 2012*: Critical Bug in sending configurations to drone fixed and more parameters are supported ([More info](https://github.com/AutonomyLab/ardrone_autonomy/issues/24)). Separate topic for magnetometer data added ([More info](https://github.com/AutonomyLab/ardrone_autonomy/pull/25)).
@@ -421,6 +422,18 @@ Yes, you can check the `launch` folder for sample lanuch file.
 ### Can I control multiple drones using a single PC? or can I make my drone connect to a wireless router?
 
 With some hacking yes! This [wiki page](https://github.com/AutonomyLab/ardrone_autonomy/wiki/Multiple-AR-Drones) contains some information regarding this issue.
+
+### How to re-compile parrot SDK?
+
+If the `git` updates include a SDK upgrade, you'd better cleanup previous vuild files.
+
+```bash
+cd ARDroneLib/Soft/Build
+make clean
+rm -rf targets_versions
+```
+
+Build the SDK and driver again.
 
 ## TODO
 
