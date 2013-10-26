@@ -75,7 +75,7 @@ The installation follows the same steps needed usually to compile a ROS driver.
 * Compile the AR-Drone SDK: The driver contains a slightly patched version of AR-Drone 2.0 SDK which is located in `ARDroneLib` directory. To compile it, execute the `./build_sdk.sh`. Any system-wide dependency will be managed by the SDK's build script. You may be asked to install some packages during the installation procedure (e.g `daemontools`). You can verify the success of the SDK's build by checking the `lib` folder.
 
         ```bash
-        $ ./build_sdk
+        $ ./build_sdk.sh
         $ [After a couple of minutes]
         $ ls ./lib
 
