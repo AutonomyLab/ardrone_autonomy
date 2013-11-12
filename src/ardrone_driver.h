@@ -61,7 +61,7 @@ private:
     void publish_tf();
     bool readCovParams(std::string param_name, boost::array<double, 9> &cov_array);
     double calcAverage(std::vector<double> &vec);
-    void resetCaliberation();   
+    void resetcalibration();   
     void configureDrone();
 
     ros::NodeHandle node_handle;
@@ -133,8 +133,8 @@ private:
     geometry_msgs::Vector3Stamped mag_msg;
     ardrone_autonomy::Navdata legacynavdata_msg;
 
-    // Manual IMU caliberation
-    bool do_caliberation;
+    // Manual IMU calibration
+    bool do_calibration;
     int max_num_samples;
     bool caliberated;
     double acc_bias[3];

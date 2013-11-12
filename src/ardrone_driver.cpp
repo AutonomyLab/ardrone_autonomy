@@ -62,12 +62,12 @@ ARDroneDriver::ARDroneDriver()
     readCovParams("~cov/imu_av", imu_msg.angular_velocity_covariance);
     readCovParams("~cov/imu_or", imu_msg.orientation_covariance);
 
-    // Caliberation
+    // calibration
     max_num_samples = 50;
-    do_caliberation = (ros::param::get("~do_imu_caliberation", do_caliberation)) ? do_caliberation : false;
-    if (do_caliberation) {
-        resetCaliberation();
-        ROS_WARN("Automatic IMU Caliberation is active.");
+    do_calibration = (ros::param::get("~do_imu_calibration", do_calibration)) ? do_calibration : false;
+    if (do_calibration) {
+        resetcalibration();
+        ROS_WARN("Automatic IMU calibration is active.");
     }
 
     // Camera Info Manager
@@ -252,7 +252,7 @@ void ARDroneDriver::configureDrone()
     #undef NAVDATA_STRUCTS_INITIALIZE
 }
 
-void ARDroneDriver::resetCaliberation()
+void ARDroneDriver::resetcalibration()
 {
     caliberated = false;
     acc_samples.clear();
@@ -595,7 +595,7 @@ void ARDroneDriver::publish_video()
 
 void ARDroneDriver::publish_navdata(navdata_unpacked_t &navdata_raw, const ros::Time &navdata_receive_time)
 {
-    if ((do_caliberation) && (!caliberated))
+    if ((do_calibration) && (!caliberated))
     {
         acc_samples[0].push_back(navdata_raw.navdata_phys_measures.phys_accs[ACC_X]);
         acc_samples[1].push_back(navdata_raw.navdata_phys_measures.phys_accs[ACC_Y]);
@@ -618,11 +618,11 @@ void ARDroneDriver::publish_navdata(navdata_unpacked_t &navdata_raw, const ros::
             ROS_INFO("Bias in angular velocity (deg/s): [%4.4lf, %4.4lf, %4.4lf]", gyro_bias[0], gyro_bias[1], gyro_bias[2]);
             ROS_INFO("Bias in linear velocity (mm/s): [%4.4lf, %4.4lf, %4.4lf]", vel_bias[0], vel_bias[1], vel_bias[2]);
             ROS_INFO("Above values (except z-axis accel) will be substracted from actual IMU data in `navdata_raw.navdata_demo` and `imu` topic.");
-            ROS_INFO("This feature can be disabled using `do_imu_caliberation` parameter. Recaliberate using `imu_recalib` service.");
+            ROS_INFO("This feature can be disabled using `do_imu_calibration` parameter. Recaliberate using `imu_recalib` service.");
             caliberated = true;
         }
     }
-    if ((do_caliberation) && (caliberated))
+    if ((do_calibration) && (caliberated))
     {
         for (int j = 0; j < 3; j++)
         {
@@ -777,15 +777,15 @@ void ARDroneDriver::publish_tf()
 
 bool ARDroneDriver::imuReCalibCallback(std_srvs::Empty::Request &request, std_srvs::Empty::Response &response)
 {
-    if (!do_caliberation)
+    if (!do_calibration)
     {
-        ROS_WARN("Automatic IMU Caliberation is not active. Activate first using `do_imu_caliberation` parameter");
+        ROS_WARN("Automatic IMU calibration is not active. Activate first using `do_imu_calibration` parameter");
         return false;
     }
     else
     {
         ROS_WARN("Recaliberating IMU, please do not move the drone for a couple of seconds.");
-        resetCaliberation();
+        resetcalibration();
         return true;
     }
 }
