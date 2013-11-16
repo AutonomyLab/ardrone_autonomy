@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+
+  <title>ardrone_autonomy | contributions</title>
+  <meta name="description" content="Automatically created list of contributors for ardrone_autonomy repository.">
+  <meta name="author" content="Mani Monajjemi">
+
+  <style type="text/css">
+    body {
+      font-family: sans-serif;
+      font-size: 1em;
+    }
+    h1 {
+      font-size: 1.2em;
+    }
+    #team {
+      width: 480px;  
+      text-align: center;  
+    }
+    .author {
+      float: left;
+      padding: 2px;
+      margin: 2px;
+    }
+  </style>
+
+  <!--[if lt IE 9]>
+  <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+</head>
+
+<body>
+  <center>
+    <h1><a href="https://github.com/AutonomyLab/ardrone_autonomy">ardrone_autonomy</a>'s contributors</h1>
+    <div id="team"></div>
+  </center>
+
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+  <script type="text/javascript">
+  // From: http://pastebin.com/YA1GwfJ0
+  $( document ).ready(function() {
+    $.getJSON(
+      'https://api.github.com/repos/AutonomyLab/ardrone_autonomy/contributors?callback',
+      function( data ) {
+          $.each( data, function( i, user ) {
+              var html = '<div class="author"><div class="avatar"><a href="https://github.com/' + user.login;
+              html += '" title="@' + user.login + ' with ' + user.contributions;
+              html += ' contributions">';
+              html += '<img src="https://secure.gravatar.com/avatar/' + user.gravatar_id;
+              html += 'd=https://secure.gravatar.com/avatar/';
+              html += 'ad516503a11cd5ca435acc9bb6523536?s=64"></a></div>';
+              html += '<div class="name">' + user.login + '</div></div>'
+                  
+              $( '#team' ).append( html );
+          } );
+          $( '#team' ).append('<br clear="both" />');
+      }
+    );
+  });
+  </script>
+</body>
+</html>
