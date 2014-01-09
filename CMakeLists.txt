@@ -70,7 +70,7 @@ ExternalProject_Add(ardronelib
 )
 
 # find sdk directories for headers and libraries
-set(SDK ${CMAKE_BINARY_DIR}/ardrone/ARDroneLib/)
+set(SDK ${CMAKE_BINARY_DIR}/ardrone/src/ardronelib/ARDroneLib/)
 include_directories(${SDK} ${SDK}/FFMPEG/Includes ${SDK}/Soft/Common ${SDK}/Soft/Lib ${SDK}/VP_SDK ${SDK}/VP_SDK/VP_Os/linux )
 link_directories(${CATKIN_DEVEL_PREFIX}/lib)
 
