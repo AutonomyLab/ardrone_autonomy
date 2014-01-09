@@ -1,7 +1,0 @@
-#ifndef _IPHONE_VIDEO_UTILS_H_
-#define _IPHONE_VIDEO_UTILS_H_
-
-#define HAS_UVLC_DECODE_BLOCKLINE
-
-#endif // _IPHONE_VIDEO_UTILS_H_
-
