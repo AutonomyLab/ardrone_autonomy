@@ -65,14 +65,14 @@ ExternalProject_Add(ardronelib
 	PATCH_COMMAND patch -p0 < ${PROJECT_SOURCE_DIR}/ardrone_lib.patch
 	CONFIGURE_COMMAND echo "No configure"
 	BUILD_COMMAND make
-	INSTALL_COMMAND make install INSTALL_PREFIX=${CATKIN_DEVEL_PREFIX}/lib
+	INSTALL_COMMAND make install INSTALL_PREFIX=${CATKIN_DEVEL_PREFIX}/lib/ardrone
 	BUILD_IN_SOURCE 1
 )
 
 # find sdk directories for headers and libraries
 set(SDK ${CMAKE_BINARY_DIR}/ardrone/src/ardronelib/ARDroneLib/)
 include_directories(${SDK} ${SDK}/FFMPEG/Includes ${SDK}/Soft/Common ${SDK}/Soft/Lib ${SDK}/VP_SDK ${SDK}/VP_SDK/VP_Os/linux )
-link_directories(${CATKIN_DEVEL_PREFIX}/lib)
+link_directories(${CATKIN_DEVEL_PREFIX}/lib/ardrone)
 
 
 # add Boost_INCLUDE_DIRS

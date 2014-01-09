@@ -200,7 +200,7 @@ new file mode 100644
 index 0000000..aef450a
 --- /dev/null
 +++ Makefile
-@@ -0,0 +1,24 @@
+@@ -0,0 +1,25 @@
 +SDK_PATH:=$(shell pwd)/ARDroneLib
 +PC_TARGET=yes
 +USE_LINUX=yes
@@ -224,5 +224,6 @@ index 0000000..aef450a
 +	@$(MAKE) -C $(SDK_PATH)/VP_SDK/Build $(TMP_SDK_FLAGS) $(SDK_FLAGS) $(MAKECMDGOALS) USE_LINUX=yes
 +              
 +install:
++	mkdir -p ${INSTALL_PREFIX}
 +	find $(SDK_PATH)/Soft/Build -type f -name '*.a' -exec cp '{}' ${INSTALL_PREFIX} \;
 
