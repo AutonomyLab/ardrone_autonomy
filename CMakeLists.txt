@@ -61,6 +61,7 @@ catkin_package(DEPENDS roscpp image_transport sensor_msgs std_srvs tf camera_inf
 include(ExternalProject)
 ExternalProject_Add(ardronelib
 	GIT_REPOSITORY https://github.com/kbogert/ardrone.git
+	GIT_TAG v2.0.1
 	PREFIX ${CMAKE_BINARY_DIR}/ardrone
 	PATCH_COMMAND patch -p0 < ${PROJECT_SOURCE_DIR}/ardrone_lib.patch
 	CONFIGURE_COMMAND echo "No configure"
