@@ -1,30 +1,8 @@
-diff -u -r ardrone/ARDrone_SDK_2_0_1/ARDroneLib/Soft/Build/config.makefile ardrone_autonomy/ARDroneLib/Soft/Build/config.makefile
---- ARDroneLib/Soft/Build/config.makefile	2014-01-09 11:17:12.510677603 -0500
-+++ ARDroneLib/Soft/Build/config.makefile	2014-01-09 11:17:59.526910747 -0500
-@@ -110,8 +110,8 @@
- 
-   ifeq ("$(IPHONE_MODE)","yes")
- 	SDK_FLAGS+="USE_IPHONE=yes"
--	SDK_FLAGS+="FFMPEG_SUPPORT=no"
--	SDK_FLAGS+="ITTIAM_SUPPORT=yes"
-+	SDK_FLAGS+="FFMPEG_SUPPORT=yes"
-+	SDK_FLAGS+="ITTIAM_SUPPORT=no"
- 	SDK_FLAGS+="USE_VIDEO_TCP=yes"
- 	SDK_FLAGS+="USE_VIDEO_HD=no"
-   else
-@@ -130,7 +130,7 @@
-      SDK_FLAGS+="TOOLCHAIN_VERSION=arm-linux-androideabi-4.6"
-      SDK_FLAGS+="NDK_PLATFORM_VERSION=android-8"
-      SDK_FLAGS+="FFMPEG_SUPPORT=yes"
--     SDK_FLAGS+="ITTIAM_SUPPORT=yes"
-+     SDK_FLAGS+="ITTIAM_SUPPORT=no"
-      SDK_FLAGS+="USE_VIDEO_TCP=yes"
-      SDK_FLAGS+="USE_VIDEO_HD=no"
-   else
-diff -u -r ardrone/ARDrone_SDK_2_0_1/ARDroneLib/Soft/Lib/ardrone_tool/ardrone_tool.c ardrone_autonomy/ARDroneLib/Soft/Lib/ardrone_tool/ardrone_tool.c
---- ARDroneLib/Soft/Lib/ardrone_tool/ardrone_tool.c	2014-01-09 11:17:12.550677801 -0500
-+++ ARDroneLib/Soft/Lib/ardrone_tool/ardrone_tool.c	2014-01-09 11:17:59.566910942 -0500
-@@ -332,11 +332,11 @@
+diff --git a/ARDroneLib/Soft/Lib/ardrone_tool/ardrone_tool.c b/ARDroneLib/Soft/Lib/ardrone_tool/ardrone_tool.c
+index 8466d4c..0b4f2e7 100644
+--- a/ARDroneLib/Soft/Lib/ardrone_tool/ardrone_tool.c
++++ b/ARDroneLib/Soft/Lib/ardrone_tool/ardrone_tool.c
+@@ -332,11 +332,11 @@ int ardrone_tool_main(int argc, char **argv)
      argc--; argv++;
    }
  
@@ -38,10 +16,11 @@ diff -u -r ardrone/ARDrone_SDK_2_0_1/ARDroneLib/Soft/Lib/ardrone_tool/ardrone_to
    
    /* After a first analysis, the arguments are restored so they can be passed to the user-defined functions */
    argc=argc_backup;
-diff -u -r ardrone/ARDrone_SDK_2_0_1/ARDroneLib/Soft/Lib/ardrone_tool/ardrone_tool.h ardrone_autonomy/ARDroneLib/Soft/Lib/ardrone_tool/ardrone_tool.h
---- ARDroneLib/Soft/Lib/ardrone_tool/ardrone_tool.h	2014-01-09 11:17:12.550677801 -0500
-+++ ARDroneLib/Soft/Lib/ardrone_tool/ardrone_tool.h	2014-01-09 11:17:59.566910942 -0500
-@@ -66,7 +66,7 @@
+diff --git a/ARDroneLib/Soft/Lib/ardrone_tool/ardrone_tool.h b/ARDroneLib/Soft/Lib/ardrone_tool/ardrone_tool.h
+index a081c9a..93005ec 100644
+--- a/ARDroneLib/Soft/Lib/ardrone_tool/ardrone_tool.h
++++ b/ARDroneLib/Soft/Lib/ardrone_tool/ardrone_tool.h
+@@ -66,7 +66,7 @@ C_RESULT ardrone_tool_shutdown(void);
  
  void ardrone_tool_init_timers_and_mutex();
  void ardrone_tool_send_com_watchdog(void); // To send it only once
@@ -50,141 +29,11 @@ diff -u -r ardrone/ARDrone_SDK_2_0_1/ARDroneLib/Soft/Lib/ardrone_tool/ardrone_to
  
  // There because not defined in embedded
  void api_configuration_get_ctrl_mode(void);
-diff -u -r ardrone/ARDrone_SDK_2_0_1/ARDroneLib/Soft/Lib/ardrone_tool/Video/video_stage_decoder.c ardrone_autonomy/ARDroneLib/Soft/Lib/ardrone_tool/Video/video_stage_decoder.c
---- ARDroneLib/Soft/Lib/ardrone_tool/Video/video_stage_decoder.c	2014-01-09 11:17:12.542677762 -0500
-+++ ARDroneLib/Soft/Lib/ardrone_tool/Video/video_stage_decoder.c	2014-01-09 11:17:59.558910902 -0500
-@@ -26,16 +26,13 @@
- #  define mp4h264_close ffmpeg_stage_decoding_close
- static const int resetDecoderOnStreamChange = 0;
- # endif
--#else
-+#else // ANDROID
- typedef enum {
-     NEON_SUPPORT_UNKNOWN = 0,
-     NEON_SUPPORT_OK,
-     NEON_SUPPORT_FAIL,
- } neon_status_t;
- 
--#ifdef USE_ANDROID
--#warning ITTIAM library disabled. put back to NEON_SUPPORT_UNKNOWN to reenable it.
--#endif
- static neon_status_t neonStatus = NEON_SUPPORT_FAIL; // <<< FORCE FFMPEG <<<
- static int resetDecoderOnStreamChange = 0; // NON CONST as it will be set at runtime
- 
-@@ -352,31 +349,37 @@
- 
- C_RESULT mp4h264_open (mp4h264_config_t *cfg)
- {
-+#if ITTIAM_SUPPORT
-     if (NEON_SUPPORT_UNKNOWN == neonStatus)
-         checkNeonSupport ();
-     if (NEON_SUPPORT_OK == neonStatus)
-         return ittiam_stage_decoding_open ((ittiam_stage_decoding_config_t *)cfg);
-     else
-+#endif
-         return ffmpeg_stage_decoding_open (cfg);
- }
- 
- C_RESULT mp4h264_transform (mp4h264_config_t *cfg, vp_api_io_data_t *in, vp_api_io_data_t *out)
- {
-+#if ITTIAM_SUPPORT
-     if (NEON_SUPPORT_UNKNOWN == neonStatus)
-         checkNeonSupport ();
-     if (NEON_SUPPORT_OK == neonStatus)
-         return ittiam_stage_decoding_transform ((ittiam_stage_decoding_config_t *)cfg, in, out);
-     else
-+#endif
-         return ffmpeg_stage_decoding_transform (cfg, in, out);
- }
- 
- C_RESULT mp4h264_close (mp4h264_config_t *cfg)
- {
-+#if ITTIAM_SUPPORT
-     if (NEON_SUPPORT_UNKNOWN == neonStatus)
-         checkNeonSupport ();
-     if (NEON_SUPPORT_OK == neonStatus)
-         return ittiam_stage_decoding_close ((ittiam_stage_decoding_config_t *)cfg);
-     else
-+#endif
-         return ffmpeg_stage_decoding_close (cfg);
- }
- #endif
-diff -u -r ardrone/ARDrone_SDK_2_0_1/ARDroneLib/Soft/Lib/ardrone_tool/Video/video_stage_ffmpeg_decoder.c ardrone_autonomy/ARDroneLib/Soft/Lib/ardrone_tool/Video/video_stage_ffmpeg_decoder.c
---- ARDroneLib/Soft/Lib/ardrone_tool/Video/video_stage_ffmpeg_decoder.c	2014-01-09 11:17:12.542677762 -0500
-+++ ARDroneLib/Soft/Lib/ardrone_tool/Video/video_stage_ffmpeg_decoder.c	2014-01-09 11:17:59.562910926 -0500
-@@ -214,19 +214,18 @@
- 
- static inline bool_t check_and_copy_PaVE (parrot_video_encapsulation_t *PaVE, vp_api_io_data_t *data, parrot_video_encapsulation_t *prevPaVE, bool_t *dimChanged)
- {
-+    
-   parrot_video_encapsulation_t *localPaVE = (parrot_video_encapsulation_t *)data->buffers[data->indexBuffer];
-   if (localPaVE->signature[0] == 'P' &&
-       localPaVE->signature[1] == 'a' &&
-       localPaVE->signature[2] == 'V' &&
-       localPaVE->signature[3] == 'E')
--    {
-+  {
-       //FFMPEG_DEBUG("Found a PaVE");
-       vp_os_memcpy (prevPaVE, PaVE, sizeof (parrot_video_encapsulation_t)); // Make a backup of previous PaVE so we can check if things have changed
-       
-       vp_os_memcpy (PaVE, localPaVE, sizeof (parrot_video_encapsulation_t)); // Copy PaVE to our local one
-       
--
--
- #if __FFMPEG_DEBUG_ENABLED
-       printf ("------------------------------------\n");
-       printf ("PREV : ");
-@@ -291,7 +290,8 @@
-   int	frameFinished = 0;
-     
-   bool_t frameDimChanged = FALSE;
--  static parrot_video_encapsulation_t PaVE, prevPaVE;
-+    static parrot_video_encapsulation_t __attribute__ ((aligned (4))) PaVE;
-+    static parrot_video_encapsulation_t __attribute__ ((aligned (4))) prevPaVE;
-     
- #if WAIT_FOR_I_FRAME
-   static bool_t waitForIFrame = TRUE;
-@@ -300,7 +300,7 @@
- #ifdef NUM_SAMPLES
-   static struct timeval start_time, start_time2;
-   static int numsamples = 0;
--#endif	
-+#endif
-     
-   if (0 == in->size) // No frame
-     {
-@@ -387,6 +387,7 @@
-     }
- #endif
-     
-+    
-   if(out->status == VP_API_STATUS_PROCESSING && (!waitForIFrame || (PaVE.frame_type == FRAME_TYPE_IDR_FRAME) || (PaVE.frame_type == FRAME_TYPE_I_FRAME))) // Processing code
-     {
-       waitForIFrame = FALSE;
-@@ -398,6 +399,7 @@
-           packet.data = ((unsigned char*)in->buffers[in->indexBuffer]);
-           packet.size = in->size;
-           FFMPEG_DEBUG("Size : %d", packet.size);
-+            
-         
- #ifdef NUM_SAMPLES
-           struct timeval end_time;
-diff -u -r ardrone/ARDrone_SDK_2_0_1/ARDroneLib/Soft/Lib/utils/ardrone_ftp.c ardrone_autonomy/ARDroneLib/Soft/Lib/utils/ardrone_ftp.c
---- ARDroneLib/Soft/Lib/utils/ardrone_ftp.c	2014-01-09 11:17:12.566677883 -0500
-+++ ARDroneLib/Soft/Lib/utils/ardrone_ftp.c	2014-01-09 11:17:59.582911021 -0500
-@@ -30,7 +30,7 @@
- // To deactivate, define to (0)
- 
- #ifdef DEBUG // Debug options
--#define _FTP_DEBUG (1) // Common debug informations
-+#define _FTP_DEBUG (0) // Common debug informations
- #define _FTP_VERBOSE (0) // Extended debug information (many outputs on ftpList)
- #define _FTP_ERRORS_PRINT (1) // Display of error messages
- #else // Release options
-diff -u -r ardrone/ARDrone_SDK_2_0_1/ARDroneLib/VP_SDK/Build/Makefile ardrone_autonomy/ARDroneLib/VP_SDK/Build/Makefile
---- ARDroneLib/VP_SDK/Build/Makefile	2014-01-09 11:17:12.610678099 -0500
-+++ ARDroneLib/VP_SDK/Build/Makefile	2014-01-09 11:17:59.626911237 -0500
-@@ -105,6 +105,10 @@
+diff --git a/ARDroneLib/VP_SDK/Build/Makefile b/ARDroneLib/VP_SDK/Build/Makefile
+index bda3259..27418d2 100644
+--- a/ARDroneLib/VP_SDK/Build/Makefile
++++ b/ARDroneLib/VP_SDK/Build/Makefile
+@@ -105,6 +105,10 @@ define ADD_RULE_TEMPLATE
    ifeq ($(USE_ANDROID),yes)
       build_lib: build_$(1)
    endif
@@ -199,7 +48,7 @@ diff --git a/Makefile b/Makefile
 new file mode 100644
 index 0000000..aef450a
 --- /dev/null
-+++ Makefile
++++ b/Makefile
 @@ -0,0 +1,25 @@
 +SDK_PATH:=$(shell pwd)/ARDroneLib
 +PC_TARGET=yes
@@ -226,4 +75,3 @@ index 0000000..aef450a
 +install:
 +	mkdir -p ${INSTALL_PREFIX}
 +	find $(SDK_PATH)/Soft/Build -type f -name '*.a' -exec cp '{}' ${INSTALL_PREFIX} \;
-
