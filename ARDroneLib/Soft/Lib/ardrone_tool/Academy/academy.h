@@ -17,11 +17,17 @@
 #include <utils/ardrone_ftp.h>
 #include <VP_Os/vp_os_delay.h>
 #include <VP_Os/vp_os_thread.h>
+#include <VP_Os/vp_os_print.h>
 #include <VP_Os/vp_os_malloc.h>
 #include <VP_Os/vp_os_signal.h>
 #include <stdio.h>
 #include <dirent.h>
+#ifndef USE_ANDROID
 #include <ftw.h>
+#else
+#include <utils/AR_Ftw.h>
+#endif
+
 #include <time.h>
 
 #ifndef _WIN32
@@ -40,6 +46,7 @@
 #define ACADEMY_MAX_LIST		1024
 #define ACADEMY_MAX_LINE		128
 #define ACADEMY_MAX_FILENAME	256
+#define ACADEMY_MAX_FD_FOR_FTW  20
 
 #define PA_PREFIX "PA : "
 
@@ -47,26 +54,26 @@
 #define PA_DEBUG(...)			\
   do							\
     {							\
-      printf (PA_PREFIX);		\
-      printf (__VA_ARGS__);		\
+      PRINT (PA_PREFIX);		\
+      PRINT (__VA_ARGS__);		\
     } while (0)
 #define PA_WARNING(...)			\
 do							\
 {							\
-printf (PA_PREFIX);		\
-printf (__VA_ARGS__);		\
+PRINT (PA_PREFIX);		\
+PRINT (__VA_ARGS__);		\
 } while (0)
 #else
 #define PA_DEBUG(...)
 #define PA_WARNING(...)		\
 do							\
 {							\
-printf (PA_PREFIX);		\
-printf (__VA_ARGS__);		\
+PRINT (PA_PREFIX);		\
+PRINT (__VA_ARGS__);		\
 } while (0)
 #endif
 
-#define ACADEMY_SERVERNAME			""
+#define ACADEMY_SERVERNAME			"parrot01.nyx.emencia.net"
 #define ACADEMY_PORT				21
 #define BYTE_TO_MBYTE(a) (a / 1048576)
 #define MBYTE_TO_BYTE(a) (a * 1048576)

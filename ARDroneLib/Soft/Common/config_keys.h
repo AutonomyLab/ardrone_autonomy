@@ -157,8 +157,6 @@ extern const float32_t  default_magneto_radius;
 
 #define ARDRONE_DEFAULT_DATE				"19700101_000000"
 #define ARDRONE_EMPTY_STRING				""
-#define ARDRONE_DEFAULT_TRAVELLING_MODE		"0,10,1500,0,1000"
-
 
 #define CUSTOM_CONFIGURATION_DELETE_ALL_CMD "all"
 
@@ -283,8 +281,6 @@ ARDRONE_CONFIG_KEY_IMM_a10("control", outdoor_control_yaw,        INI_FLOAT,    
 ARDRONE_CONFIG_KEY_IMM_a10("control", flying_mode,         INI_INT,    int32_t,  int32_t*,   (K_READ|K_WRITE|K_NOBIND|K_SHALLOW), (K_READ|K_WRITE), 0,    		flying_mode_config_callback,CAT_SESSION)
 ARDRONE_CONFIG_KEY_IMM_a10("control", hovering_range, INI_INT, int32_t, int32_t*,  (K_READ|K_WRITE|K_NOBIND|K_SHALLOW), (K_READ|K_WRITE), 1000, default_config_callback, CAT_SESSION)
 ARDRONE_CONFIG_KEY_STR_a10("control", flight_anim,         INI_STRING,    string_t,  char*,  (K_READ|K_WRITE|K_NOBIND|K_SHALLOW), 0, "0,0",         flight_animation_selection_callback,CAT_COMMON)
-ARDRONE_CONFIG_KEY_STR_a10("control", travelling_mode,     INI_STRING,    string_t,  char*,  (K_READ|K_WRITE), (K_READ|K_WRITE), ARDRONE_DEFAULT_TRAVELLING_MODE,   travelling_mode_selection_callback,CAT_USER)
-ARDRONE_CONFIG_KEY_IMM_a10("control", travelling_enable,   INI_BOOLEAN,   bool_t,    bool_t*,      (K_READ|K_WRITE|K_NOBIND|K_SHALLOW), 0, FALSE,           travelling_enable_callback, CAT_COMMON)
 
 ARDRONE_CONFIG_KEY_STR_a10("network", ssid_single_player,  INI_STRING,   string_t,   char*,       (K_READ|K_WRITE), 0, WIFI_NETWORK_NAME,               default_config_callback, CAT_COMMON)
 ARDRONE_CONFIG_KEY_STR_a10("network", ssid_multi_player,   INI_STRING,   string_t,   char*,       (K_READ|K_WRITE), 0,  WIFI_NETWORK_NAME,               default_config_callback, CAT_COMMON)

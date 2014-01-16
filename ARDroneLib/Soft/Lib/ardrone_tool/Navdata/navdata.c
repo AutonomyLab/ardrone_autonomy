@@ -49,6 +49,11 @@ navdata_option_t* ardrone_navdata_search_option( navdata_option_t* navdata_optio
   {
     ptr  = (uint8_t*) navdata_options_ptr;
     ptr += navdata_options_ptr->size;
+    if (0 == navdata_options_ptr->size)
+    {
+        navdata_options_ptr = NULL;
+        break;
+    }
 
     navdata_options_ptr = (navdata_option_t*) ptr;
   }

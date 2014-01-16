@@ -65,10 +65,10 @@ ifdef PC_TARGET
     OS_DEFINE=GNU_LINUX
   else
    ifeq ("$(USE_LINUX)","yes")
-    OS_DEFINE=GNU_LINUX
-   else
-     TARGET:=$(TARGET).exe
-     OS_DEFINE=WINDOW
+         OS_DEFINE=GNU_LINUX
+      else
+         TARGET:=$(TARGET).exe
+         OS_DEFINE=WINDOW
     endif
   endif
 
@@ -110,8 +110,8 @@ ifdef PC_TARGET
 
   ifeq ("$(IPHONE_MODE)","yes")
 	SDK_FLAGS+="USE_IPHONE=yes"
-	SDK_FLAGS+="FFMPEG_SUPPORT=no"
-	SDK_FLAGS+="ITTIAM_SUPPORT=yes"
+	SDK_FLAGS+="FFMPEG_SUPPORT=yes"
+	SDK_FLAGS+="ITTIAM_SUPPORT=no"
 	SDK_FLAGS+="USE_VIDEO_TCP=yes"
 	SDK_FLAGS+="USE_VIDEO_HD=no"
   else
@@ -127,10 +127,10 @@ ifdef PC_TARGET
 
   ifeq ("$(USE_ANDROID)","yes")
      SDK_FLAGS+="USE_ANDROID=yes"
-     SDK_FLAGS+="TOOLCHAIN_VERSION=arm-linux-androideabi-4.4.3"
+     SDK_FLAGS+="TOOLCHAIN_VERSION=arm-linux-androideabi-4.6"
      SDK_FLAGS+="NDK_PLATFORM_VERSION=android-8"
      SDK_FLAGS+="FFMPEG_SUPPORT=yes"
-     SDK_FLAGS+="ITTIAM_SUPPORT=yes"
+     SDK_FLAGS+="ITTIAM_SUPPORT=no"
      SDK_FLAGS+="USE_VIDEO_TCP=yes"
      SDK_FLAGS+="USE_VIDEO_HD=no"
   else

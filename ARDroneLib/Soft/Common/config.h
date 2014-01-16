@@ -14,7 +14,6 @@
 	#include <win32_custom.h>
 #else
 	#include <generated_custom.h>
-	#include <autoconf.h>
 #endif
 
 #undef ARDRONE_PIC_VERSION

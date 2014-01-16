@@ -57,6 +57,8 @@ void p263_codec_free( video_controller_t* controller )
   p263_codec_t* p263_codec = (p263_codec_t*) controller->video_codec;
 
   vp_os_free( p263_codec );
+  controller->video_codec = NULL;
+
 }
 
 static INLINE video_macroblock_t* p263_unquantize_idct( video_controller_t* controller, video_macroblock_t* mb, int32_t num_macro_blocks )

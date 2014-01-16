@@ -275,7 +275,7 @@ C_RESULT ardrone_tool_shutdown()
   ardrone_navdata_client_shutdown();
   ardrone_control_shutdown();
   ardrone_tool_input_shutdown();
-
+ 
   JOIN_THREAD(ardrone_control); 
   JOIN_THREAD(navdata_update);
 
@@ -332,14 +332,11 @@ int ardrone_tool_main(int argc, char **argv)
     argc--; argv++;
   }
 
-  // Making the driver ROS compatible
-/*
-  if( show_usage || (argc != 0) )
+  /*if( show_usage || (argc != 0) )
   {
     ardrone_tool_usage( appname );
     exit(-1);
-  }
-*/
+  }*/
   
   /* After a first analysis, the arguments are restored so they can be passed to the user-defined functions */
   argc=argc_backup;
@@ -351,7 +348,6 @@ int ardrone_tool_main(int argc, char **argv)
   {
     PRINT("You have to install new locales in your dev environment! (avoid the need of conv_coma_to_dot)\n");
     PRINT("As root, do a \"dpkg-reconfigure locales\" and add en_GB.UTF8 to your locale settings\n");
-    PRINT("If you have any problem, feel free to contact Pierre Eline (pierre.eline@parrot.com)\n");
   }
   else
   {
@@ -407,10 +403,12 @@ int ardrone_tool_main(int argc, char **argv)
 		appname = &argv[0][lastSlashPos+1];
 		ardrone_gen_appid (appname, __SDK_VERSION__, app_id, app_name, sizeof (app_name));
 		res = ardrone_tool_init(wifi_ardrone_ip, strlen(wifi_ardrone_ip), NULL, appname, NULL, NULL, NULL, MAX_FLIGHT_STORING_SIZE, NULL);
+
       while( SUCCEED(res) && ardrone_tool_exit() == FALSE )
       {
         res = ardrone_tool_update();
       }
+
       res = ardrone_tool_shutdown();
     }
 

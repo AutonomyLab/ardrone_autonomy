@@ -74,6 +74,12 @@ include_directories(${Boost_INCLUDE_DIRS})
 add_executable(ardrone_driver src/ardrone_driver.cpp src/video.cpp src/ardrone_sdk.cpp src/teleop_twist.cpp)
 target_link_libraries(ardrone_driver pc_ardrone avcodec avutil swscale vlib  sdk SDL ${Boost_LIBRARIES} ${catkin_LIBRARIES})
 
+#If you have a package which builds messages and/or services as well as 
+#executables that use them, you need to create an explicit dependency on 
+#the automatically-generated message target so that they are built in 
+#the correct order
+add_dependencies(ardrone_driver ${PROJECT_NAME}_gencpp)
+
 #install Rules
 install(TARGETS ardrone_driver RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 

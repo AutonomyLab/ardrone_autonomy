@@ -13,7 +13,7 @@ else
 RELEASE_OPT="debug"
 endif
 
-FFMPEG_CONFIG=decoder
+FFMPEG_CONFIG=both
 
 
 FFMPEG_DIR_EXIST=$(shell bash -c "if [ -d ffmpeg ]; then echo \"YES\"; else echo \"NO\"; fi")

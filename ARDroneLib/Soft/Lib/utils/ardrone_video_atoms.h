@@ -61,6 +61,7 @@ ardt -> specific
 movie_atom_t *atomFromData (uint32_t data_size, const char *_tag, const uint8_t *_data);
 void insertAtomIntoAtom (movie_atom_t *container, movie_atom_t **leaf); // will free leaf
 int writeAtomToFile (movie_atom_t **_atom, FILE *file); // Will free _atom
+void freeAtom (movie_atom_t **_atom);
 
 /* SPECIFIC */
 movie_atom_t *ftypAtomForFormatAndCodecWithOffset (ardrone_video_type_t format, parrot_video_encapsulation_codecs_t codec, uint32_t *offset, movie_atom_t **freeAtom);

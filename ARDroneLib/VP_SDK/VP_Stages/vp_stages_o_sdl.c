@@ -355,10 +355,11 @@ vp_stages_output_sdl_stage_transform(vp_stages_output_sdl_config_t *cfg, vp_api_
 
   // not managed
   if(in->status == VP_API_STATUS_ENDED)
-    {
+  {
       pipeline_opened = 0;
       vp_os_free(out->buffers);
-    }
+      out->buffers = NULL;
+  }
 
   vp_os_mutex_unlock(&out->lock);
 

@@ -123,6 +123,7 @@ C_RESULT video_controller_cleanup( video_controller_t* controller )
   {
     gob = &controller->gobs[0];
     vp_os_free(gob->macroblocks);
+    gob->macroblocks = NULL;
     vp_os_free( controller->gobs );
     controller->gobs = NULL;
   }

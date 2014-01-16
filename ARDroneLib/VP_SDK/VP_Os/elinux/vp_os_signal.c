@@ -66,7 +66,6 @@ vp_os_cond_wait(vp_os_cond_t *cond)
   pthread_cond_wait(&cond->cond, (pthread_mutex_t *)cond->mutex);
 }
 
-
 C_RESULT
 vp_os_cond_timed_wait(vp_os_cond_t *cond, uint32_t ms)
 {

@@ -14,7 +14,7 @@ ifndef USE_ANDROID
 USE_ANDROID          = no
 endif
 ifndef USE_LINUX
-USE_LINUX            = yes
+USE_LINUX            = no
 endif
 ifndef PROJECT
 # set default to ardrone2 for video TCP com.

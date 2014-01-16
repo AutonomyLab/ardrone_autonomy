@@ -18,35 +18,35 @@
 // Handler to resume control thread is mandatory
 #define BEGIN_NAVDATA_HANDLER_TABLE                                 \
     ardrone_navdata_handler_t ardrone_navdata_handler_table[] = { \
-    { ardrone_navdata_control_init, ardrone_navdata_control_process, ardrone_navdata_control_release, NULL }, \
+  { ardrone_navdata_control_init, ardrone_navdata_control_process, ardrone_navdata_control_release, NULL }, \
   { ardrone_general_navdata_init, ardrone_general_navdata_process, ardrone_general_navdata_release, NULL }, \
     { video_navdata_handler_init, video_navdata_handler_process, video_navdata_handler_release, NULL }, \
   { ardrone_academy_navdata_init, ardrone_academy_navdata_process, ardrone_academy_navdata_release, NULL },
 
 #define END_NAVDATA_HANDLER_TABLE                                       \
   { NULL, NULL, NULL, NULL }                                            \
-  };
+};
 
 #define NAVDATA_HANDLER_TABLE_ENTRY( init, process, release, init_data_ptr ) \
-    { (ardrone_navdata_handler_init_t)init, process, release, init_data_ptr },
+  { (ardrone_navdata_handler_init_t)init, process, release, init_data_ptr },
 
 typedef C_RESULT (*ardrone_navdata_handler_init_t)( void* data );
 typedef C_RESULT (*ardrone_navdata_handler_process_t)( const navdata_unpacked_t* const navdata );
 typedef C_RESULT (*ardrone_navdata_handler_release_t)( void );
 
 typedef struct _ardrone_navdata_handler_t {
-    ardrone_navdata_handler_init_t    init;
-    ardrone_navdata_handler_process_t process;
-    ardrone_navdata_handler_release_t release;
+  ardrone_navdata_handler_init_t    init;
+  ardrone_navdata_handler_process_t process;
+  ardrone_navdata_handler_release_t release;
 
-    void*                             data; // Data used during initialization
+  void*                             data; // Data used during initialization
 } ardrone_navdata_handler_t;
 
 typedef enum
 {
-    NAVDATA_BOOTSTRAP = 0,
-    NAVDATA_DEMO,
-    NAVDATA_FULL
+	NAVDATA_BOOTSTRAP = 0,
+	NAVDATA_DEMO,
+	NAVDATA_FULL
 } navdata_mode_t;
 
 extern ardrone_navdata_handler_t ardrone_navdata_handler_table[] WEAK;

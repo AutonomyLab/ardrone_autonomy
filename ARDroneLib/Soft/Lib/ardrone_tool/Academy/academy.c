@@ -219,7 +219,7 @@ DEFINE_THREAD_ROUTINE(academy, data)
             academy.flight_sum = 0;
             academy.flight_oldest_date[0] = '\0';
             
-            if(!ftw(flight_dir, &academy_compute_memory_used, 1))
+            if(!ftw(flight_dir, &academy_compute_memory_used, ACADEMY_MAX_FD_FOR_FTW))
             {
                 if(academy.flight_sum > MBYTE_TO_BYTE(academy.flight_max_storing_size))
                 {
@@ -229,17 +229,21 @@ DEFINE_THREAD_ROUTINE(academy, data)
                     // remove oldest flight
                     PA_WARNING("Too much memory used %d MB > %d MB, removing oldest flight %s...", BYTE_TO_MBYTE(academy.flight_sum), academy.flight_max_storing_size, remove_dir);
                     
-                    if(!ftw(remove_dir, &academy_remove, 1))
+                    if(!ftw(remove_dir, &academy_remove, ACADEMY_MAX_FD_FOR_FTW))
                     {
                         rmdir(remove_dir);
                         PA_WARNING("OK.\n");
                     }
                 }
                 else
+                {
                     needToCheckMemory = FALSE;
+                }
             }
             else
+            {
                 needToCheckMemory = FALSE;
+            }
         }
 	}
 

@@ -295,7 +295,7 @@ ATcodec_Add_Defined_Message_Tree (ATcodec_Tree_t *tree, const char *str)
 void
 ATcodec_Init_Library        (AT_CODEC_FUNCTIONS_PTRS *funcs)
 {
-    ATcodec_Init_Library_Tree   (&default_tree, funcs);
+  ATcodec_Init_Library_Tree   (&default_tree, funcs);
 }
 
 void
@@ -341,7 +341,7 @@ ATcodec_Init_Library_Tree   (ATcodec_Tree_t *tree, AT_CODEC_FUNCTIONS_PTRS *func
 void
 ATcodec_Shutdown_Library        (void)
 {
-    ATcodec_Shutdown_Library_Tree(&default_tree);
+  ATcodec_Shutdown_Library_Tree(&default_tree);
 }
 
 
@@ -699,15 +699,15 @@ ATcodec_Send_Messages()
 
   if(!atcodec_lib_init_ok)
     return ATCODEC_FALSE;
-    
+	
   vp_os_mutex_lock(&ATcodec_cond_mutex);
   if(ATcodec_Message_len > INTERNAL_BUFFER_SIZE)
-	  printf("ATcodec_Send_Messages : buf=%s, len=%d\n", &ATcodec_Message_Buffer[0], ATcodec_Message_len);
-
+	  PRINT("ATcodec_Send_Messages : buf=%s, len=%d\n", &ATcodec_Message_Buffer[0], ATcodec_Message_len);
+	
   if(ATcodec_Message_len && func_ptrs.write((uint8_t*)&ATcodec_Message_Buffer[0], (int32_t*)&ATcodec_Message_len) != AT_CODEC_WRITE_OK)
-          res = ATCODEC_FALSE;
-          
-      ATcodec_Message_len = 0;
+    res = ATCODEC_FALSE;
+	
+  ATcodec_Message_len = 0;
 	
   vp_os_mutex_unlock(&ATcodec_cond_mutex);
 	

@@ -30,12 +30,12 @@
 #define ARDRONE_VIDEO_NUM_MATCH_PATTERN (2)
 
 typedef enum {
-    ARDRONE_VIDEO_NO_ERROR = 0,
-    ARDRONE_VIDEO_GENERIC_ERROR,
-    ARDRONE_VIDEO_BAD_CODEC,
-    ARDRONE_VIDEO_FILE_ERROR,
-    ARDRONE_VIDEO_WAITING_FOR_IFRAME,
-    ARDRONE_VIDEO_BAD_ARGS,
+  ARDRONE_VIDEO_NO_ERROR = 0,
+  ARDRONE_VIDEO_GENERIC_ERROR,
+  ARDRONE_VIDEO_BAD_CODEC,
+  ARDRONE_VIDEO_FILE_ERROR,
+  ARDRONE_VIDEO_WAITING_FOR_IFRAME,
+  ARDRONE_VIDEO_BAD_ARGS,
 } ardrone_video_error_t;
 
 #if COUNT_WAITING_FOR_IFRAME_AS_AN_ERROR
@@ -44,62 +44,62 @@ typedef enum {
 #else
 static inline int ARDRONE_VIDEO_FAILED (ardrone_video_error_t error)
 {
-    if (ARDRONE_VIDEO_NO_ERROR == error ||
-        ARDRONE_VIDEO_WAITING_FOR_IFRAME == error)
+  if (ARDRONE_VIDEO_NO_ERROR == error ||
+      ARDRONE_VIDEO_WAITING_FOR_IFRAME == error)
     {
-        return 0;
+      return 0;
     }
-    return 1;
+  return 1;
 }
 static inline int ARDRONE_VIDEO_SUCCEEDED (ardrone_video_error_t error)
 {
-    if (ARDRONE_VIDEO_NO_ERROR == error ||
-        ARDRONE_VIDEO_WAITING_FOR_IFRAME == error)
+  if (ARDRONE_VIDEO_NO_ERROR == error ||
+      ARDRONE_VIDEO_WAITING_FOR_IFRAME == error)
     {
-        return 1;
+      return 1;
     }
-    return 0;
+  return 0;
 }
 #endif // COUNT_WAITING_FOR_IFRAME_AS_AN_ERROR
 
 
 typedef enum {
-    ARDRONE_VIDEO_MOV = 0,
-    ARDRONE_VIDEO_QUICKTIME = ARDRONE_VIDEO_MOV, // Alias for mov file
-    ARDRONE_VIDEO_MP4,
+  ARDRONE_VIDEO_MOV = 0,
+  ARDRONE_VIDEO_QUICKTIME = ARDRONE_VIDEO_MOV, // Alias for mov file
+  ARDRONE_VIDEO_MP4,
 } ardrone_video_type_t;
 
 typedef struct _ardrone_video_t {
     uint32_t version;
-    // Provided to constructor
-    uint32_t fps;
-    ardrone_video_type_t videoType;
-    // Read from frames PaVE
-    parrot_video_encapsulation_codecs_t videoCodec;
-    uint16_t width;
-    uint16_t height;
-    // Private datas
-    char infoFilePath [ARDRONE_VIDEO_PATH_MAX_SIZE]; // Keep this so we can delete the file
-    char outFilePath  [ARDRONE_VIDEO_PATH_MAX_SIZE]; // Keep this so we can rename the output file
-    char tempFilePath [ARDRONE_VIDEO_PATH_MAX_SIZE]; // Keep this so we can rename the output file
-    FILE *infoFile;
-    FILE *outFile;
-    uint32_t framesCount; // Number of frames
-    uint32_t mdatAtomOffset;
-    uint32_t framesDataOffset;
+  // Provided to constructor
+  uint32_t fps;
+  ardrone_video_type_t videoType;
+  // Read from frames PaVE
+  parrot_video_encapsulation_codecs_t videoCodec;
+  uint16_t width;
+  uint16_t height;
+  // Private datas
+  char infoFilePath [ARDRONE_VIDEO_PATH_MAX_SIZE]; // Keep this so we can delete the file
+  char outFilePath  [ARDRONE_VIDEO_PATH_MAX_SIZE]; // Keep this so we can rename the output file
+  char tempFilePath [ARDRONE_VIDEO_PATH_MAX_SIZE]; // Keep this so we can rename the output file
+  FILE *infoFile;
+  FILE *outFile;
+  uint32_t framesCount; // Number of frames
+  uint32_t mdatAtomOffset;
+  uint32_t framesDataOffset;
 
-    /* H.264 only values */
-    uint8_t *sps;
+  /* H.264 only values */
+  uint8_t *sps;
     uint8_t *pps;
-    uint16_t spsSize;
-    uint16_t ppsSize;
+  uint16_t spsSize;
+  uint16_t ppsSize;
 
-    /* Slices recording values */
-    uint32_t lastFrameNumber;
-    parrot_video_encapsulation_frametypes_t lastFrameType;
-    uint32_t currentFrameSize;
-
-    vp_os_mutex_t mutex;
+  /* Slices recording values */
+  uint32_t lastFrameNumber;
+  parrot_video_encapsulation_frametypes_t lastFrameType;
+  uint32_t currentFrameSize;
+  
+  vp_os_mutex_t mutex;
     time_t creationTime;
     uint32_t droneVersion;
 } ardrone_video_t;
@@ -187,6 +187,7 @@ void ardrone_video_set_gps_infos (double latitude, double longitude, double alti
 /**
  * Try fo fix an MP4 infovid file.
  * @param infoFilePath Full path to the .infovid file.
+ * @return TRUE on success, FALSE on failure
  */
 bool_t ardrone_video_try_fix (const char *infoFilePath);
 

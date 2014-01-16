@@ -28,10 +28,15 @@
 #include <Winsock2.h>
 #else
 #include <arpa/inet.h>
+#ifndef USE_ANDROID
 #include <ftw.h> // For file cleanup in subdirs
+#else
+#include <utils/AR_Ftw.h>
+#endif
 #endif
 
 #define ENCAPSULER_SMALL_STRING_SIZE (30)
+#define ENCAPSULER_INFODATA_MAX_SIZE (256)
 
 /* The structure is initialised to an invalid value
    so we won't set any position in videos unless we got a
@@ -141,6 +146,7 @@ ardrone_video_t *ardrone_video_start (const char *videoPath, int fps, ardrone_vi
         *error = ARDRONE_VIDEO_GENERIC_ERROR;
         vp_os_mutex_unlock(&retVideo->mutex);
         vp_os_free (retVideo);
+        retVideo = NULL;
         return NULL;
     }
 
@@ -160,6 +166,7 @@ ardrone_video_t *ardrone_video_start (const char *videoPath, int fps, ardrone_vi
         fclose (retVideo->infoFile);
         vp_os_mutex_unlock(&retVideo->mutex);
         vp_os_free (retVideo);
+        retVideo = NULL;
         return NULL;
     }
     retVideo->framesCount = 0;
@@ -270,8 +277,16 @@ ardrone_video_error_t ardrone_video_addFrame (ardrone_video_t *video, uint8_t *f
             if (NULL == video->sps || NULL == video->pps)
             {
                 ENCAPSULER_ERROR ("Unable to allocate SPS/PPS buffers");
-                if (NULL != video->sps) vp_os_free (video->sps);
-                if (NULL != video->pps) vp_os_free (video->pps);
+                if (NULL != video->sps)
+                {
+                    vp_os_free (video->sps);
+                    video->sps = NULL;
+                }
+                if (NULL != video->pps)
+                {
+                    vp_os_free (video->pps);
+                    video->pps = NULL;
+                }
                 vp_os_mutex_unlock(&video->mutex);
                 return ARDRONE_VIDEO_GENERIC_ERROR;
             }
@@ -290,6 +305,7 @@ ardrone_video_error_t ardrone_video_addFrame (ardrone_video_t *video, uint8_t *f
             if (NULL != freeAtomIfNeeded)
             {
                 vp_os_free (freeAtomIfNeeded);
+                freeAtomIfNeeded = NULL;
             }
             return ARDRONE_VIDEO_GENERIC_ERROR;
         }
@@ -300,6 +316,7 @@ ardrone_video_error_t ardrone_video_addFrame (ardrone_video_t *video, uint8_t *f
             if (NULL != freeAtomIfNeeded)
             {
                 vp_os_free (freeAtomIfNeeded);
+                freeAtomIfNeeded = NULL;
             }
             return ARDRONE_VIDEO_FILE_ERROR;
         }
@@ -356,7 +373,7 @@ ardrone_video_error_t ardrone_video_addFrame (ardrone_video_t *video, uint8_t *f
         }
     }
 
-// Normal operation : file pointer is at end of file
+    // Normal operation : file pointer is at end of file
     if (video->videoCodec != PaVE->video_codec ||
         video->width != PaVE->display_width ||
         video->height != PaVE->display_height)
@@ -386,7 +403,7 @@ ardrone_video_error_t ardrone_video_addFrame (ardrone_video_t *video, uint8_t *f
         return ARDRONE_VIDEO_GENERIC_ERROR;
     }
     vp_os_memcpy (myData, data, frameSize);
-// Modify frames before writing
+    // Modify frames before writing
     if (FRAME_TYPE_I_FRAME != PaVE->frame_type &&
         FRAME_TYPE_IDR_FRAME != PaVE->frame_type)
     {
@@ -418,6 +435,7 @@ ardrone_video_error_t ardrone_video_addFrame (ardrone_video_t *video, uint8_t *f
     if (frameSize != fwrite (myData, 1, frameSize, video->outFile))
     {
         vp_os_free (myData);
+        myData = NULL;
         ENCAPSULER_ERROR ("Unable to write frame into data file");
         vp_os_mutex_unlock(&video->mutex);
         return ARDRONE_VIDEO_FILE_ERROR;
@@ -427,15 +445,16 @@ ardrone_video_error_t ardrone_video_addFrame (ardrone_video_t *video, uint8_t *f
         ENCAPSULER_FFLUSH (video->outFile);
     }
     vp_os_free (myData);
+    myData = NULL;
 
-    char infoData [50] = {0};
+    char infoData [ENCAPSULER_INFODATA_MAX_SIZE] = {0};
     char fTypeChar = 'p';
     if (FRAME_TYPE_I_FRAME == PaVE->frame_type ||
         FRAME_TYPE_IDR_FRAME == PaVE->frame_type)
     {
         fTypeChar = 'i';
     }
-    snprintf (infoData, 50, ARDRONE_VIDEO_INFO_PATTERN, frameSize, fTypeChar);
+    snprintf (infoData, ENCAPSULER_INFODATA_MAX_SIZE, ARDRONE_VIDEO_INFO_PATTERN, frameSize, fTypeChar);
     uint32_t infoLen = strlen (infoData);
     if (infoLen != fwrite (infoData, 1, infoLen, video->infoFile))
     {
@@ -552,8 +571,17 @@ ardrone_video_error_t ardrone_video_addSlice (ardrone_video_t *video, uint8_t *s
             if (NULL == video->sps || NULL == video->pps)
             {
                 ENCAPSULER_ERROR ("Unable to allocate SPS/PPS buffers");
-                if (NULL != video->sps) vp_os_free (video->sps);
-                if (NULL != video->pps) vp_os_free (video->pps);
+                if (NULL != video->sps)
+                {
+                    vp_os_free (video->sps);
+                    video->sps = NULL;
+                }
+
+                if (NULL != video->pps)
+                {
+                    vp_os_free (video->pps);
+                    video->pps = NULL;
+                }
                 vp_os_mutex_unlock(&video->mutex);
                 return ARDRONE_VIDEO_GENERIC_ERROR;
             }
@@ -572,6 +600,7 @@ ardrone_video_error_t ardrone_video_addSlice (ardrone_video_t *video, uint8_t *s
             if (NULL != freeAtomIfNeeded)
             {
                 vp_os_free (freeAtomIfNeeded);
+                freeAtomIfNeeded = NULL;
             }
             return ARDRONE_VIDEO_GENERIC_ERROR;
         }
@@ -582,6 +611,7 @@ ardrone_video_error_t ardrone_video_addSlice (ardrone_video_t *video, uint8_t *s
             if (NULL != freeAtomIfNeeded)
             {
                 vp_os_free (freeAtomIfNeeded);
+                freeAtomIfNeeded = NULL;
             }
             return ARDRONE_VIDEO_FILE_ERROR;
         }
@@ -655,14 +685,14 @@ ardrone_video_error_t ardrone_video_addSlice (ardrone_video_t *video, uint8_t *s
     {
         if (FRAME_TYPE_UNKNNOWN != video->lastFrameType)
         {
-            char infoData [50] = {0};
+            char infoData [ENCAPSULER_INFODATA_MAX_SIZE] = {0};
             char fTypeChar = 'p';
             if (FRAME_TYPE_I_FRAME == video->lastFrameType ||
                 FRAME_TYPE_IDR_FRAME == video->lastFrameType)
             {
                 fTypeChar = 'i';
             }
-            snprintf (infoData, 50, ARDRONE_VIDEO_INFO_PATTERN, video->currentFrameSize, fTypeChar);
+            snprintf (infoData, ENCAPSULER_INFODATA_MAX_SIZE, ARDRONE_VIDEO_INFO_PATTERN, video->currentFrameSize, fTypeChar);
             uint32_t infoLen = strlen (infoData);
             if (infoLen != fwrite (infoData, 1, infoLen, video->infoFile))
             {
@@ -788,6 +818,7 @@ ardrone_video_error_t ardrone_video_finish (ardrone_video_t **video)
         if (0 == myVideo->width)
         {
             // Video was not initialized
+            ENCAPSULER_ERROR ("video was not initialized");
             localError =  ARDRONE_VIDEO_BAD_ARGS;
         } // No else
     }
@@ -799,14 +830,14 @@ ardrone_video_error_t ardrone_video_finish (ardrone_video_t **video)
         {
             if (FRAME_TYPE_UNKNNOWN != myVideo->lastFrameType)
             {
-                char infoData [50] = {0};
+                char infoData [ENCAPSULER_INFODATA_MAX_SIZE] = {0};
                 char fTypeChar = 'p';
                 if (FRAME_TYPE_I_FRAME == myVideo->lastFrameType ||
                     FRAME_TYPE_IDR_FRAME == myVideo->lastFrameType)
                 {
                     fTypeChar = 'i';
                 }
-                snprintf (infoData, 50, ARDRONE_VIDEO_INFO_PATTERN, myVideo->currentFrameSize, fTypeChar);
+                snprintf (infoData, ENCAPSULER_INFODATA_MAX_SIZE, ARDRONE_VIDEO_INFO_PATTERN, myVideo->currentFrameSize, fTypeChar);
 
                 uint32_t infoLen = strlen (infoData);
                 if (infoLen != fwrite (infoData, 1, infoLen, myVideo->infoFile))
@@ -847,10 +878,15 @@ ardrone_video_error_t ardrone_video_finish (ardrone_video_t **video)
         {
             ENCAPSULER_ERROR ("Unable to allocate buffers for video finish");
             vp_os_free (frameSizeBuffer);
+            frameSizeBuffer = NULL;
             vp_os_free (frameSizeBufferNE);
+            frameSizeBufferNE = NULL;
             vp_os_free (frameOffsetBuffer);
+            frameOffsetBuffer = NULL;
             vp_os_free (iFrameIndexBuffer);
+            iFrameIndexBuffer = NULL;
             vp_os_free (frameIsIFrame);
+            frameIsIFrame = NULL;
             vp_os_mutex_unlock(&myVideo->mutex);
             localError = ARDRONE_VIDEO_GENERIC_ERROR;
         }
@@ -877,7 +913,7 @@ ardrone_video_error_t ardrone_video_finish (ardrone_video_t **video)
         {
             fseek (myVideo->infoFile, descriptorSize, SEEK_CUR);
         }
-        while (! feof (myVideo->infoFile) && nbFrames <= myVideo->framesCount)
+        while (! feof (myVideo->infoFile) && nbFrames < myVideo->framesCount)
         {
             uint32_t fSize = -1;
             char fType = 'a';
@@ -901,12 +937,13 @@ ardrone_video_error_t ardrone_video_finish (ardrone_video_t **video)
         // create atoms
         // Generating Atoms
         tzset ();
+        struct tm *nowTm = localtime (&myVideo->creationTime);
         EMPTY_ATOM(moov);
-        movie_atom_t *mvhdAtom = mvhdAtomFromFpsNumFramesAndDate (myVideo->fps, nbFrames, myVideo->creationTime - timezone);
+        movie_atom_t *mvhdAtom = mvhdAtomFromFpsNumFramesAndDate (myVideo->fps, nbFrames, myVideo->creationTime - timezone + (3600 * nowTm->tm_isdst));
         EMPTY_ATOM(trak);
-        movie_atom_t *tkhdAtom = tkhdAtomWithResolutionNumFramesFpsAndDate (myVideo->width, myVideo->height, nbFrames, myVideo->fps, myVideo->creationTime - timezone);
+        movie_atom_t *tkhdAtom = tkhdAtomWithResolutionNumFramesFpsAndDate (myVideo->width, myVideo->height, nbFrames, myVideo->fps, myVideo->creationTime - timezone + (3600 * nowTm->tm_isdst));
         EMPTY_ATOM(mdia);
-        movie_atom_t *mdhdAtom = mdhdAtomFromFpsNumFramesAndDate (myVideo->fps, nbFrames, myVideo->creationTime - timezone);
+        movie_atom_t *mdhdAtom = mdhdAtomFromFpsNumFramesAndDate (myVideo->fps, nbFrames, myVideo->creationTime - timezone + (3600 * nowTm->tm_isdst));
         movie_atom_t *hdlrAtom = hdlrAtomForMdia ();
         EMPTY_ATOM(minf);
         movie_atom_t *vmhdAtom = vmhdAtomGen ();
@@ -925,6 +962,7 @@ ardrone_video_error_t ardrone_video_finish (ardrone_video_t **video)
         memcpy (&stssBuffer[8], iFrameIndexBuffer, nbIFrames * sizeof (uint32_t));
         movie_atom_t *stssAtom = atomFromData (stssDataLen, "stss", stssBuffer);
         vp_os_free (stssBuffer);
+        stssBuffer = NULL;
 
         movie_atom_t *stscAtom = stscAtomGen ();
 
@@ -936,6 +974,7 @@ ardrone_video_error_t ardrone_video_finish (ardrone_video_t **video)
         memcpy (&stszBuffer[12], frameSizeBufferNE, nbFrames * sizeof (uint32_t));
         movie_atom_t *stszAtom = atomFromData (stszDataLen, "stsz", stszBuffer);
         vp_os_free (stszBuffer);
+        stszBuffer = NULL;
 
         // Generate stco atom from frameOffsetBuffer and nbFrames
         uint32_t stcoDataLen = (8 + (nbFrames * sizeof (uint32_t)));
@@ -944,12 +983,12 @@ ardrone_video_error_t ardrone_video_finish (ardrone_video_t **video)
         memcpy (&stcoBuffer[8], frameOffsetBuffer, nbFrames * sizeof (uint32_t));
         movie_atom_t *stcoAtom = atomFromData (stcoDataLen, "stco", stcoBuffer);
         vp_os_free (stcoBuffer);
+        stcoBuffer = NULL;
 
         EMPTY_ATOM (udta);
         movie_atom_t *swrAtom = metadataAtomFromTagAndValue ("swr", "AR.Drone 2.0");
 
         char dateInfoString[ENCAPSULER_SMALL_STRING_SIZE] = {0};
-        struct tm *nowTm = localtime (&myVideo->creationTime);
         snprintf (dateInfoString, ENCAPSULER_SMALL_STRING_SIZE, "%04d-%02d-%02dT%02d:%02d:%02d%+03d%02d",
                   nowTm->tm_year + 1900,
                   nowTm->tm_mon + 1,
@@ -957,7 +996,7 @@ ardrone_video_error_t ardrone_video_finish (ardrone_video_t **video)
                   nowTm->tm_hour,
                   nowTm->tm_min,
                   nowTm->tm_sec,
-                  (int)(-timezone / 3600),
+                  (int)(-timezone / 3600) + nowTm->tm_isdst,
                   (int)((-timezone % 3600) / 60));
         movie_atom_t *dayAtom = metadataAtomFromTagAndValue ("day", dateInfoString);
 
@@ -965,10 +1004,17 @@ ardrone_video_error_t ardrone_video_finish (ardrone_video_t **video)
         int gpsIsValid = generateGpsString (gpsInfoString, ENCAPSULER_SMALL_STRING_SIZE);
         ENCAPSULER_DEBUG ("Valid : %d, Gps info string : %s\n", gpsIsValid, gpsInfoString);
         movie_atom_t *xyzAtom = NULL;
+
+        /**
+         * Android 4.0.3 and later don't support the (c)xyz atom in the videos
+         * We won't generate it for any android versions
+         */
+#ifndef USE_ANDROID
         if (1 == gpsIsValid)
         {
             xyzAtom = metadataAtomFromTagAndValue ("xyz", gpsInfoString);
         }
+#endif
 
         // Create atom tree
         insertAtomIntoAtom (udtaAtom, &swrAtom);
@@ -1043,6 +1089,7 @@ ardrone_video_error_t ardrone_video_finish (ardrone_video_t **video)
                 localError = ARDRONE_VIDEO_FILE_ERROR;
             }
             vp_os_free (mediaPath);
+            mediaPath = NULL;
         }
         else
         {
@@ -1084,21 +1131,32 @@ ardrone_video_error_t ardrone_video_finish (ardrone_video_t **video)
 
         vp_os_mutex_unlock(&myVideo->mutex);
         vp_os_free (myVideo);
+        myVideo = NULL;
         *video = NULL;
 
         vp_os_free (frameSizeBuffer);
+        frameSizeBuffer = NULL;
         vp_os_free (frameSizeBufferNE);
+        frameSizeBufferNE = NULL;
         vp_os_free (frameOffsetBuffer);
+        frameOffsetBuffer = NULL;
         vp_os_free (iFrameIndexBuffer);
+        iFrameIndexBuffer = NULL;
         vp_os_free (frameIsIFrame);
+        frameIsIFrame = NULL;
     }
     else
     {
         vp_os_free (frameSizeBuffer);
+        frameSizeBuffer = NULL;
         vp_os_free (frameSizeBufferNE);
+        frameSizeBufferNE = NULL;
         vp_os_free (frameOffsetBuffer);
+        frameOffsetBuffer = NULL;
         vp_os_free (iFrameIndexBuffer);
+        iFrameIndexBuffer = NULL;
         vp_os_free (frameIsIFrame);
+        frameIsIFrame = NULL;
         vp_os_mutex_unlock(&myVideo->mutex);
         ardrone_video_cleanup (video);
     }
@@ -1494,10 +1552,13 @@ bool_t ardrone_video_try_fix (const char *infoFilePath)
         {
             ENCAPSULER_DEBUG ("Freeing local copies");
             ENCAPSULER_CLEANUP (vp_os_free, video->sps);
+            video->sps = NULL;
             ENCAPSULER_CLEANUP (vp_os_free, video->pps);
+            video->pps = NULL;
             ENCAPSULER_CLEANUP (fclose, video->infoFile);
             ENCAPSULER_CLEANUP (fclose, video->outFile);
             ENCAPSULER_CLEANUP (vp_os_free ,video);
+            video = NULL;
         }
 
         if (NULL != infoFile)

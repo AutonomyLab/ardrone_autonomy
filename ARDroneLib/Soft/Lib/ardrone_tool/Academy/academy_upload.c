@@ -117,18 +117,9 @@ static void academy_upload_private_callback(academy_state_t state)
 
 		case ACADEMY_RESULT_OK:
 			strcat(msg, "OK");
-//			time_to_process += state.time_in_ms;
-	//		if(state.state == ACADEMY_STATE_DRONE_DISCONNECTION)
-//			{
-	//			sprintf(msg, "%s in %d ms\n", msg, time_to_process);
-	//			time_to_process = 0;
-	//		}
 			break;
 
 		case ACADEMY_RESULT_FAILED:
-	//		if(state.state == ACADEMY_STATE_DRONE_PREPARE_DOWNLOAD)
-	//			time_to_process = 0;
-
 			strcat(msg, "FAILED");
 			break;
 	}
@@ -231,7 +222,6 @@ DEFINE_THREAD_ROUTINE(academy_upload, data)
 						struct dirent *dirent = NULL;
 						DIR *dir = NULL;
 						academy_status = FTP_FAIL;
-
 						// Check if flight_* directory exist in local dir
 						if((dir = opendir(flight_dir)) != NULL)
 						{
@@ -350,7 +340,7 @@ DEFINE_THREAD_ROUTINE(academy_upload, data)
 						// Penser à supprimer le fichier local
 						academy_status = FTP_FAIL;
 						sprintf(local_dir, "%s/%s", flight_dir, dirname);
-						if(!ftw(local_dir, &academy_remove, 1))
+						if(!ftw(local_dir, &academy_remove, ACADEMY_MAX_FD_FOR_FTW))
 						{
 							rmdir(local_dir);
 							academy_status = FTP_SUCCESS;

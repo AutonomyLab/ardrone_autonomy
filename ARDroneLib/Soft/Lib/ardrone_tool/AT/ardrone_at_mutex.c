@@ -20,6 +20,7 @@
 #include <VP_Os/vp_os_print.h>
 #include <ardrone_tool/Com/config_com.h>
 #include <ardrone_tool/ardrone_tool.h>
+#include <ardrone_tool/ardrone_version.h>
 
 //Common
 #include <ardrone_api.h>
@@ -160,16 +161,27 @@ AT_CODEC_ERROR_CODE host_open( void )
       PRINT ("Error setting SND_BUF for AT socket\n");
     }
 
-    int opt = IPTOS_PREC_NETCONTROL;
-    int res = setsockopt((int)at_socket.priv, IPPROTO_IP, IP_TOS, &opt, (socklen_t)sizeof(opt));
-    if (res)
+/*
+ * On android, with IP_TOS set, certain devices can't connect to AR.Drone 1
+ * So we just disable this functionnality to avoid these cases.
+ */
+#ifdef USE_ANDROID
+    if (IS_ARDRONE2)
     {
-        perror("AT stage - setting Live video socket IP Type Of Service : "); 
+#endif
+        int opt = IPTOS_PREC_NETCONTROL;
+        int res = setsockopt((int)at_socket.priv, IPPROTO_IP, IP_TOS, &opt, (socklen_t)sizeof(opt));
+        if (res)
+        {
+            perror("AT stage - setting Live video socket IP Type Of Service : "); 
+        }
+        else
+        {
+            printf ("Set IP_TOS ok\n");
+        }
+#ifdef USE_ANDROID
     }
-    else
-    {
-        printf ("Set IP_TOS ok\n");
-    }
+#endif
 
     
 
@@ -306,6 +318,7 @@ void ardrone_at_set_flat_trim(void)
 {
   if (!at_init)
      return;
+
   vp_os_mutex_lock(&at_mutex);
 	ATcodec_Queue_Message_valist( ids.AT_MSG_ATCMD_FTRIM_EXE,
                                  ++nb_sequence );
