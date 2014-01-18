@@ -70,9 +70,13 @@ The installation follows the same steps needed usually to compile a ROS driver u
         $ git clone https://github.com/AutonomyLab/ardrone_autonomy.git -b catkin
         $ cd ~/catkin_ws
 	$ catkin_make
-        ```
+	```
+
+
+**NOTE (For advanced users):** TBA
+
 <!--
-**NOTE (For advanced users):** Instead of the `master` branch you can use the `dev-unstable` branch for the latest _unstable_ code which may contain bug fixes or new features. This is the branch that all developments happen on. Please use this branch to submit pull requests.
+Instead of the `master` branch you can use the `dev-unstable` branch for the latest _unstable_ code which may contain bug fixes or new features. This is the branch that all developments happen on. Please use this branch to submit pull requests.
 -->
 
 ## How to Run
