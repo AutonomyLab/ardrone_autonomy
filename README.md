@@ -40,6 +40,7 @@
 
 ## Updates
 
+- *January 17 2013*: ARDroneLib has been configured to be built as an external project. The ARDroneLib is replaced by the vanilla SDK's stripped tarball. ([More info](https://github.com/AutonomyLab/ardrone_autonomy/pull/80)) 
 - *October 22 2013*: Update to Parrot SDK 2.0.1 (Fixes crashes on 2.4.x firmwares, no support for flight recorder (yet). **Please check the FAQ section for instructions on how to re-compile the SDK**. (Tested on 2.3.3 and 2.4.x firmwares) 
 - *February 13 2013*: Support for USB key recording ([More info](https://github.com/AutonomyLab/ardrone_autonomy/pull/53)). Motor PWM added to legacy Navdata.
 - *January 9 2013*: ROS Groovy support. Support for zero-command without hovering ([More info](https://github.com/AutonomyLab/ardrone_autonomy/pull/34)). Full configurable Navdata support ([More info](https://github.com/AutonomyLab/ardrone_autonomy/pull/31)). Support for "Flight Animations". Support for Real-time navdata and video publishing ([More info](https://github.com/AutonomyLab/ardrone_autonomy/pull/44)). Support for configurable data publishing rate.
@@ -60,20 +61,19 @@ This driver has been tested on Linux machines running Ubuntu 11.10, 12.04 & 12.1
 
 ### Installation Steps
 
-The installation follows the same steps needed usually to compile a ROS driver.
+The installation follows the same steps needed usually to compile a ROS driver using [catkin](http://wiki.ros.org/catkin).
 
-* Get the code: Clone (or download and unpack) the driver to your personal ROS stacks folder (e.g. ~/ros/stacks) and `cd` to it. Please make sure that this folder is in your `ROS_PACKAGE_PATH` environmental variable.
+* Get the code: Clone (or download and unpack) the driver to the `src` folder of a new or existing catkin [workspace](http://wiki.ros.org/catkin/Tutorials/create_a_workspace) (e.g `~/catkin_ws/src`) and use `catkin_make` to compile.
 
         ```bash
-        $ cd ~/ros/stacks
-        $ git clone https://github.com/AutonomyLab/ardrone_autonomy.git
-        $ rosstack profile && rospack profile
-        $ roscd ardrone_autonomy
+        $ cd ~/catkin_ws/src
+        $ git clone https://github.com/AutonomyLab/ardrone_autonomy.git -b catkin
+        $ cd ~/catkin_ws
+	$ catkin_make
         ```
-
+<!--
 **NOTE (For advanced users):** Instead of the `master` branch you can use the `dev-unstable` branch for the latest _unstable_ code which may contain bug fixes or new features. This is the branch that all developments happen on. Please use this branch to submit pull requests.
- 
-* Compile the driver: You can easily compile the driver by using `rosmake ardrone_autonomy` command.
+-->
 
 ## How to Run
 
@@ -317,7 +317,8 @@ The Parrot's license, copyright and disclaimer for `ARDroneLib` are included wit
 - [Devmax](https://github.com/devmax) - [Flat Trim](https://github.com/AutonomyLab/ardrone_autonomy/issues/18) + Various
 comments for enhancements
 - [Rachel Brindle](https://github.com/younata) - [Enhanced Navdata for AR-Drone 2.0](https://github.com/AutonomyLab/ardrone_autonomy/pull/2)
-
+- [Kenneth Bogert](https://github.com/kbogert) - [Move ARDroneLIB to an external project](https://github.com/AutonomyLab/ardrone_autonomy/pull/80)
+ 
 ## FAQ
 
 ### Where should I go next? Is there any ROS package or stack that can be used as a tutorial/sample to use ardrone_autonomy?
