@@ -69,10 +69,8 @@ The installation follows the same steps needed usually to compile a ROS driver u
         $ cd ~/catkin_ws/src
         $ git clone https://github.com/AutonomyLab/ardrone_autonomy.git -b catkin
         $ cd ~/catkin_ws
-	$ catkin_make
-	```
-
-
+        $ catkin_make
+        ```
 **NOTE (For advanced users):** TBA
 
 <!--
