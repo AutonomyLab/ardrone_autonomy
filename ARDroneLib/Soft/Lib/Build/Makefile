@@ -77,6 +77,10 @@ GENERIC_LIBRARY_SOURCE_FILES+= \
   $(ARDRONE_TOOL_DIR)/Video/video_stage_decoder.c          \
   $(ARDRONE_TOOL_DIR)/Video/video_recorder_pipeline.c      \
   $(ARDRONE_TOOL_DIR)/Video/video_stage.c
+  ifeq ($(USE_ANDROID),yes)
+  GENERIC_LIBRARY_SOURCE_FILES+= \
+    $(UTILS_DIR)/AR_Ftw.c
+  endif
 endif
 
 ifneq ($(CONTROL_DLL),yes)
@@ -165,7 +169,7 @@ export GENERIC_BINARIES_SOURCE_ENTRYPOINTS=
 all $(MAKECMDGOALS):
 	@if [ '$(MAKECMDGOALS)' != 'clean' ]; then echo "$(OK_COLOR)Building ARDroneTool/Lib$(NO_COLOR)"; fi
 	@$(MAKE) -C ../../../VP_SDK/Build $(TMP_SDK_FLAGS) $(SDK_FLAGS) $(MAKECMDGOALS)
-	
+
 makefileverbose:
 	@echo "Dump compilation flags:"
 	@echo "GENERIC_CFLAGS : $(GENERIC_CFLAGS)"

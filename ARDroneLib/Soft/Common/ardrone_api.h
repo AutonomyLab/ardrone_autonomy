@@ -359,22 +359,6 @@ typedef enum
   FLYING_MODE_HOVER_ON_TOP_OF_ORIENTED_ROUNDEL = 1 << 1, /**< Commands are disabled, drones hovers on top of an oriented roundel - oriented roundel detection MUST be activated by the user with 'detect_type' configuration. */
 } FLYING_MODE;
 
-/*
- * @enum TRAVELLING_MODE
- * @brief Values for the CONTROL:travelling_mode configuration.
- */
-typedef enum
-{
-  TRAVELLING_MODE_TRANSLATION = 0,  	/**< Travelling translation mode	*/
-  TRAVELLING_MODE_CIRCULAR,				/**< Travelling circular mode 		*/
-  TRAVELLING_MODE_SWING, /**/
-  TRAVELLING_MODE_WHEEL_FRONT, /**/
-  TRAVELLING_MODE_WHEEL_SIDE, /**/
-  TRAVELLING_MODE_GUSH,  /**/
-  TRAVELLING_MODE_PLANAR_WHEEL,/**/
-  TRAVELLING_MODE_NUM,
-} TRAVELLING_MODE;
-
 /**
  * @enum WIFI_MODE
  * @brief Values for the NETWORK:wifi_mode configuration, who set the wifi mode when drone start

@@ -235,7 +235,7 @@ C_RESULT uvlc_unpack_controller( video_controller_t* controller )
       {
         // new picture
         uvlc_read_picture_layer( controller, stream );
-        controller->last_frame_decoded = TRUE;
+            controller->last_frame_decoded = TRUE;
             
         picture_layer->gobs = (uvlc_gob_layer_t*) controller->gobs;
         gob = &picture_layer->gobs[controller->blockline];

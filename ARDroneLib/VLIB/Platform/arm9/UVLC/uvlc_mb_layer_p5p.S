@@ -2,13 +2,6 @@
 
 #ifdef HAS_UVLC_WRITE_BLOCK
 
-#ifdef _ECOS
-#include "config-tcm.h"
-
-        .section ".text.itcm","ax"
-#endif // ! _ECOS
-
-
         .global uvlc_write_block
         .type   uvlc_write_block, %function
 

@@ -94,9 +94,16 @@ void p264_codec_free( video_controller_t* controller )
   if( p264_codec != NULL )
   {
     if (p264_codec->ref_picture.y_buf != NULL)
+    {
       vp_os_free(p264_codec->ref_picture.y_buf);
+      p264_codec->ref_picture.y_buf = NULL;
+    }
     if (p264_codec->decoded_picture.y_buf != NULL)
+    {
       vp_os_free(p264_codec->decoded_picture.y_buf);
+      p264_codec->decoded_picture.y_buf = NULL;
+    }
+
     vp_os_free( p264_codec );
     controller->video_codec = NULL;
   }
@@ -300,17 +307,17 @@ C_RESULT p264_unpack_controller( video_controller_t* controller )
         // new picture
         p264_read_picture_layer( controller, stream );
 
-        if (((controller->num_frames == (last_frame_decoded + 1)) && (controller->last_frame_decoded == TRUE))
-            || (controller->picture_type == VIDEO_PICTURE_INTRA))
-        {
-            // new picture is decodable because it's an I frame or previous frame was decodable
-            controller->last_frame_decoded = TRUE;
+            if (((controller->num_frames == (last_frame_decoded + 1)) && (controller->last_frame_decoded == TRUE))
+                || (controller->picture_type == VIDEO_PICTURE_INTRA))
+            {
+                // new picture is decodable because it's an I frame or previous frame was decodable
+                controller->last_frame_decoded = TRUE;
+            }
+            else
+            {
+                controller->last_frame_decoded = FALSE;
         }
-        else
-        {
-            controller->last_frame_decoded = FALSE;
-        }
-
+          
         p264_realloc_ref(controller);
         picture_layer->gobs = (p264_gob_layer_t*) controller->gobs;
         gob = &picture_layer->gobs[controller->blockline];

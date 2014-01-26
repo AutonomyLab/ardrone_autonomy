@@ -404,7 +404,10 @@ C_RESULT video_stage_tcp_transform(video_stage_tcp_config_t *cfg, vp_api_io_data
 C_RESULT video_stage_tcp_close(video_stage_tcp_config_t *cfg)
 {
   vp_os_free (cfg->bufferPointer);
+  cfg->bufferPointer = NULL;
   vp_os_free (cfg->globalBuffer);
+  cfg->globalBuffer = NULL;
   vp_os_free (cfg->frameBuffer);
+  cfg->frameBuffer = NULL;
   return C_OK;
 }

@@ -226,9 +226,15 @@ static void ardrone_tool_configuration_event_configure_end(struct _ardrone_contr
 				}
 
 			if (NULL!=ardrone_tool_configuration_data[ardrone_tool_configuration_current_index].value)
+			{
                 vp_os_free(ardrone_tool_configuration_data[ardrone_tool_configuration_current_index].value);
+                ardrone_tool_configuration_data[ardrone_tool_configuration_current_index].value = NULL;
+			}
 			if (NULL!=ardrone_tool_configuration_data[ardrone_tool_configuration_current_index].event)
+			{
                 vp_os_free(ardrone_tool_configuration_data[ardrone_tool_configuration_current_index].event);
+                ardrone_tool_configuration_data[ardrone_tool_configuration_current_index].event = NULL;
+			}
 			ardrone_tool_configuration_data[ardrone_tool_configuration_current_index].event = NULL;
 			ardrone_tool_configuration_data[ardrone_tool_configuration_current_index].value = NULL;
 			ardrone_tool_configuration_current_index = (ardrone_tool_configuration_current_index + 1) % ARDRONE_TOOL_CONFIGURATION_MAX_EVENT;
@@ -269,7 +275,9 @@ static void ardrone_tool_configuration_event_configure(void)
 			ardrone_control_ack_event_t *event = NULL;
 
 			if (ardrone_tool_configuration_data[ardrone_tool_configuration_current_index].callback)
+			{
 			ardrone_tool_configuration_data[ardrone_tool_configuration_current_index].callback(ardrone_tool_configuration_data[ardrone_tool_configuration_current_index].value, ses_id, usr_id, app_id);
+			}
 
 			if(ardrone_tool_configuration_data[ardrone_tool_configuration_current_index].event == NULL)
 				ardrone_tool_configuration_data[ardrone_tool_configuration_current_index].event = vp_os_malloc(sizeof(ardrone_control_ack_event_t));

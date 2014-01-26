@@ -795,7 +795,9 @@ C_RESULT ittiam_stage_decoding_close(ittiam_stage_decoding_config_t *cfg) {
         }
 
         vp_os_free(h264_mem_rec);
+        h264_mem_rec = NULL;
         vp_os_free(h264_ps_it_mem);
+        h264_ps_it_mem = NULL;
 
     } else if (current_PaVE.video_codec == CODEC_MPEG4_VISUAL) {
         //MPEG4
@@ -820,7 +822,9 @@ C_RESULT ittiam_stage_decoding_close(ittiam_stage_decoding_config_t *cfg) {
         }
 
         vp_os_free(mpeg4_mem_rec);
+        mpeg4_mem_rec = NULL;
         vp_os_free(mpeg4_ps_it_mem);
+        mpeg4_ps_it_mem = NULL;
     }
     old_num_frame = cfg->num_picture_decoded;
     ITTIAM_DEBUG_PRINT("ITTIAM CLEAN");

@@ -28,9 +28,9 @@ typedef int socklen_t;
 #define PDBG(...)                                               \
   do                                                            \
     {                                                           \
-      printf ("V_COM_STAGE: %s:%d : ", __FUNCTION__, __LINE__); \
-      printf (__VA_ARGS__);                                     \
-      printf ("\n");                                            \
+      PRINT ("V_COM_STAGE: %s:%d : ", __FUNCTION__, __LINE__); \
+      PRINT (__VA_ARGS__);                                     \
+      PRINT ("\n");                                            \
     } while (0)
 #else
 #define PDBG(...)
@@ -116,20 +116,20 @@ C_RESULT video_com_stage_connect (video_com_config_t *cfg)
 
   if( cfg->protocol == VP_COM_PROBE)
     {
-      printf("\n\nPROBING\n");
+      PRINT("\n\nPROBING\n");
 
       cfg->socket.protocol = VP_COM_TCP;
       res = vp_com_open(cfg->com, &cfg->socket, &cfg->read, &cfg->write);
 
       if( VP_SUCCEEDED(res) )
         {
-          printf("\n\nTCP\n");
+          PRINT("\n\nTCP\n");
           vp_com_close (cfg->com, &cfg->socket);
           cfg->protocol = VP_COM_TCP;
         }
       else
         {
-          printf("\n\nUDP\n");
+          PRINT("\n\nUDP\n");
           cfg->protocol = VP_COM_UDP;
         }
     }
@@ -230,11 +230,11 @@ C_RESULT video_com_multisocket_stage_open(video_com_multisocket_config_t *cfg)
       cfg->configs[i]->mustReconnect = 0;
     }
 
-  printf("Video multisocket : init %i sockets\n",cfg->nb_sockets);
+  PRINT("Video multisocket : init %i sockets\n",cfg->nb_sockets);
 
   for(i=0;i<cfg->nb_sockets;i++)
     {
-      printf("Video multisocket : connecting socket %d on port %d %s\n",
+      PRINT("Video multisocket : connecting socket %d on port %d %s\n",
              i,
              cfg->configs[i]->socket.port,
              (cfg->configs[i]->protocol==VP_COM_TCP)?"TCP":"UDP");
@@ -242,7 +242,7 @@ C_RESULT video_com_multisocket_stage_open(video_com_multisocket_config_t *cfg)
       cfg->configs[i]->connected = FALSE;
       res = video_com_stage_connect(cfg->configs[i]);
       if (!VP_SUCCEEDED(res)) {
-        printf(" - Connection failed\n");
+        PRINT(" - Connection failed\n");
         nb_failed_connections++;
 
       }
@@ -266,9 +266,9 @@ C_RESULT video_com_stage_transform(video_com_config_t *cfg, vp_api_io_data_t *in
   if (1 == cfg->mustReconnect)
     {
       PDBG ("Will call connect");
-      printf ("Reconnecting ... ");
+      PRINT ("Reconnecting ... ");
       res = video_com_stage_connect (cfg);
-      printf ("%s\n", (VP_FAILED (res) ? "FAIL" : "OK"));
+      PRINT ("%s\n", (VP_FAILED (res) ? "FAIL" : "OK"));
       cfg->mustReconnect = 0;
     }
 
@@ -313,10 +313,10 @@ C_RESULT video_com_stage_transform(video_com_config_t *cfg, vp_api_io_data_t *in
 	  PDBG ("%s [%d] : status set to error !\n", __FUNCTION__, __LINE__);
 	  perror ("Video_com_stage");
 	  cfg->mustReconnect = 1;
-	  out->size = 0;
+          out->size = 0;
 	  vp_os_mutex_unlock (&out->lock);      
 	  return C_OK;
-	}
+        }
 
       if( out->size == 0)
         {
@@ -377,7 +377,7 @@ C_RESULT video_com_stage_transform(video_com_config_t *cfg, vp_api_io_data_t *in
 
 C_RESULT video_com_multisocket_stage_transform(video_com_multisocket_config_t *cfg, vp_api_io_data_t *in, vp_api_io_data_t *out)
 {
-  C_RESULT res,res2;
+  C_RESULT res;
   fd_set rfds;
   int retval;
   int fs,maxfs;
@@ -394,10 +394,10 @@ C_RESULT video_com_multisocket_stage_transform(video_com_multisocket_config_t *c
     if (1 == cfg->configs[i]->mustReconnect)
       {
         PDBG ("Will call connect");
-        printf ("Reconnecting ... ");
+        PRINT ("Reconnecting ... ");
         res = C_FAIL;
         res = video_com_stage_connect (cfg->configs[i]);
-        printf ("%s\n", (VP_FAILED (res) ? "FAIL" : "OK"));
+        PRINT ("%s\n", (VP_FAILED (res) ? "FAIL" : "OK"));
         cfg->configs[i]->mustReconnect = 0;
     }
   }
@@ -480,20 +480,20 @@ C_RESULT video_com_multisocket_stage_transform(video_com_multisocket_config_t *c
                 
                 if(i == cfg->nb_sockets)
                 {
-                    printf("%s:%d BUG !!!!!", __FUNCTION__, __LINE__);
+                    PRINT("%s:%d BUG !!!!!", __FUNCTION__, __LINE__);
                     selectTimeout = TRUE;
                 }
             }
         }
       else
         {
-          DEBUG_PRINT_SDK("%s\n",(retval==0) ? "timeout" : "error");
+          DEBUG_PRINT_SDK("%s\n",(retval==0)?"timeout":"error");
           selectTimeout = TRUE;
         }
 
       if (FALSE == selectTimeout)
         {
-          DEBUG_PRINT_SDK ("Will read on socket %d\n", i);
+       //   DEBUG_PRINT_SDK ("Will read on socket %d\n", i);
           // Actual first time read
           res = cfg->configs[i]->read(&cfg->configs[i]->socket, out->buffers[0], &out->size);
           if (VP_FAILED (res))
@@ -504,7 +504,7 @@ C_RESULT video_com_multisocket_stage_transform(video_com_multisocket_config_t *c
               out->size = 0;
 	      vp_os_mutex_unlock (&out->lock);
 	      return C_OK;
-	    }
+            }
       
           // Loop read to empty the socket buffers if needed
           cfg->configs[i]->socket.block = VP_COM_DONTWAIT;
@@ -512,14 +512,14 @@ C_RESULT video_com_multisocket_stage_transform(video_com_multisocket_config_t *c
           int32_t readSize = cfg->configs[i]->buffer_size - out->size;
           while (TRUE == bContinue)
             {
-              DEBUG_PRINT_SDK ("Will read %d octets from socket %d\n", readSize, i);
+         //     DEBUG_PRINT_SDK ("Will read %d octets from socket %d\n", readSize, i);
               res = cfg->configs[i]->read(&cfg->configs[i]->socket, &(out->buffers[0][out->size]), &readSize);
               if (VP_FAILED (res))
                 {
 		  PDBG ("%s [%d] : status set to error !\n", __FUNCTION__, __LINE__);
 		  perror ("Video_com_stage");
 		  cfg->configs[i]->mustReconnect = 1;
-		  out->size = 0;
+                  out->size = 0;
 		  vp_os_mutex_unlock (&out->lock);
 		  return C_OK;
                 }
@@ -551,7 +551,7 @@ C_RESULT video_com_multisocket_stage_transform(video_com_multisocket_config_t *c
                   DEBUG_PRINT_SDK("Video multisocket : sending connection byte on port %s %d\n",
                                   (cfg->configs[i]->socket.protocol==VP_COM_TCP)?"TCP":"UDP",cfg->configs[i]->socket.port);
 
-                  res2 = cfg->configs[i]->write(&cfg->configs[i]->socket, (uint8_t*) &flag, &len);
+                  cfg->configs[i]->write(&cfg->configs[i]->socket, (uint8_t*) &flag, &len);
                 }
             }
         }
@@ -566,7 +566,7 @@ C_RESULT video_com_multisocket_stage_transform(video_com_multisocket_config_t *c
 
       if((selectTimeout == TRUE) && cfg->forceNonBlocking && *(cfg->forceNonBlocking)==TRUE)
       {
-    	  	 //printf("Debug %s:%d\n",__FUNCTION__,__LINE__);
+    	  	 //PRINT("Debug %s:%d\n",__FUNCTION__,__LINE__);
 
     	  	 /* No data are available here, but some are available in the next stage */
     	     /* out->size=0 would restart the pipeline */

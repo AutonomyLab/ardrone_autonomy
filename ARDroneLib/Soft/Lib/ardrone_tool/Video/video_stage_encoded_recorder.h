@@ -18,7 +18,7 @@ typedef enum
 } video_encoded_record_state;
 #endif
 
-typedef void (*video_stage_encoded_recorder_callback)(const char *mediaPath);
+typedef void (*video_stage_encoded_recorder_callback)(const char *mediaPath, bool_t addToQueue);
 
 typedef struct _video_stage_encoded_recorder_config_t
 {

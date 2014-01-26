@@ -146,7 +146,7 @@ C_RESULT matrix3d_orientation(matrix3d_t* m, const vector31_t* pos, const vector
   return C_OK;
 }
 
-#define MATRIX_EXCHANGE( out, in ) temp = out; out = in; in = out
+#define MATRIX_EXCHANGE( out, in ) temp = out; out = in; in = temp
 
 C_RESULT matrix3d_transpose(matrix3d_t* out, matrix3d_t* in)
 {

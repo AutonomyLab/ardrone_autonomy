@@ -197,14 +197,21 @@ DEFINE_THREAD_ROUTINE(video_stage, data) {
             }
             
             vp_os_free(params->pre_processing_stages_list->stages_list);
+            params->pre_processing_stages_list->stages_list = NULL;
             vp_os_free(params->post_processing_stages_list->stages_list);
+            params->post_processing_stages_list->stages_list = NULL;
             vp_os_free(params->pre_processing_stages_list);
+            params->pre_processing_stages_list = NULL;
             vp_os_free(params->post_processing_stages_list);
+            params->post_processing_stages_list = NULL;
             
             vp_os_free(params->in_pic);
+            params->in_pic = NULL;
             vp_os_free(params->out_pic);
+            params->out_pic = NULL;
             
             vp_os_free(params);
+            params = NULL;
             
             vp_api_close(&pipeline, &video_pipeline_handle);
         }

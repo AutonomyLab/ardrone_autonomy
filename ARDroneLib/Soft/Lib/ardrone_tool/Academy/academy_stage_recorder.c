@@ -20,6 +20,10 @@
 extern char flight_dir[];
 #endif
 
+#define ACADEMY_MEDIA_DIRPATH_FORMAT 		"%s/media_%s"
+#define ACADEMY_MEDIA_VIDEO_FILEPATH_FORMAT "%s/video_%s.%s"
+#define ACADEMY_MEDIA_DIR_ACCESS_RIGHT 		0777
+
 static void ardrone_academy_stage_recorder_internal_close(ardrone_academy_stage_recorder_config_t *cfg);
 
 ardrone_academy_stage_recorder_config_t ardrone_academy_stage_recorder_config;
@@ -53,14 +57,15 @@ ardrone_academy_stage_recorder_handle (ardrone_academy_stage_recorder_config_t *
                 char media_dirname[ACADEMY_MAX_FILENAME];
                 struct stat statbuf;
 
-                sprintf(media_dirname, "%s/media_%s", ACADEMY_FILE_DEFAULT_PATH, date);
-				if((stat(media_dirname, &statbuf) != 0) && (mkdir(media_dirname, 0777) >= 0))
+                sprintf(media_dirname, ACADEMY_MEDIA_DIRPATH_FORMAT, ACADEMY_FILE_DEFAULT_PATH, date);
+				if((stat(media_dirname, &statbuf) != 0) && (mkdir(media_dirname, ACADEMY_MEDIA_DIR_ACCESS_RIGHT) >= 0))
 					PA_DEBUG("Create local media directory %s if not exist\n", media_dirname);
+				// NO ELSE, the local directory already exists
 
 				t = time(NULL);
 				ardrone_time2date(t, ARDRONE_FILE_DATE_FORMAT, date);
 
-				sprintf(cfg->video_filename, "%s/video_%s.%s",
+				sprintf(cfg->video_filename, ACADEMY_MEDIA_VIDEO_FILEPATH_FORMAT,
 						media_dirname,
 						date,
 						ACADEMY_RECORD_FILE_EXTENSION);
@@ -81,6 +86,7 @@ ardrone_academy_stage_recorder_handle (ardrone_academy_stage_recorder_config_t *
 					printf ("Can't open file %s\n", video_filename);
 				}
             }
+	    // NO ELSE - The record is already started or is starting 
 			break;
   
 		case PIPELINE_MSG_STOP:
@@ -89,14 +95,16 @@ ardrone_academy_stage_recorder_handle (ardrone_academy_stage_recorder_config_t *
 				cfg->startRec = ACADEMY_RECORD_STOP;
                 printf("Stop recording %s\n", cfg->video_filename);
                 ardrone_academy_stage_recorder_internal_close(cfg);
+					result = C_OK;
             }
+			// NO ELSE - Record is already stopped.			
 			break;
 
 		default:
 			break;
 	}
 
-	return (VP_SUCCESS);
+	return (result);
 }
 
 void ardrone_academy_stage_recorder_enable(bool_t enable, uint32_t timestamp)
@@ -136,7 +144,7 @@ C_RESULT ardrone_academy_stage_recorder_transform(ardrone_academy_stage_recorder
 		out->indexBuffer  = 0;
 		out->lineSize     = NULL;
 	}
-
+	// NO ELSE - We need to initialize the number of buffers and the index of buffer in first.
 	out->size     = in->size;
 	out->status   = in->status;
 	out->buffers  = in->buffers;
@@ -159,6 +167,11 @@ C_RESULT ardrone_academy_stage_recorder_transform(ardrone_academy_stage_recorder
         fwrite(&in->size, 1, sizeof(int32_t), cfg->fp);
         fwrite(in->buffers[in->indexBuffer], 1, in->size, cfg->fp);
     }
+	// NO ELSE because :
+        // If the descriptor file is NULL, we can't to write data.
+	// If data size to write is 0, we don't have data to write.
+	// If the status is not processing, it means the record is stopping.
+	// If startRec is not start, it means the record is stopping or is starting.
 
 	vp_os_mutex_unlock( &out->lock );
 #endif
@@ -171,5 +184,8 @@ C_RESULT ardrone_academy_stage_recorder_close(ardrone_academy_stage_recorder_con
   {
       ardrone_academy_stage_recorder_internal_close(cfg);
   }
+  // NO ELSE because :
+  // If the descriptor file is NULL, we can't to write data.
+  
   return C_OK;
 }

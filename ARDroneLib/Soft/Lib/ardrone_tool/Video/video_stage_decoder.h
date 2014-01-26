@@ -11,18 +11,17 @@
 #ifndef __VIDEO_STAGE_DECODER_H__
 #define __VIDEO_STAGE_DECODER_H__
 
-#ifndef TARGET_OS_ANDROID
-# ifdef ITTIAM_SUPPORT
-#  define mp4h264_config_t ittiam_stage_decoding_config_t
-#  include <ardrone_tool/Video/video_stage_ittiam_decoder.h>
-# else // FFMPEG
-#  define mp4h264_config_t ffmpeg_stage_decoding_config_t
-# endif
-#else
+#ifdef FFMPEG_SUPPORT
 # define mp4h264_config_t ffmpeg_stage_decoding_config_t
-# include <ardrone_tool/Video/video_stage_ittiam_decoder.h>
+#elif defined (ITTIAM_SUPPORT)
+# define mp4h264_config_t ittiam_stage_decoding_config_t
+#else
+# error Either FFMPEG_SUPPORT or ITTIAM_SUPPORT must be defined
 #endif
 
+#ifdef ITTIAM_SUPPORT
+# include <ardrone_tool/Video/video_stage_ittiam_decoder.h>
+#endif
 
 #ifdef FFMPEG_SUPPORT
 # include <ardrone_tool/Video/video_stage_ffmpeg_decoder.h>

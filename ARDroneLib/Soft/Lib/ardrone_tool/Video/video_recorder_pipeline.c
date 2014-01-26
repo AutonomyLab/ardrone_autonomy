@@ -61,7 +61,7 @@ DEFINE_THREAD_ROUTINE(video_recorder, data)
   vp_api_io_stage_t stages[3];
   PIPELINE_HANDLE video_recorder_pipeline_handle;
   video_recorder_thread_param_t *video_recorder_thread_param = (video_recorder_thread_param_t *)data;
-    
+
   video_stage_tcp_config_t tcpConf;
     
   if(video_recorder_thread_param != NULL)

@@ -35,11 +35,11 @@ static inline int versionSupportsMulticonfiguration (const char *currentString)
 #define _GENERAL_NAVDATA_DEBUG_PREFIX "General Navdata : "
 #if _GENERAL_NAVDATA_DEBUG || defined (DEBUG)
 #define PRINTDBG(...)                                                   \
-  do                                                                    \
+    do                                                                  \
     {                                                                   \
-      printf ("[%d] %s", __LINE__, _GENERAL_NAVDATA_DEBUG_PREFIX);      \
-      printf (__VA_ARGS__);                                             \
-      printf ("\n");                                                    \
+        printf ("[%d] %s", __LINE__, _GENERAL_NAVDATA_DEBUG_PREFIX);    \
+        printf (__VA_ARGS__);                                           \
+        printf ("\n");                                                  \
     } while (0)
 #else
 #define PRINTDBG(...)
@@ -50,7 +50,7 @@ static void sendInitConfigurations(void)
 }
 
 static void switchToSession(void)
-{	
+{
   ARDRONE_TOOL_CONFIGURATION_ADDEVENT (session_id, ses_id, NULL);
 }
 
@@ -142,7 +142,7 @@ C_RESULT ardrone_general_navdata_process( const navdata_unpacked_t* const pnd )
   navdata_mode_t current_navdata_state = NAVDATA_BOOTSTRAP;
   
   /* Makes sure the navdata stream will be resumed if the drone is disconnected and reconnected.
-   * Allows changing the drone battery during debugging sessions.	 */
+     * Allows changing the drone battery during debugging sessions.    */
   if( ardrone_get_mask_from_state(pnd->ardrone_state, ARDRONE_NAVDATA_BOOTSTRAP) )
     {
       current_navdata_state = NAVDATA_BOOTSTRAP;
@@ -154,7 +154,16 @@ C_RESULT ardrone_general_navdata_process( const navdata_unpacked_t* const pnd )
 
   if (current_navdata_state == NAVDATA_BOOTSTRAP && configState == MULTICONFIG_IDLE && navdataState == NAVDATA_REQUEST_IDLE)
     {
-      navdataState = NAVDATA_REQUEST_NEEDED; 
+        if ((0 != strncmp(ardrone_control_config.application_id, app_id, APPLI_NAME_SIZE)) ||
+            (0 != strncmp(ardrone_control_config.profile_id, usr_id, USER_NAME_SIZE)) ||
+            (0 != strncmp(ardrone_control_config.session_id, ses_id, SESSION_NAME_SIZE)))
+        {
+            configState = MULTICONFIG_NEEDED;
+        }
+        else
+        {
+            navdataState = NAVDATA_REQUEST_NEEDED;
+        }
     }
 	
   /* Multiconfig settings */
@@ -318,14 +327,14 @@ C_RESULT ardrone_general_navdata_process( const navdata_unpacked_t* const pnd )
       navdataState = NAVDATA_REQUEST_IN_PROGRESS;
       switchToSession(); // Resend session id when reconnecting.
       sendInitConfigurations();
-      ARDRONE_TOOL_CONFIGURATION_ADDEVENT(navdata_demo, &ardrone_application_default_config.navdata_demo, NULL);
+        ARDRONE_TOOL_CONFIGURATION_ADDEVENT (navdata_demo, &ardrone_application_default_config.navdata_demo, NULL);
       ARDRONE_TOOL_CONFIGURATION_ADDEVENT (navdata_options, &ardrone_application_default_config.navdata_options, navdataCallback);
       break;
     case NAVDATA_REQUEST_DONE:
       // Refresh configuration file
       PRINTDBG ("Refreshing from NAVDATA FSM");
       navdataState = NAVDATA_REQUEST_IDLE;
-      ARDRONE_TOOL_CONFIGURATION_GET (NULL);      
+        ARDRONE_TOOL_CONFIGURATION_GET (NULL);
       break;
     case NAVDATA_REQUEST_IN_PROGRESS:
     case NAVDATA_REQUEST_IDLE:
@@ -421,6 +430,7 @@ ardrone_users_t *ardrone_get_user_list(void)
           if (NULL == retVal->userList)
             {
               vp_os_free (retVal);
+              retVal = NULL;
               return NULL;
             }
           strncpy (retVal->userList[validUserCount-1].ident, available_configurations[CAT_USER].list[configIndex].id, MULTICONFIG_ID_SIZE);
@@ -438,6 +448,7 @@ void ardrone_free_user_list (ardrone_users_t **users)
       if (NULL != (*users)->userList)
         {
           vp_os_free ((*users)->userList);
+          (*users)->userList = NULL;
         }
       vp_os_free (*users);
       *users = NULL;

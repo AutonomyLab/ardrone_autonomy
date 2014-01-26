@@ -86,9 +86,11 @@ vp_os_cond_timed_wait(vp_os_cond_t *cond, uint32_t ms)
   gettimeofday(&tv, NULL);
   TIMEVAL_TO_TIMESPEC(&tv, &ts);
   ts.tv_sec += ms/1000;
-  ts.tv_nsec += (ms%1000)*1000;
+  ts.tv_nsec += (ms%1000)*1000000;
+  if (ts.tv_nsec>1000000000) { ts.tv_sec++, ts.tv_nsec-=1000000000; }
   return ( pthread_cond_timedwait(&cond->cond, (pthread_mutex_t *)cond->mutex, &ts) == ETIMEDOUT ? FAIL : SUCCESS );
 }
+
 
 
 void

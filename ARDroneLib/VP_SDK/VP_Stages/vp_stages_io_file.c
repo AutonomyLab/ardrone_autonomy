@@ -96,7 +96,7 @@ vp_stages_input_file_stage_open(vp_stages_input_file_config_t *cfg)
     cfg->buffers = vp_os_malloc(sizeof(*cfg->buffers)*cfg->nb_buffers);
     if (cfg->buffers==NULL)
     {
-      printf("%s:%d - Failed preloading %s : not enough memory for buffer pointers(required %d pointers)\n",
+      PRINT("%s:%d - Failed preloading %s : not enough memory for buffer pointers(required %d pointers)\n",
           __FUNCTION__,__LINE__,
           cfg->name,cfg->nb_buffers/(1024*1024));
     }
@@ -113,7 +113,7 @@ vp_stages_input_file_stage_open(vp_stages_input_file_config_t *cfg)
 #endif
     if (cfg->data==NULL)
     {
-      printf("Failed preloading %s : not enough memory (required %d MB)\n",
+      PRINT("Failed preloading %s : not enough memory (required %d MB)\n",
           cfg->name,cfg->buffer_size*cfg->nb_buffers/(1024*1024));
     }
 
@@ -124,10 +124,12 @@ vp_stages_input_file_stage_open(vp_stages_input_file_config_t *cfg)
 
   if (cfg->data && cfg->preload!=0)
   {
-    printf("Preloading file %s to memory ...\n",cfg->name);
+    PRINT("Preloading file %s to memory ...\n",cfg->name);
     for (i=0;i<cfg->nb_buffers;i++)
     {
-      printf("."); fflush(stdout);
+#ifndef USE_ELINUX
+    PRINT("."); fflush(stdout);
+#endif
       res = fread(cfg->buffers[i], cfg->buffer_size , 1 , cfg->f);
       if (res<1)
       {
@@ -135,14 +137,14 @@ vp_stages_input_file_stage_open(vp_stages_input_file_config_t *cfg)
         cfg->nb_buffers=i;  /* Store the number of successfully read frames */
       }
     }
-    printf("ok.\n");
+    PRINT("ok.\n");
     fclose(cfg->f);
     cfg->f=NULL;
   }
 
   cfg->current_buffer=0;
 
-  printf("Using %s input file %s\n  resolution %dx%d\n  total size : %d MB\n",
+  PRINT("Using %s input file %s\n  resolution %dx%d\n  total size : %d MB\n",
           (PIX_FMT_YUV420P==cfg->vp_api_picture.format)?"420P":"422",
           cfg->name,
           cfg->width,cfg->height,filesize/(1024*1024));
@@ -156,7 +158,7 @@ vp_stages_input_file_stage_transform(vp_stages_input_file_config_t *cfg, vp_api_
   vp_os_mutex_lock(&out->lock);
 
 #ifdef VERBOSE
-  printf("%s:%d Reading a frame from YUV file %s ...\n",__FUNCTION__,__LINE__,cfg->name);
+  PRINT("%s:%d Reading a frame from YUV file %s ...\n",__FUNCTION__,__LINE__,cfg->name);
 #endif
 
   /* Init */
@@ -170,7 +172,7 @@ vp_stages_input_file_stage_transform(vp_stages_input_file_config_t *cfg, vp_api_
 
 
 #ifdef VERBOSE
-    printf("%s:%d Frames stored at address %p.\n",__FUNCTION__,__LINE__,cfg->data);
+    PRINT("%s:%d Frames stored at address %p.\n",__FUNCTION__,__LINE__,cfg->data);
 #endif
   }
 
@@ -197,7 +199,7 @@ vp_stages_input_file_stage_transform(vp_stages_input_file_config_t *cfg, vp_api_
       /* Read a frame from the disk file */
 
 #ifdef VERBOSE
-      printf("%s:%d  Requesting %d bytes ...\n",__FUNCTION__,__LINE__,cfg->buffer_size);
+      PRINT("%s:%d  Requesting %d bytes ...\n",__FUNCTION__,__LINE__,cfg->buffer_size);
 #endif
 
       out->buffers=cfg->buffers;
@@ -205,7 +207,7 @@ vp_stages_input_file_stage_transform(vp_stages_input_file_config_t *cfg, vp_api_
       out->size = fread(out->buffers[0], cfg->buffer_size, 1 , cfg->f);
 
 #ifdef VERBOSE
-      printf("%s:%d  Read %d bytes ...\n",__FUNCTION__,__LINE__,out->size);
+      PRINT("%s:%d  Read %d bytes ...\n",__FUNCTION__,__LINE__,out->size);
 #endif
 
       /* Go back at the beginning of the file if we reached the end of the video */
@@ -282,7 +284,7 @@ vp_stages_output_file_stage_open(vp_stages_output_file_config_t *cfg)
   cfg->f = fopen(cfg->name, "wb");
   if(NULL == cfg->f)
   {
-    printf("%s:%d - Error opening file %s\n",__FUNCTION__,__LINE__,cfg->name);perror("");
+    PRINT("%s:%d - Error opening file %s\n",__FUNCTION__,__LINE__,cfg->name);perror("");
     return VP_FAILURE;
   }
   return (VP_SUCCESS);
