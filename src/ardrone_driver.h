@@ -11,6 +11,7 @@ class ARDroneDriver;
 #include <sensor_msgs/Imu.h>
 #include <geometry_msgs/Vector3Stamped.h>
 #include <std_srvs/Empty.h>
+#include <nav_msgs/Odometry.h>
 #include <ardrone_autonomy/Navdata.h>
 #include "ardrone_sdk.h"
 #include <vector>
@@ -56,6 +57,7 @@ public:
 
     void publish_video();
     void publish_navdata(navdata_unpacked_t &navdata_raw, const ros::Time &navdata_receive_time);
+    void publish_odometry(navdata_unpacked_t &navdata_raw, const ros::Time &navdata_receive_time);
 
 private:
     void publish_tf();
@@ -80,6 +82,7 @@ private:
     ros::Publisher navdata_pub;
     ros::Publisher imu_pub;
     ros::Publisher mag_pub;
+    ros::Publisher odo_pub;
 
     tf::TransformBroadcaster tf_broad;
 
@@ -126,7 +129,7 @@ private:
      */
     std::string droneFrameBase, droneFrameIMU, droneFrameFrontCam, droneFrameBottomCam;
     int drone_root_frame;
-    tf::StampedTransform tf_base_front, tf_base_bottom;
+    tf::StampedTransform tf_base_front, tf_base_bottom, tf_odom;
 
     // Huge part of IMU message is constant, let's fill'em once.
     sensor_msgs::Imu imu_msg;
@@ -144,6 +147,9 @@ private:
     std::vector< std::vector<double> > gyro_samples;
     std::vector< std::vector<double> > vel_samples;
 
+    // odometry (x,y)
+    ros::Time last_receive_time;
+    double odometry[2];
 };
 
 #endif
