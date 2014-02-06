@@ -793,10 +793,16 @@ void ARDroneDriver::publish_odometry(navdata_unpacked_t &navdata_raw, const ros:
   odo_msg.header.stamp = navdata_receive_time;
   odo_msg.header.frame_id = "odom";
   odo_msg.child_frame_id = droneFrameBase;
+
   odo_msg.pose.pose.position.x = odometry[0];
   odo_msg.pose.pose.position.y = odometry[1];
   odo_msg.pose.pose.position.z = navdata_raw.navdata_demo.altitude / 1000;
   odo_msg.pose.pose.orientation = tf::createQuaternionMsgFromRollPitchYaw(navdata_raw.navdata_demo.phi / 180000.0 * M_PI, -navdata_raw.navdata_demo.theta / 180000.0 * M_PI, -navdata_raw.navdata_demo.psi / 180000.0 * M_PI);
+
+  odo_msg.twist.twist.linear.x = navdata_raw.navdata_demo.vx / 1000.0;
+  odo_msg.twist.twist.linear.y = -navdata_raw.navdata_demo.vy / 1000.0;
+  odo_msg.twist.twist.linear.z = -navdata_raw.navdata_demo.vz / 1000.0;
+  
   odo_pub.publish(odo_msg);
 
   tf::Vector3 t;
