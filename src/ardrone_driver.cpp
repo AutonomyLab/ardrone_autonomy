@@ -364,7 +364,6 @@ void ARDroneDriver::publish_video()
         sensor_msgs::Image image_msg;
         sensor_msgs::Image::_data_type::iterator _it;
 
-        image_msg.header.stamp = ros::Time::now();
         if ((cam_state == ZAP_CHANNEL_HORI) || (cam_state == ZAP_CHANNEL_LARGE_HORI_SMALL_VERT))
         {
             image_msg.header.frame_id = droneFrameFrontCam;
@@ -386,8 +385,12 @@ void ARDroneDriver::publish_video()
         image_msg.data.resize(D1_STREAM_WIDTH*D1_STREAM_HEIGHT*3);
 
         if(!realtime_video) vp_os_mutex_lock(&video_lock);
+        image_msg.header.stamp = shared_video_receive_time;
         std::copy(buffer, buffer+(D1_STREAM_WIDTH*D1_STREAM_HEIGHT*3), image_msg.data.begin());
         if(!realtime_video) vp_os_mutex_unlock(&video_lock);
+
+        cinfo_msg_hori.header.stamp = image_msg.header.stamp; 
+        cinfo_msg_vert.header.stamp = image_msg.header.stamp;
 
         if (cam_state == ZAP_CHANNEL_HORI)
         {
@@ -540,10 +543,6 @@ void ARDroneDriver::publish_video()
         sensor_msgs::Image image_msg;        
         sensor_msgs::Image::_data_type::iterator _it;
 
-        image_msg.header.stamp = ros::Time::now();
-        cinfo_msg_hori.header.stamp = image_msg.header.stamp; 
-        cinfo_msg_vert.header.stamp = image_msg.header.stamp; 
-
         if (cam_state == ZAP_CHANNEL_HORI)
         {
             image_msg.header.frame_id = droneFrameFrontCam;
@@ -564,10 +563,13 @@ void ARDroneDriver::publish_video()
         image_msg.step = D2_STREAM_WIDTH*3;
         image_msg.data.resize(D2_STREAM_WIDTH*D2_STREAM_HEIGHT*3);
         if(!realtime_video) vp_os_mutex_lock(&video_lock);
+        image_msg.header.stamp = shared_video_receive_time;
         std::copy(buffer, buffer+(D2_STREAM_WIDTH*D2_STREAM_HEIGHT*3), image_msg.data.begin());
         if(!realtime_video) vp_os_mutex_unlock(&video_lock);
         // We only put the width and height in here.
 
+        cinfo_msg_hori.header.stamp = image_msg.header.stamp; 
+        cinfo_msg_vert.header.stamp = image_msg.header.stamp;
 
         if (cam_state == ZAP_CHANNEL_HORI)
         {
