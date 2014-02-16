@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link href='https://fonts.googleapis.com/css?family=Architects+Daughter' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
+
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <title>ardrone_autonomy by AutonomyLab</title>
+  </head>
+
+  <body>
+    <header>
+      <div class="inner">
+        <h1>ardrone_autonomy</h1>
+        <h2>ROS Driver for AR-Drone 1.0 &amp; 2.0 based on Parrot Official SDK</h2>
+        <a href="https://github.com/AutonomyLab/ardrone_autonomy" class="button"><small>View project on</small>GitHub</a>
+      </div>
+    </header>
+
+    <div id="content-wrapper">
+      <div class="inner clearfix">
+        <section id="main-content">
+          <h1>
+<a name="ardrone_autonomy--a-ros-driver-for-ardrone-10--20" class="anchor" href="#ardrone_autonomy--a-ros-driver-for-ardrone-10--20"><span class="octicon octicon-link"></span></a>ardrone_autonomy : A ROS Driver for ARDrone 1.0 &amp; 2.0</h1>
+
+<p>"ardrone_autonomy" is a <a href="http://ros.org/" title="Robot Operating System">ROS</a> driver for <a href="http://http://ardrone.parrot.com/parrot-ar-drone/select-site">Parrot AR-Drone</a> quadrocopter. This driver is based on official <a href="https://projects.ardrone.org/">AR-Drone SDK</a> version 2.0 and supports both AR-Drone 1.0 and 2.0. "ardrone_autonomy" is a fork of <a href="http://code.google.com/p/brown-ros-pkg/wiki/ardrone_brown">AR-Drone Brown</a> driver. This package has been developed in <a href="http://autonomy.cs.sfu.ca">Autonomy Lab</a> of <a href="http://www.sfu.ca">Simon Fraser University</a> by <a href="http://sfu.ca/%7Emmonajje">Mani Monajjemi</a> ( +other <a href="#contributors">contributors</a>).</p>
+
+<h2>
+<a name="table-of-contents" class="anchor" href="#table-of-contents"><span class="octicon octicon-link"></span></a>Table of Contents</h2>
+
+<ul>
+<li><a href="#updates">Updates</a></li>
+<li>
+<a href="#installation">Installation</a>
+
+<ul>
+<li><a href="#pre-requirements">Pre-requirements</a></li>
+<li><a href="#installation-steps">Installation Steps</a></li>
+</ul>
+</li>
+<li><a href="#how-to-run">How to Run</a></li>
+<li>
+<a href="#reading-from-ar-drone">Reading from AR-Drone</a>
+
+<ul>
+<li><a href="#update-frequencies-new">Update Frequencies </a></li>
+<li><a href="#legacy-navigation-data">Legacy Navigation Data</a></li>
+<li><a href="#imu-data">IMU data</a></li>
+<li><a href="#magnetometer-data">Magnetometer Data</a></li>
+<li><a href="#selective-navdata-advanced-new">Selective Navdata (Advanced) </a></li>
+<li><a href="#cameras">Cameras</a></li>
+<li><a href="#tag-detection">Tag Detection</a></li>
+<li><a href="#update-frequencies">Update Frequencies</a></li>
+</ul>
+</li>
+<li>
+<a href="#sending-commands-to-ar-drone">Sending Commands to AR-Drone</a>
+
+<ul>
+<li>
+<a href="#hover-modes-new">Hover Modes </a> <img class="emoji" title=":new:" alt=":new:" src="https://github.global.ssl.fastly.net/images/icons/emoji/new.png" height="20" width="20" align="absmiddle">
+</li>
+</ul>
+</li>
+<li><a href="#coordinate-frames">Coordinate Frames</a></li>
+<li>
+<a href="#services">Services</a>
+
+<ul>
+<li><a href="#toggle-ar-drones-camera">Toggle AR-Drone's Camera</a></li>
+<li><a href="#led-animations">LED Animations</a></li>
+<li><a href="#flight-animations-new">Flight Animations </a></li>
+<li><a href="#imu-calibration">IMU Calibration</a></li>
+<li><a href="#flat-trim">Flat Trim</a></li>
+<li>
+<a href="#record-to-usb-stick">Record to USB Stick</a> <img class="emoji" title=":new:" alt=":new:" src="https://github.global.ssl.fastly.net/images/icons/emoji/new.png" height="20" width="20" align="absmiddle">
+</li>
+</ul>
+</li>
+<li>
+<a href="#parameters">Parameters</a>
+
+<ul>
+<li><a href="#ar-drone-specific-parameters">AR-Drone Specific Parameters</a></li>
+<li><a href="#other-parameters">Other Parameters</a></li>
+</ul>
+</li>
+<li><a href="#license">License</a></li>
+<li><a href="#contributors">Contributors</a></li>
+<li>
+<a href="#faq">FAQ</a> <img class="emoji" title=":new:" alt=":new:" src="https://github.global.ssl.fastly.net/images/icons/emoji/new.png" height="20" width="20" align="absmiddle">
+</li>
+</ul><h2>
+<a name="updates" class="anchor" href="#updates"><span class="octicon octicon-link"></span></a>Updates</h2>
+
+<ul>
+<li>
+<em>October 22 2013</em>: Update to Parrot SDK 2.0.1 (Fixes crashes on 2.4.x firmwares, no support for flight recorder (yet). <strong>Please check the FAQ section for instructions on how to re-compile the SDK</strong>. (Tested on 2.3.3 and 2.4.x firmwares) </li>
+<li>
+<em>February 13 2013</em>: Support for USB key recording (<a href="https://github.com/AutonomyLab/ardrone_autonomy/pull/53">More info</a>). Motor PWM added to legacy Navdata.</li>
+<li>
+<em>January 9 2013</em>: ROS Groovy support. Support for zero-command without hovering (<a href="https://github.com/AutonomyLab/ardrone_autonomy/pull/34">More info</a>). Full configurable Navdata support (<a href="https://github.com/AutonomyLab/ardrone_autonomy/pull/31">More info</a>). Support for "Flight Animations". Support for Real-time navdata and video publishing (<a href="https://github.com/AutonomyLab/ardrone_autonomy/pull/44">More info</a>). Support for configurable data publishing rate.</li>
+<li>
+<em>November 9 2012</em>: Critical Bug in sending configurations to drone fixed and more parameters are supported (<a href="https://github.com/AutonomyLab/ardrone_autonomy/issues/24">More info</a>). Separate topic for magnetometer data added (<a href="https://github.com/AutonomyLab/ardrone_autonomy/pull/25">More info</a>).</li>
+<li>
+<em>September 5 2012</em>: Experimental automatic IMU bias removal.</li>
+<li>
+<em>August 27 2012</em>: Thread-safe SDK data access. Synchronized <code>navdata</code> and <code>camera</code> topics.</li>
+<li>
+<em>August 20 2012</em>: The driver is now provides ROS standard camera interface.</li>
+<li>
+<em>August 17 2012</em>: Experimental <code>tf</code> support added. New published topic <code>imu</code>.</li>
+<li>
+<em>August 1 2012</em>: Enhanced <code>Navdata</code> message. <code>Navdata</code> now includes magnetometer data, barometer data, temperature and wind information for AR-Drone 2. <a href="https://github.com/AutonomyLab/ardrone_autonomy/pull/2">Issue #2</a>
+</li>
+<li>
+<em>July 27 2012</em>: LED Animation Support added to the driver as a service</li>
+<li>
+<em>July 19 2012</em>: Initial Public Release</li>
+</ul><h2>
+<a name="installation" class="anchor" href="#installation"><span class="octicon octicon-link"></span></a>Installation</h2>
+
+<h3>
+<a name="pre-requirements" class="anchor" href="#pre-requirements"><span class="octicon octicon-link"></span></a>Pre-requirements</h3>
+
+<p>This driver has been tested on Linux machines running Ubuntu 11.10, 12.04 &amp; 12.10 (32 bit and 64 bit). However it should also work on any other mainstream Linux distribution. The driver has been tested on both ROS "electric" and "fuerte". The AR-Drone SDK has its own build system which usually handles system wide dependencies itself. The ROS package depends on these standard ROS packages: <code>roscpp</code>, <code>image_transport</code>, <code>sensor_msgs</code>, <code>tf</code>, <code>camera_info_manager</code> and <code>std_srvs</code>.</p>
+
+<h3>
+<a name="installation-steps" class="anchor" href="#installation-steps"><span class="octicon octicon-link"></span></a>Installation Steps</h3>
+
+<p>The installation follows the same steps needed usually to compile a ROS driver.</p>
+
+<ul>
+<li>
+<p>Get the code: Clone (or download and unpack) the driver to your personal ROS stacks folder (e.g. ~/ros/stacks) and <code>cd</code> to it. Please make sure that this folder is in your <code>ROS_PACKAGE_PATH</code> environmental variable.</p>
+
+<pre><code>```bash
+$ cd ~/ros/stacks
+$ git clone https://github.com/AutonomyLab/ardrone_autonomy.git
+$ rosstack profile &amp;&amp; rospack profile
+$ roscd ardrone_autonomy
+```
+</code></pre>
+</li>
+</ul><p><strong>NOTE (For advanced users):</strong> Instead of the <code>master</code> branch you can use the <code>dev-unstable</code> branch for the latest <em>unstable</em> code which may contain bug fixes or new features. This is the branch that all developments happen on. Please use this branch to submit pull requests.</p>
+
+<ul>
+<li>
+<p>Compile the AR-Drone SDK: The driver contains a slightly patched version of AR-Drone 2.0 SDK which is located in <code>ARDroneLib</code> directory. To compile it, execute the <code>./build_sdk.sh</code>. Any system-wide dependency will be managed by the SDK's build script. You may be asked to install some packages during the installation procedure (e.g <code>daemontools</code>). You can verify the success of the SDK's build by checking the <code>lib</code> folder.</p>
+
+<pre><code>```bash
+$ ./build_sdk.sh
+$ [After a couple of minutes]
+$ ls ./lib
+
+libavcodec.a   libavformat.a    libpc_ardrone_notool.a  libvlib.a
+libavdevice.a  libavutil.a      libsdk.a
+libavfilter.a  libpc_ardrone.a  libswscale.a
+```
+</code></pre>
+</li>
+<li><p>Compile the driver: You can easily compile the driver by using <code>rosmake ardrone_autonomy</code> command.</p></li>
+</ul><h2>
+<a name="how-to-run" class="anchor" href="#how-to-run"><span class="octicon octicon-link"></span></a>How to Run</h2>
+
+<p>The driver's executable node is <code>ardrone_driver</code>. You can either use <code>rosrun ardrone_autonomy ardrone_driver</code> or put it in a custom launch file with your desired parameters.</p>
+
+<h2>
+<a name="reading-from-ar-drone" class="anchor" href="#reading-from-ar-drone"><span class="octicon octicon-link"></span></a>Reading from AR-Drone</h2>
+
+<h3>
+<a name="update-frequencies-new" class="anchor" href="#update-frequencies-new"><span class="octicon octicon-link"></span></a>Update Frequencies <img class="emoji" title=":new:" alt=":new:" src="https://github.global.ssl.fastly.net/images/icons/emoji/new.png" height="20" width="20" align="absmiddle">
+</h3>
+
+<p><strong>Drone Update Frequencies</strong>: The drone's data transmission update frequency depends on <code>navdata_demo</code> parameter. When it is 1, the transmission frequency will be 15Hz, otherwise it will be 200Hz. (<code>navdata_demo</code> is a numeric parameter not Boolean, so use 1 and 0 (not True/False) to set/unset it)</p>
+
+<p><strong>Driver Update Frequencies</strong>: The driver can operate in two modes: real-time or fixed rate. When the <code>realtime_navdata</code> parameter is set to True, the driver will publish the received information instantly. However when it is set to False, the driver will cache the most recent received data, then it will publish that at a fixed rate, configured by <code>looprate</code> parameter. The default configuration is: <code>realtime_navdata=False</code> and <code>looprate=50</code>. </p>
+
+<p>Please note that if the <code>looprate</code> is smaller than the drone's transmission frequency, there will be data loss. The driver's start-up output shows the current configuration. You can also use <code>rostopic hz</code> command to check the publish rate of the driver.</p>
+
+<pre>
+# Default Setting - 50Hz non-realtime update, the drone transmission rate is 200Hz
+rosrun ardrone_autonomy ardrone_driver _realtime_navdata:=False  _navdata_demo:=0
+
+# 200Hz real-time update
+rosrun ardrone_autonomy ardrone_driver _realtime_navdata:=True _navdata_demo:=0
+
+# 15Hz real-rime update
+rosrun ardrone_autonomy ardrone_driver _realtime_navdata:=True _navdata_demo:=1
+</pre>
+
+<h3>
+<a name="legacy-navigation-data" class="anchor" href="#legacy-navigation-data"><span class="octicon octicon-link"></span></a>Legacy Navigation Data</h3>
+
+<p>Information received from the drone will be published to the <code>ardrone/navdata</code> topic. The message type is <code>ardrone_autonomy::Navdata</code> and contains the following information:</p>
+
+<ul>
+<li>
+<code>header</code>: ROS message header</li>
+<li>
+<code>batteryPercent</code>: The remaining charge of the drone's battery (%)</li>
+<li>
+<code>state</code>: The Drone's current state:
+    * 0: Unknown
+    * 1: Inited
+    * 2: Landed
+    * 3,7: Flying
+    * 4: Hovering
+    * 5: Test (?)
+    * 6: Taking off
+    * 8: Landing
+    * 9: Looping (?)</li>
+<li>
+<code>rotX</code>: Left/right tilt in degrees (rotation about the X axis)</li>
+<li>
+<code>rotY</code>: Forward/backward tilt in degrees (rotation about the Y axis)</li>
+<li>
+<code>rotZ</code>: Orientation in degrees (rotation about the Z axis)</li>
+<li>
+<code>magX</code>, <code>magY</code>, <code>magZ</code>: Magnetometer readings (AR-Drone 2.0 Only) (TBA: Convention)</li>
+<li>
+<code>pressure</code>: Pressure sensed by Drone's barometer (AR-Drone 2.0 Only) (TBA: Unit)</li>
+<li>
+<code>temp</code> : Temperature sensed by Drone's sensor (AR-Drone 2.0 Only) (TBA: Unit)</li>
+<li>
+<code>wind_speed</code>: Estimated wind speed (AR-Drone 2.0 Only) (TBA: Unit)</li>
+<li>
+<code>wind_angle</code>: Estimated wind angle (AR-Drone 2.0 Only) (TBA: Unit)</li>
+<li>
+<code>wind_comp_angle</code>: Estimated wind angle compensation (AR-Drone 2.0 Only) (TBA: Unit)</li>
+<li>
+<code>altd</code>: Estimated altitude (mm)</li>
+<li>
+<code>motor1..4</code>: Motor PWM values</li>
+<li>
+<code>vx</code>, <code>vy</code>, <code>vz</code>: Linear velocity (mm/s) [TBA: Convention]</li>
+<li>
+<code>ax</code>, <code>ay</code>, <code>az</code>: Linear acceleration (g) [TBA: Convention]</li>
+<li>
+<code>tm</code>: Timestamp of the data returned by the Drone returned as number of micro-seconds passed since Drone's boot-up.</li>
+</ul><p><strong>NOTE:</strong> The legacy Navdata publishing can be disabled by setting the <code>enable_legacy_navdata</code> parameter to <code>False</code> (legacy navdata is enabled by default).</p>
+
+<h3>
+<a name="imu-data" class="anchor" href="#imu-data"><span class="octicon octicon-link"></span></a>IMU data</h3>
+
+<p>The linear acceleration, angular velocity and orientation from the <code>Navdata</code> is also published to a standard ROS <a href="http://www.ros.org/doc/api/sensor_msgs/html/msg/Imu.html"><code>sensor_msgs/Imu</code></a> message. The units are all metric and the reference frame is in <code>Base</code> frame. This topic is experimental. The covariance values are specified by specific parameters.</p>
+
+<h3>
+<a name="magnetometer-data" class="anchor" href="#magnetometer-data"><span class="octicon octicon-link"></span></a>Magnetometer Data</h3>
+
+<p>The normalized magnetometer readings are also published to <code>ardrone/mag</code> topic as a standard ROS <a href="http://www.ros.org/doc/api/geometry_msgs/html/msg/Vector3Stamped.html"><code>geometry_msgs/Vector3Stamped</code></a> message.</p>
+
+<h3>
+<a name="selective-navdata-advanced-new" class="anchor" href="#selective-navdata-advanced-new"><span class="octicon octicon-link"></span></a>Selective Navdata (Advanced) <img class="emoji" title=":new:" alt=":new:" src="https://github.global.ssl.fastly.net/images/icons/emoji/new.png" height="20" width="20" align="absmiddle">
+</h3>
+
+<p>You can access almost all sensor readings, debug values and status reports sent from the AR-Drone by using "Selective Navdata". If you set any of following parameters to "True", their corresponding <code>Navdata</code> information will be published to a separate topic. For example if you enable <code>enable_navdata_time</code>, the driver will publish AR-Drone time information to <code>ardrone/navdata_time</code> topic. Most of the names are self-explanatory. Please consult AR-Drone SDK 2.0's documentation (or source code) for more information. All parameters are set to False by default.</p>
+
+<pre>
+enable_navdata_trims            enable_navdata_rc_references    enable_navdata_pwm              enable_navdata_altitude 
+enable_navdata_vision_raw       enable_navdata_vision_of        enable_navdata_vision           enable_navdata_vision_perf  
+enable_navdata_trackers_send    enable_navdata_vision_detect    enable_navdata_watchdog         enable_navdata_adc_data_frame   
+enable_navdata_video_stream     enable_navdata_games            enable_navdata_pressure_raw     enable_navdata_magneto  
+enable_navdata_wind_speed       enable_navdata_kalman_pressure  enable_navdata_hdvideo_stream   enable_navdata_wifi enable_navdata_zimmu_3000   
+</pre>
+
+<p><strong>HINT:</strong> You can <code>rostopic type ardrone/navdata_time | rosmsg show</code> command for each topic to inspect its published message's data structure.</p>
+
+<h3>
+<a name="cameras" class="anchor" href="#cameras"><span class="octicon octicon-link"></span></a>Cameras</h3>
+
+<p>Both AR-Drone 1.0 and 2.0 are equipped with two cameras. One frontal camera pointing forward and one vertical camera pointing downward. This driver will create three topics for each drone: <code>ardrone/image_raw</code>, <code>ardrone/front/image_raw</code> and <code>ardrone/bottom/image_raw</code>. Each of these three are standard <a href="http://ros.org/wiki/camera_drivers">ROS camera interface</a> and publish messages of type <a href="http://www.ros.org/wiki/image_transport">image transport</a>. The driver is also a standard <a href="http://www.ros.org/wiki/camera_drivers">ROS camera driver</a>, therefor if camera calibration information is provided either as a set of ROS parameters or appropriate <code>ardrone_front.yaml</code> and/or <code>ardrone_bottom.yaml</code>, the information will be published in appropriate <code>camera_info</code> topics. Please check the FAQ section for more information.</p>
+
+<ul>
+<li><p>The <code>ardrone/*</code> will always contain the selected camera's video stream and information.</p></li>
+<li>
+<p>The way that the other two streams work depend on the type of Drone.</p>
+
+<ul>
+<li>Drone 1</li>
+</ul>
+<p>Drone 1 supports four modes of video streams: Front camera only, bottom camera only, front camera with bottom camera inside (picture in picture) and bottom camera with front camera inside (picture in picture). According to active configuration mode, the driver decomposes the PIP stream and publishes pure front/bottom streams to corresponding topics. The <code>camera_info</code> topic will include the correct image size.</p>
+
+<ul>
+<li>Drone 2</li>
+</ul>
+<p>Drone 2 does not support PIP feature anymore, therefore only one of <code>ardrone/front</code> or <code>ardrone/bottom</code> topics will be updated based on which camera is selected at the time.</p>
+</li>
+</ul><h3>
+<a name="tag-detection" class="anchor" href="#tag-detection"><span class="octicon octicon-link"></span></a>Tag Detection</h3>
+
+<p>The <code>Navdata</code> message also returns the special tags that are detected by the Drone's on-board vision processing system. To learn more about the system and the way it works please consult AR-Drone SDK 2.0's <a href="https://projects.ardrone.org/projects/show/ardrone-api/">developers guide</a>. These tags are being detected on both drone's video cameras on-board at 30fps. To configure (or disable) this feature look at the "Parameters" section in this documentation.</p>
+
+<p>The detected tags' type and position in Drone's camera frame will be published to the following variables in <code>Navdata</code> message:</p>
+
+<ul>
+<li>
+<code>tags_count</code>: The number of detected tags.</li>
+<li>
+<code>tags_type[]</code>: Vector of types of detected tags (details below)</li>
+<li>
+<code>tags_xc[]</code>, <code>tags_yc[]</code>, <code>tags_width[]</code>, <code>tags_height[]</code>: Vector of position components and size components for each tag. These numbers are expressed in numbers between [0,1000]. You need to convert them back to pixel unit using the corresponding camera's resolution (can be obtained front <code>camera_info</code> topic).</li>
+<li>
+<code>tags_orientation[]</code>: For the tags that support orientation, this is the vector that contains the tag orientation expressed in degrees [0..360).</li>
+</ul><p>By default, the driver will configure the drone to look for <em>oriented roundels</em> using bottom camera and <em>2D tags v2</em> on indoor shells (<em>orange-yellow</em>) using front camera. For information on how to extract information from <code>tags_type</code> field. Check the FAQ section in the end.</p>
+
+<h3>
+<a name="update-frequencies" class="anchor" href="#update-frequencies"><span class="octicon octicon-link"></span></a>Update Frequencies</h3>
+
+<p>TBA.</p>
+
+<h2>
+<a name="sending-commands-to-ar-drone" class="anchor" href="#sending-commands-to-ar-drone"><span class="octicon octicon-link"></span></a>Sending Commands to AR-Drone</h2>
+
+<p>The drone will <em>takeoff</em>, <em>land</em> or <em>emergency stop/reset</em> by publishing an <code>Empty</code> ROS messages to the following topics: <code>ardrone/takeoff</code>, <code>ardrone/land</code> and <code>ardrone/reset</code> respectively.</p>
+
+<p>In order to fly the drone after takeoff, you can publish a message of type <a href="http://www.ros.org/doc/api/geometry_msgs/html/msg/Twist.html"><code>geometry_msgs::Twist</code></a> to the <code>cmd_vel</code> topic.</p>
+
+<pre><code>    -linear.x: move backward
+    +linear.x: move forward
+    -linear.y: move right
+    +linear.y: move left
+    -linear.z: move down
+    +linear.z: move up
+
+    -angular.z: turn left
+    +angular.z: turn right
+</code></pre>
+
+<p>The range for each component should be between -1.0 and 1.0. The maximum range can be configured using ROS parameters discussed later in this document. </p>
+
+<h3>
+<a name="hover-modes-new" class="anchor" href="#hover-modes-new"><span class="octicon octicon-link"></span></a>Hover Modes <img class="emoji" title=":new:" alt=":new:" src="https://github.global.ssl.fastly.net/images/icons/emoji/new.png" height="20" width="20" align="absmiddle">
+</h3>
+
+<p><code>geometry_msgs::Twist</code> has two other member variable called <code>angular.x</code> and <code>angular.y</code> which can be used to enable/disable "auto-hover" mode. "auto-hover" is enabled when all six components are set to <strong>zero</strong>. If you want the drone not to enter "auto hover" mode in cases you set the first four components to zero, set <code>angular.x</code> and <code>angular.y</code> to arbitrary <strong>non-zero</strong> values.</p>
+
+<h2>
+<a name="coordinate-frames" class="anchor" href="#coordinate-frames"><span class="octicon octicon-link"></span></a>Coordinate Frames</h2>
+
+<p>The driver publishes two <a href="http://www.ros.org/wiki/tf"><code>tf</code></a> transforms between three reference frames: <code>${tf_prefix}/${base_prefix}_link</code>, <code>${tf_prefix}/${base_prefix}_frontcam</code> and <code>${tf_prefix}/${base_prefix}_bottomcam</code>. The <code>${tf_prefix}</code> is ROS standard way to handle multi-robot <code>tf</code> trees and can be set using <code>tf_prefix</code> parameters, by default it is empty. The <code>${base_link}</code> is the shared name prefix of all three reference frames and can also be set using parameters, by default it has the value of <code>ardrone_base</code>. Using default parameters, the three frames would be: <code>ardrone_base_link</code>, <code>ardrone_base_frontcam</code> and <code>ardrone_base_bottomcam</code>. By default the root frame is  <code>ardrone_base_link</code>. Therefor <code>ardrone_base_frontcam</code> and <code>ardrone_base_bottomcam</code> are children of <code>ardrone_base_link</code> in the published <code>tf</code> tree. This can be changed using <code>root_frame</code> parameter.</p>
+
+<p>The <code>frame_id</code> field in header of all published topics (navdata, imu, cameras) will have the appropriate frame names. All frames are <a href="http://www.ros.org/reps/rep-0103.html">ROS REP 103</a> compatible.</p>
+
+<h2>
+<a name="services" class="anchor" href="#services"><span class="octicon octicon-link"></span></a>Services</h2>
+
+<h3>
+<a name="toggle-ar-drones-camera" class="anchor" href="#toggle-ar-drones-camera"><span class="octicon octicon-link"></span></a>Toggle AR-Drone's Camera</h3>
+
+<p>Calling <code>ardrone/togglecam</code> service with no parameters will change the active video camera stream. (e.g <code>rosservice call /ardrone/togglecam</code>).</p>
+
+<p><code>ardrone/setcamchannel</code> service directly sets the current active camera channel. One parameter (<code>uint8 channel
+</code>) should be sent to this service. For AR-Drone 1.0 the valid values are [0..3] and for AR-Drone 2.0 the valid values are [0..1]. The order is similar to the order described in "Cameras" section.</p>
+
+<h3>
+<a name="led-animations" class="anchor" href="#led-animations"><span class="octicon octicon-link"></span></a>LED Animations</h3>
+
+<p>Calling <code>ardrone/setledanimation</code> service will invoke one of 14 pre-defined LED animations for the drone. The parameters are</p>
+
+<ul>
+<li>
+<code>uint8 type</code>: The type of animation which is a number in range [0..13]</li>
+<li>
+<code>float32 freq</code>: The frequency of the animation in Hz</li>
+<li>
+<code>uint8 duration</code>: The duration of the animation in Seconds.</li>
+</ul><p>The <code>type</code> parameter will map [in order] to one of these animations (check <code>srv/LedAnim.srv</code> for more details):</p>
+
+<pre><code>    BLINK_GREEN_RED, BLINK_GREEN, BLINK_RED, BLINK_ORANGE,
+    SNAKE_GREEN_RED, FIRE, STANDARD, RED, GREEN, RED_SNAKE,BLANK,
+    LEFT_GREEN_RIGHT_RED, LEFT_RED_RIGHT_GREEN, BLINK_STANDARD`
+</code></pre>
+
+<p>You can test these animations in command line using commands like <code>rosservice call /ardrone/setledanimation 1 4 5</code></p>
+
+<h3>
+<a name="flight-animations-new" class="anchor" href="#flight-animations-new"><span class="octicon octicon-link"></span></a>Flight Animations <img class="emoji" title=":new:" alt=":new:" src="https://github.global.ssl.fastly.net/images/icons/emoji/new.png" height="20" width="20" align="absmiddle">
+</h3>
+
+<p>Calling <code>ardrone/setflightanimation</code> service will execute one of 20 pre-defined flight animations for the drone. The parameters are:</p>
+
+<ul>
+<li>
+<code>uint8 type</code>: The type of flight animation, a number in range [0..19]</li>
+<li>
+<code>uint16 duration</code>: The duration of the animation. Use 0 for default duration (recommended)</li>
+</ul><p>The <code>type</code> parameter will map [in order] to one of these pre-defined animations (check <code>srv/FlightAnim.srv</code> for more details):</p>
+
+<pre><code>ARDRONE_ANIM_PHI_M30_DEG, ARDRONE_ANIM_PHI_30_DEG, ARDRONE_ANIM_THETA_M30_DEG, ARDRONE_ANIM_THETA_30_DEG,
+ARDRONE_ANIM_THETA_20DEG_YAW_200DEG, ARDRONE_ANIM_THETA_20DEG_YAW_M200DEG, ARDRONE_ANIM_TURNAROUND,
+ARDRONE_ANIM_TURNAROUND_GODOWN, ARDRONE_ANIM_YAW_SHAKE, ARDRONE_ANIM_YAW_DANCE, ARDRONE_ANIM_PHI_DANCE,
+ARDRONE_ANIM_THETA_DANCE, ARDRONE_ANIM_VZ_DANCE, ARDRONE_ANIM_WAVE, ARDRONE_ANIM_PHI_THETA_MIXED,
+ARDRONE_ANIM_DOUBLE_PHI_THETA_MIXED, ARDRONE_ANIM_FLIP_AHEAD, ARDRONE_ANIM_FLIP_BEHIND, ARDRONE_ANIM_FLIP_LEFT,
+ARDRONE_ANIM_FLIP_RIGHT
+</code></pre>
+
+<p>You can test these animations in command line using commands like <code>rosservice call /ardrone/setflightanimation 1 0</code> while drone is flying.</p>
+
+<p>Please be extra cautious about using animations, especially flip animations.</p>
+
+<h3>
+<a name="imu-calibration" class="anchor" href="#imu-calibration"><span class="octicon octicon-link"></span></a>IMU Calibration</h3>
+
+<p>If <code>do_imu_caliberation</code> parameter is set to true, calling <code>ardrone/imu_recalib</code> service will make the driver recalculate the biases in IMU data based on data from a short sampling period.</p>
+
+<h3>
+<a name="flat-trim" class="anchor" href="#flat-trim"><span class="octicon octicon-link"></span></a>Flat Trim</h3>
+
+<p>Calling <code>ardrone/flattrim</code> service without any parameter will send a "Flat Trim" request to AR-Drone to re-calibrate its rotation estimates assuming that it is on a flat surface. Do not call this service while Drone is flying or while the drone is not actually on a flat surface.</p>
+
+<h3>
+<a name="record-to-usb-stick" class="anchor" href="#record-to-usb-stick"><span class="octicon octicon-link"></span></a>Record to USB Stick</h3>
+
+<p>Calling <code>ardrone/setrecord</code> service will enable and disable recording to the USB stick. The service takes a simple <code>1</code> to enable or <code>0</code> to disable. So you can turn on recording to the USB stick with <code>rosservice call /ardrone/setrecord 1</code></p>
+
+<h2>
+<a name="parameters" class="anchor" href="#parameters"><span class="octicon octicon-link"></span></a>Parameters</h2>
+
+<h3>
+<a name="ar-drone-specific-parameters" class="anchor" href="#ar-drone-specific-parameters"><span class="octicon octicon-link"></span></a>AR-Drone Specific Parameters</h3>
+
+<p>The parameters listed below are named according to AR-Drone's SDK 2.0 configuration. Unless you set the parameters using <code>rosparam</code> or in your <code>launch</code> file, the default values will be used. These values are applied during driver's initialization phase. Please refer to AR-Drone SDK 2.0's <a href="https://projects.ardrone.org/projects/show/ardrone-api/">developer's guide</a> for information about valid values. Not all the parameters will be needed during regular usage of the AR-Drone, please consult the example launch file <code>launch/ardrone.launch</code> for frequent parameters.</p>
+
+<pre><code>altitude, altitude_max, altitude_min, ardrone_name, autonomous_flight, bitrate, bitrate_ctrl_mode, 
+bitrate_storage, codec_fps, com_watchdog, control_iphone_tilt, control_level, control_vz_max, 
+control_yaw, detect_type, detections_select_h, detections_select_v, detections_select_v_hsync, 
+enemy_colors, enemy_without_shell, euler_angle_max, flight_anim, flight_without_shell, flying_mode, 
+groundstripe_colors, hovering_range, indoor_control_vz_max, indoor_control_yaw, indoor_euler_angle_max, 
+latitude, leds_anim, longitude, manual_trim, max_bitrate, max_size, navdata_demo, navdata_options, 
+nb_files, outdoor, outdoor_control_vz_max, outdoor_control_yaw, outdoor_euler_angle_max, output, 
+owner_mac, ssid_multi_player, ssid_single_player, travelling_enable, travelling_mode, ultrasound_freq, 
+ultrasound_watchdog, userbox_cmd, video_channel, video_codec, video_enable, video_file_index, 
+video_live_socket, video_on_usb, video_slices, vision_enable, wifi_mode, wifi_rate
+</code></pre>
+
+<p><a href="https://github.com/AutonomyLab/ardrone_autonomy/wiki/AR-Drone-Parameters">This wiki page</a> includes more information about each of above parameters.</p>
+
+<h3>
+<a name="other-parameters" class="anchor" href="#other-parameters"><span class="octicon octicon-link"></span></a>Other Parameters</h3>
+
+<p>These parameters control the behaviour of the driver.</p>
+
+<ul>
+<li>
+<code>drone_frame_id</code> - The "frame_id" prefix to be used in all <code>tf</code> frame names - default: "ardrone_base"</li>
+<li>
+<code>root_frame</code> - The default root in drone's <code>tf</code> tree (0: _link, 1: _frontcam, 2: _bottomcam) - Default: 0</li>
+<li>
+<code>cov/imu_la</code>, <code>cov/imu_av</code> &amp; <code>cov/imu_or</code>: List of 9 covariance values to be used in <code>imu</code>'s topic linear acceleration, angular velocity and orientation fields respectively - Default: 0.0 for all members (Please check the FAQ section for a sample launch file that shows how to set these values)</li>
+<li>
+<code>do_imu_calibration</code>: [EXPERIMENTAL] Should the drone cancel the biases in IMU data - Default: 0</li>
+<li>
+<code>enable_legacy_navdata</code>: Enable legacy <code>Navdata</code> publish - Default: True</li>
+</ul><h2>
+<a name="license" class="anchor" href="#license"><span class="octicon octicon-link"></span></a>License</h2>
+
+<p>The Parrot's license, copyright and disclaimer for <code>ARDroneLib</code> are included with the package and can be found in <code>ParrotLicense.txt</code> and <code>ParrotCopyrightAndDisclaimer.txt</code> files respectively. The other parts of the code are subject to <code>BSD</code> license.</p>
+
+<h2>
+<a name="contributors" class="anchor" href="#contributors"><span class="octicon octicon-link"></span></a>Contributors</h2>
+
+<p><a href="http://autonomylab.org/ardrone_autonomy/contribution.html">List of all commiters to the repository</a>.</p>
+
+<ul>
+<li>
+<a href="https://github.com/mikehamer">Mike Hamer</a> - Added support for proper SDK2 way of configuring the Drone via parameter (critical bug fix) (<a href="https://github.com/AutonomyLab/ardrone_autonomy/pull/26">More Info</a>). Support for zero-command without hovering (<a href="https://github.com/AutonomyLab/ardrone_autonomy/pull/34">More info</a>). Full configurable Navdata support (<a href="https://github.com/AutonomyLab/ardrone_autonomy/pull/31">More info</a>). Support for Real-time navdata and video publishing (<a href="https://github.com/AutonomyLab/ardrone_autonomy/pull/44">More info</a>). Support for configurable data publishing rate.</li>
+<li><a href="https://github.com/JakobEngel">Jacokb Engel</a></li>
+<li>
+<a href="https://github.com/sameerparekh">Sameer Parekh</a> - <a href="https://github.com/AutonomyLab/ardrone_autonomy/pull/53">Turn on and off USB stick recording</a> - <a href="https://github.com/AutonomyLab/ardrone_autonomy/pull/25">Seperate Magnetometer Topic</a>
+</li>
+<li>
+<a href="https://github.com/devmax">Devmax</a> - <a href="https://github.com/AutonomyLab/ardrone_autonomy/issues/18">Flat Trim</a> + Various
+comments for enhancements</li>
+<li>
+<a href="https://github.com/younata">Rachel Brindle</a> - <a href="https://github.com/AutonomyLab/ardrone_autonomy/pull/2">Enhanced Navdata for AR-Drone 2.0</a>
+</li>
+</ul><h2>
+<a name="faq" class="anchor" href="#faq"><span class="octicon octicon-link"></span></a>FAQ</h2>
+
+<h3>
+<a name="where-should-i-go-next-is-there-any-ros-package-or-stack-that-can-be-used-as-a-tutorialsample-to-use-ardrone_autonomy" class="anchor" href="#where-should-i-go-next-is-there-any-ros-package-or-stack-that-can-be-used-as-a-tutorialsample-to-use-ardrone_autonomy"><span class="octicon octicon-link"></span></a>Where should I go next? Is there any ROS package or stack that can be used as a tutorial/sample to use ardrone_autonomy?</h3>
+
+<p>Absolutely. Here are some examples:</p>
+
+<ul>
+<li><a href="https://github.com/FalkorSystems/falkor_ardrone">falkor_ardrone</a></li>
+</ul><p>"falkor_ardrone" is a ROS package which uses the "ardrone_autonomy" package to implement autonomous control functionality on an AR.Drone.</p>
+
+<ul>
+<li><a href="http://www.ros.org/wiki/tum_ardrone">tum_ardrone</a></li>
+</ul><p>State Estimation, Autopilot and GUI for ardrone.</p>
+
+<ul>
+<li><a href="https://github.com/parcon/arl_ardrone_examples">arl_ardrone_examples</a></li>
+</ul><p>This ROS stack includes a series of very basic nodes to show users how to develop applications that use the ardrone_autonomy drivers for the AR drone 1.0 and 2.0 quadrotor robot.</p>
+
+<ul>
+<li><a href="https://github.com/mikehamer/ardrone_tutorials">AR Drone Tutorials</a></li>
+</ul><p>This repository contains the source-code for the Up and flying with the AR.Drone and ROS tutorial series, published on <a href="http://www.robohub.org">Robohub</a>.</p>
+
+<h3>
+<a name="how-can-i-report-a-bug-submit-patches-or-ask-for-a-feature" class="anchor" href="#how-can-i-report-a-bug-submit-patches-or-ask-for-a-feature"><span class="octicon octicon-link"></span></a>How can I report a bug, submit patches or ask for a feature?</h3>
+
+<p><code>github</code> offers a nice and convenient issue tracking and social coding platform, it can be used for bug reports and pull/feature request. This is the preferred method. You can also contact the author directly.</p>
+
+<p>If you want to submit a pull request, please submit to <code>dev-unstable</code> branch.</p>
+
+<h3>
+<a name="why-the-ardronelib-has-been-patched" class="anchor" href="#why-the-ardronelib-has-been-patched"><span class="octicon octicon-link"></span></a>Why the <code>ARDroneLib</code> has been patched?</h3>
+
+<p>The ARDrone 2.0 SDK has been patched to 1) Enable the lib only build 2) Make its command parsing compatible with ROS and 3) To fix its weird <code>main()</code> function issue</p>
+
+<h3>
+<a name="why-the-wifi-bandwidth-usage-is-too-much" class="anchor" href="#why-the-wifi-bandwidth-usage-is-too-much"><span class="octicon octicon-link"></span></a>Why the wifi bandwidth usage is too much?</h3>
+
+<p>The driver has been configured by default to use the maximum bandwidth allowed to ensure the best quality video stream possible (please take a look at default values in parameters section). That is the reason why the picture quality received from Drone 2.0 using this driver is far better than what you usually get using other software. If for any reason you prefer the lower quality* video stream, change <code>bitrate_ctrl_mode</code>, <code>max_bitrate</code> and <code>bitrate</code> parameters to the default values provided by the AR-Drone developer guide.</p>
+
+<p>(*) Please note that lower quality does not mean lower resolution. By configuring AR-Drone to use bitrate control with limits, the picture gets blurry when there is a movement.</p>
+
+<h3>
+<a name="what-is-the-default-configuration-for-the-front-camera-video-stream" class="anchor" href="#what-is-the-default-configuration-for-the-front-camera-video-stream"><span class="octicon octicon-link"></span></a>What is the default configuration for the front camera video stream?</h3>
+
+<p><em>Drone 1</em>: 320x240@15fps UVLC Codec
+<em>Drone 2</em>: 640x360@20fps H264 codec with no record stream</p>
+
+<h3>
+<a name="how-can-i-extract-camera-information-and-tag-type-from-tags_type" class="anchor" href="#how-can-i-extract-camera-information-and-tag-type-from-tags_type"><span class="octicon octicon-link"></span></a>How can I extract camera information and tag type from <code>tags_type[]</code>?</h3>
+
+<p><code>tag_type</code> contains information for both source and type of each detected tag. In order to extract information from them you can use the following c macros and enums (taken from <code>ardrone_api.h</code>)</p>
+
+<div class="highlight highlight-c++"><pre><span class="cp">#define DETECTION_EXTRACT_SOURCE(type)  ( ((type)&gt;&gt;16) &amp; 0x0FF )</span>
+<span class="cp">#define DETECTION_EXTRACT_TAG(type)     ( (type) &amp; 0x0FF )</span>
+
+<span class="k">typedef</span> <span class="k">enum</span>
+<span class="p">{</span>
+  <span class="n">DETECTION_SOURCE_CAMERA_HORIZONTAL</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>   <span class="cm">/*&lt;! Tag was detected on the front camera picture */</span>
+  <span class="n">DETECTION_SOURCE_CAMERA_VERTICAL</span><span class="p">,</span>       <span class="cm">/*&lt;! Tag was detected on the vertical camera picture at full speed */</span>
+  <span class="n">DETECTION_SOURCE_CAMERA_VERTICAL_HSYNC</span><span class="p">,</span> <span class="cm">/*&lt;! Tag was detected on the vertical camera picture inside the horizontal pipeline */</span>
+  <span class="n">DETECTION_SOURCE_CAMERA_NUM</span><span class="p">,</span>
+<span class="p">}</span> <span class="n">DETECTION_SOURCE_CAMERA</span><span class="p">;</span>
+
+<span class="k">typedef</span> <span class="k">enum</span>
+<span class="p">{</span>
+  <span class="n">TAG_TYPE_NONE</span>             <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+  <span class="n">TAG_TYPE_SHELL_TAG</span>        <span class="p">,</span>
+  <span class="n">TAG_TYPE_ROUNDEL</span>          <span class="p">,</span>
+  <span class="n">TAG_TYPE_ORIENTED_ROUNDEL</span> <span class="p">,</span>
+  <span class="n">TAG_TYPE_STRIPE</span>           <span class="p">,</span>
+  <span class="n">TAG_TYPE_CAP</span>              <span class="p">,</span>
+  <span class="n">TAG_TYPE_SHELL_TAG_V2</span>     <span class="p">,</span>
+  <span class="n">TAG_TYPE_TOWER_SIDE</span>       <span class="p">,</span>
+  <span class="n">TAG_TYPE_BLACK_ROUNDEL</span>    <span class="p">,</span>
+  <span class="n">TAG_TYPE_NUM</span>
+<span class="p">}</span> <span class="n">TAG_TYPE</span><span class="p">;</span>
+
+</pre></div>
+
+<h3>
+<a name="how-can-i-calibrate-the-ardrone-frontbottom-camera" class="anchor" href="#how-can-i-calibrate-the-ardrone-frontbottom-camera"><span class="octicon octicon-link"></span></a>How can I calibrate the ardrone front/bottom camera?</h3>
+
+<p>It is easy to calibrate both cameras using ROS <a href="http://www.ros.org/wiki/camera_calibration">Camera Calibration</a> package.</p>
+
+<p>First, run the camera_calibration node with appropriate arguments: (For the bottom camera, replace front with bottom)</p>
+
+<div class="highlight highlight-bash"><pre>rosrun camera_calibration cameracalibrator.py --size <span class="o">[</span>SIZE<span class="o">]</span> --square <span class="o">[</span>SQUARESIZE<span class="o">]</span> image:<span class="o">=</span>/ardrone/front/image_raw camera:<span class="o">=</span>/ardrone/front
+</pre></div>
+
+<p>After successful calibration, press the <code>commit</code> button in the UI. The driver will receive the data from the camera calibration node, then will save the information by default in <code>~/.ros/camera_info/ardrone_front.yaml</code>. From this point on, whenever you run the driver on the same computer this file will be loaded automatically by the driver and its information will be published to appropriate <code>camera_info</code> topic. Sample calibration files for AR-Drone 2.0's cameras are provided in <code>data/camera_info</code> folder.</p>
+
+<h3>
+<a name="can-i-see-a-sample-ardrone-node-in-a-launch-file-to-learn-how-to-set-parameters" class="anchor" href="#can-i-see-a-sample-ardrone-node-in-a-launch-file-to-learn-how-to-set-parameters"><span class="octicon octicon-link"></span></a>Can I see a sample ardrone node in a launch file to learn how to set parameters?</h3>
+
+<p>Yes, you can check the <code>launch</code> folder for sample lanuch file.</p>
+
+<h3>
+<a name="can-i-control-multiple-drones-using-a-single-pc-or-can-i-make-my-drone-connect-to-a-wireless-router" class="anchor" href="#can-i-control-multiple-drones-using-a-single-pc-or-can-i-make-my-drone-connect-to-a-wireless-router"><span class="octicon octicon-link"></span></a>Can I control multiple drones using a single PC? or can I make my drone connect to a wireless router?</h3>
+
+<p>With some hacking yes! This <a href="https://github.com/AutonomyLab/ardrone_autonomy/wiki/Multiple-AR-Drones">wiki page</a> contains some information regarding this issue.</p>
+
+<h3>
+<a name="how-to-re-compile-parrot-sdk" class="anchor" href="#how-to-re-compile-parrot-sdk"><span class="octicon octicon-link"></span></a>How to re-compile parrot SDK?</h3>
+
+<p>If the <code>git</code> updates include a SDK upgrade, you'd better cleanup previous vuild files.</p>
+
+<div class="highlight highlight-bash"><pre><span class="nb">cd </span>ARDroneLib/Soft/Build
+make clean
+rm -rf targets_versions
+</pre></div>
+
+<p>Build the SDK and driver again.</p>
+
+<h2>
+<a name="todo" class="anchor" href="#todo"><span class="octicon octicon-link"></span></a>TODO</h2>
+
+<ul>
+<li>Make the <code>tf</code> publish optional.</li>
+<li>Add the currently selected camera name to <code>Navdata</code>
+</li>
+<li>[DONE] Add separate topic for drone's debug stream (<code>navdata_demo</code>)</li>
+<li>[DONE] Make the <code>togglecam</code> service accept parameters</li>
+<li>[DONE] Enrich <code>Navdata</code> with magneto meter and baro meter information</li>
+</ul>
+        </section>
+
+        <aside id="sidebar">
+          <a href="https://github.com/AutonomyLab/ardrone_autonomy/zipball/master" class="button">
+            <small>Download</small>
+            .zip file
+          </a>
+          <a href="https://github.com/AutonomyLab/ardrone_autonomy/tarball/master" class="button">
+            <small>Download</small>
+            .tar.gz file
+          </a>
+
+          <p class="repo-owner"><a href="https://github.com/AutonomyLab/ardrone_autonomy"></a> is maintained by <a href="https://github.com/AutonomyLab">AutonomyLab</a>.</p>
+
+          <p>This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the Architect theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.</p>
+        </aside>
+      </div>
+    </div>
+
+  
+  </body>
+</html>
