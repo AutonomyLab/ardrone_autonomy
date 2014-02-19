@@ -29,6 +29,10 @@
 #include "ardrone_autonomy/navdata_hdvideo_stream.h"
 #include "ardrone_autonomy/navdata_wifi.h"
 #include "ardrone_autonomy/navdata_zimmu_3000.h"
+#include "ardrone_autonomy/navdata_camera_settings.h"
+#include "ardrone_autonomy/navdata_host.h"
+#include "ardrone_autonomy/navdata_gps.h"
+#include "ardrone_autonomy/navdata_gps_channel.h"
 #include <std_msgs/UInt16.h>
 #include <std_msgs/UInt32.h>
 #include <std_msgs/Float32.h>
@@ -129,6 +133,16 @@
 	ros::Publisher pub_navdata_zimmu_3000;
 	bool enabled_navdata_zimmu_3000;
 	ardrone_autonomy::navdata_zimmu_3000 navdata_zimmu_3000_msg;
+	ros::Publisher pub_navdata_gps;
+	bool enabled_navdata_gps;
+	ardrone_autonomy::navdata_gps navdata_gps_msg;	
+	ardrone_autonomy::navdata_gps_channel navdata_gps_channel_msg;	
+	ros::Publisher pub_navdata_host;
+	bool enabled_navdata_host;
+	ardrone_autonomy::navdata_host navdata_host_msg;	
+	ros::Publisher pub_navdata_camera_settings;
+	bool enabled_navdata_camera_settings;
+	ardrone_autonomy::navdata_camera_settings navdata_camera_settings_msg;	
 
 	bool enabled_legacy_navdata;
 
@@ -370,6 +384,30 @@
 		if(enabled_navdata_zimmu_3000)
 		{
 			pub_navdata_zimmu_3000 = node_handle.advertise<ardrone_autonomy::navdata_zimmu_3000>("ardrone/navdata_zimmu_3000", NAVDATA_QUEUE_SIZE);
+		}
+
+		//-------------------------
+
+		ros::param::param("~enable_navdata_gps", enabled_navdata_gps, false);
+		if(enabled_navdata_gps)
+		{
+			pub_navdata_gps = node_handle.advertise<ardrone_autonomy::navdata_gps>("ardrone/navdata_gps", NAVDATA_QUEUE_SIZE);
+		}
+
+		//-------------------------
+
+		ros::param::param("~enable_navdata_host", enabled_navdata_host, false);
+		if(enabled_navdata_host)
+		{
+			pub_navdata_host = node_handle.advertise<ardrone_autonomy::navdata_host>("ardrone/navdata_host", NAVDATA_QUEUE_SIZE);
+		}
+
+		//-------------------------
+
+		ros::param::param("~enable_navdata_camera_settings", enabled_navdata_camera_settings, false);
+		if(enabled_navdata_camera_settings)
+		{
+			pub_navdata_camera_settings = node_handle.advertise<ardrone_autonomy::navdata_camera_settings>("ardrone/navdata_camera_settings", NAVDATA_QUEUE_SIZE);
 		}
 
 		//-------------------------
@@ -2918,7 +2956,7 @@ void ARDroneDriver::PublishNavdataTypes(const navdata_unpacked_t &n, const ros::
 		}
 
 		//-------------------------
-
+		/*
 		if(enabled_navdata_zimmu_3000 && pub_navdata_zimmu_3000.getNumSubscribers()>0)
 		{
 			navdata_zimmu_3000_msg.drone_time = ((double)ardrone_time_to_usec(n.navdata_time.time))/1000000.0;
@@ -2959,6 +2997,463 @@ void ARDroneDriver::PublishNavdataTypes(const navdata_unpacked_t &n, const ros::
 
 			pub_navdata_zimmu_3000.publish(navdata_zimmu_3000_msg);
 		}
+		*/
+
+		//-------------------------
+
+		if(enabled_navdata_camera_settings && pub_navdata_camera_settings.getNumSubscribers()>0)
+		{
+			navdata_camera_settings_msg.header.stamp = received;
+			navdata_camera_settings_msg.header.frame_id = droneFrameBase;
+
+			{				
+			uint16_t c = n.navdata_camera_settings.tag;
+			uint16_t m;
+			m = c;
+
+				navdata_camera_settings_msg.tag = m;
+			}
+
+			{				
+			uint16_t c = n.navdata_camera_settings.size;
+			uint16_t m;
+			m = c;
+
+				navdata_camera_settings_msg.size = m;
+			}
+
+			{				
+			int16_t c = n.navdata_camera_settings.temperature;
+			int16_t m;
+			m = c;
+
+				navdata_camera_settings_msg.temperature = m;
+			}
+
+			pub_navdata_camera_settings.publish(navdata_camera_settings_msg);
+		}
+
+		//-------------------------
+
+		if(enabled_navdata_host && pub_navdata_host.getNumSubscribers()>0)
+		{
+			navdata_host_msg.header.stamp = received;
+			navdata_host_msg.header.frame_id = droneFrameBase;
+
+			{				
+			uint16_t c = n.navdata_host.tag;
+			uint16_t m;
+			m = c;
+
+				navdata_host_msg.tag = m;
+			}
+
+			{				
+			uint16_t c = n.navdata_host.size;
+			uint16_t m;
+			m = c;
+
+				navdata_host_msg.size = m;
+			}
+
+			{				
+			int32_t c = n.navdata_host.host_flag;
+			int32_t m;
+			m = c;
+
+				navdata_host_msg.host_flag = m;
+			}
+
+			{				
+			float32_t c = n.navdata_host.host_gaz;
+			float32_t m;
+			m = c;
+
+				navdata_host_msg.host_gaz = m;
+			}
+
+			{				
+			float32_t c = n.navdata_host.host_yaw;
+			float32_t m;
+			m = c;
+
+				navdata_host_msg.host_yaw = m;
+			}
+
+			{				
+			float32_t c = n.navdata_host.host_phi;
+			float32_t m;
+			m = c;
+
+				navdata_host_msg.host_phi = m;
+			}
+
+			{				
+			float32_t c = n.navdata_host.host_theta;
+			float32_t m;
+			m = c;
+
+				navdata_host_msg.host_theta = m;
+			}
+
+			{				
+			float32_t c = n.navdata_host.host_magneto_psi;
+			float32_t m;
+			m = c;
+
+				navdata_host_msg.host_magneto_psi = m;
+			}
+
+			{				
+			float32_t c = n.navdata_host.host_magneto_psi_accuracy;
+			float32_t m;
+			m = c;
+
+				navdata_host_msg.host_magneto_psi_accuracy = m;
+			}
+
+			pub_navdata_host.publish(navdata_host_msg);
+		}
+
+		//-------------------------
+
+		if(enabled_navdata_gps && pub_navdata_gps.getNumSubscribers()>0)
+		{
+			navdata_gps_msg.header.stamp = received;
+			navdata_gps_msg.header.frame_id = droneFrameBase;
+
+			{				
+			uint16_t c = n.navdata_gps_info.tag;
+			uint16_t m;
+			m = c;
+
+				navdata_gps_msg.tag = m;
+			}
+
+			{				
+			uint16_t c = n.navdata_gps_info.size;
+			uint16_t m;
+			m = c;
+
+				navdata_gps_msg.size = m;
+			}
+
+			{				
+			float64_t c = n.navdata_gps_info.latitude;
+			float64_t m;
+			m = c;
+
+				navdata_gps_msg.latitude = m;
+			}
+
+			{				
+			float64_t c = n.navdata_gps_info.longitude;
+			float64_t m;
+			m = c;
+
+				navdata_gps_msg.longitude = m;
+			}
+
+			{				
+			float64_t c = n.navdata_gps_info.elevation;
+			float64_t m;
+			m = c;
+
+				navdata_gps_msg.elevation = m;
+			}
+
+			{				
+			float64_t c = n.navdata_gps_info.hdop;
+			float64_t m;
+			m = c;
+
+				navdata_gps_msg.hdop = m;
+			}
+
+			{				
+			uint32_t c = n.navdata_gps_info.data_available;
+			uint32_t m;
+			m = c;
+
+				navdata_gps_msg.data_available = m;
+			}
+
+			{				
+			bool c = n.navdata_gps_info.zero_validated;
+			bool m;
+			m = c;
+
+				navdata_gps_msg.zero_validated = m;
+			}
+
+			{				
+			bool c = n.navdata_gps_info.wpt_validated;
+			bool m;
+			m = c;
+
+				navdata_gps_msg.wpt_validated = m;
+			}
+
+			{				
+			float64_t c = n.navdata_gps_info.lat0;
+			float64_t m;
+			m = c;
+
+				navdata_gps_msg.lat0 = m;
+			}
+
+			{				
+			float64_t c = n.navdata_gps_info.long0;
+			float64_t m;
+			m = c;
+
+				navdata_gps_msg.long0 = m;
+			}
+
+			{				
+			float64_t c = n.navdata_gps_info.lat_fused;
+			float64_t m;
+			m = c;
+
+				navdata_gps_msg.lat_fused = m;
+			}
+
+			{				
+			float64_t c = n.navdata_gps_info.long_fused;
+			float64_t m;
+			m = c;
+
+				navdata_gps_msg.long_fused = m;
+			}
+
+			{				
+			uint32_t c = n.navdata_gps_info.gps_state;
+			uint32_t m;
+			m = c;
+
+				navdata_gps_msg.gps_state = m;
+			}
+
+			{				
+			float32_t c = n.navdata_gps_info.X_traj;
+			float32_t m;
+			m = c;
+
+				navdata_gps_msg.X_traj = m;
+			}
+
+			{				
+			float32_t c = n.navdata_gps_info.X_ref;
+			float32_t m;
+			m = c;
+
+				navdata_gps_msg.X_ref = m;
+			}
+
+			{				
+			float32_t c = n.navdata_gps_info.Y_traj;
+			float32_t m;
+			m = c;
+
+				navdata_gps_msg.Y_traj = m;
+			}
+
+			{				
+			float32_t c = n.navdata_gps_info.Y_ref;
+			float32_t m;
+			m = c;
+
+				navdata_gps_msg.Y_ref = m;
+			}
+
+			{				
+			float32_t c = n.navdata_gps_info.theta_p;
+			float32_t m;
+			m = c;
+
+				navdata_gps_msg.theta_p = m;
+			}
+
+			{				
+			float32_t c = n.navdata_gps_info.theta_i;
+			float32_t m;
+			m = c;
+
+				navdata_gps_msg.theta_i = m;
+			}
+
+			{				
+			float32_t c = n.navdata_gps_info.theta_d;
+			float32_t m;
+			m = c;
+
+				navdata_gps_msg.theta_d = m;
+			}
+
+			{				
+			float32_t c = n.navdata_gps_info.phi_p;
+			float32_t m;
+			m = c;
+
+				navdata_gps_msg.phi_p = m;
+			}
+
+			{				
+			float32_t c = n.navdata_gps_info.phi_i;
+			float32_t m;
+			m = c;
+
+				navdata_gps_msg.phi_i = m;
+			}
+
+			{				
+			float32_t c = n.navdata_gps_info.phi_d;
+			float32_t m;
+			m = c;
+
+				navdata_gps_msg.phi_d = m;
+			}
+
+			{				
+			float64_t c = n.navdata_gps_info.vdop;
+			float64_t m;
+			m = c;
+
+				navdata_gps_msg.vdop = m;
+			}
+
+			{				
+			float64_t c = n.navdata_gps_info.pdop;
+			float64_t m;
+			m = c;
+
+				navdata_gps_msg.pdop = m;
+			}
+
+			{				
+			float32_t c = n.navdata_gps_info.speed;
+			float32_t m;
+			m = c;
+
+				navdata_gps_msg.speed = m;
+			}
+
+			{				
+			uint32_t c = n.navdata_gps_info.lastFrameTimestamp;
+			uint32_t m;
+			m = c;
+
+				navdata_gps_msg.lastFrameTimestamp = m;
+			}
+
+			{				
+			float32_t c = n.navdata_gps_info.degree;
+			float32_t m;
+			m = c;
+
+				navdata_gps_msg.degree = m;
+			}
+
+			{				
+			float32_t c = n.navdata_gps_info.degree_magnetic;
+			float32_t m;
+			m = c;
+
+				navdata_gps_msg.degree_magnetic = m;
+			}
+
+			{				
+			float32_t c = n.navdata_gps_info.ehpe;
+			float32_t m;
+			m = c;
+
+				navdata_gps_msg.ehpe = m;
+			}
+
+			{				
+			float32_t c = n.navdata_gps_info.ehve;
+			float32_t m;
+			m = c;
+
+				navdata_gps_msg.ehve = m;
+			}
+
+			{				
+			float32_t c = n.navdata_gps_info.c_n0;
+			float32_t m;
+			m = c;
+
+				navdata_gps_msg.c_n0 = m;
+			}
+
+			{				
+			uint32_t c = n.navdata_gps_info.nbsat;
+			uint32_t m;
+			m = c;
+
+				navdata_gps_msg.nbsat = m;
+			}
+
+			{				
+			bool c = n.navdata_gps_info.is_gps_plugged;
+			bool m;
+			m = c;
+
+				navdata_gps_msg.is_gps_plugged = m;
+			}
+
+			{				
+			uint32_t c = n.navdata_gps_info.ephemerisStatus;
+			uint32_t m;
+			m = c;
+
+				navdata_gps_msg.ephemerisStatus = m;
+			}
+
+			{				
+			uint32_t c = n.navdata_gps_info.firmwareStatus;
+			uint32_t m;
+			m = c;
+
+				navdata_gps_msg.firmwareStatus = m;
+			}
+
+			{				
+			float32_t c = n.navdata_gps_info.vx_traj;
+			float32_t m;
+			m = c;
+
+				navdata_gps_msg.vx_traj = m;
+			}
+
+			{				
+			float32_t c = n.navdata_gps_info.vy_traj;
+			float32_t m;
+			m = c;
+
+				navdata_gps_msg.vy_traj = m;
+			}
+
+			for (int k = 0; k < 12; k++) {
+				{
+					uint8_t c = n.navdata_gps_info.channels[k].sat;
+					uint8_t m;
+					m = c;
+					navdata_gps_channel_msg.sat = m;
+				}
+				{
+					uint8_t c = n.navdata_gps_info.channels[k].c_n0;
+					uint8_t m;
+					m = c;
+					navdata_gps_channel_msg.c_n0 = m;
+				}
+				navdata_gps_msg.channels[k] = navdata_gps_channel_msg;
+			}
+
+			pub_navdata_gps.publish(navdata_gps_msg);
+
+		}
+
 
 		//-------------------------
 

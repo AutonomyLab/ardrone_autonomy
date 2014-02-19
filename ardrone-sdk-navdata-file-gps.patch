@@ -1,0 +1,39 @@
+--- ARDroneLib/Soft/Lib/ardrone_tool/Navdata/ardrone_navdata_file.c~	2014-02-19 11:25:46.459908329 +0100
++++ ARDroneLib/Soft/Lib/ardrone_tool/Navdata/ardrone_navdata_file.c	2014-02-19 11:25:51.507933361 +0100
+@@ -239,14 +239,14 @@
+ 	fprintf( navdata_file, ";%s", str );
+ 	fprintf( navdata_file, "; %u", (unsigned int) pnd->nd_seq);
+ 
+-	fprintf( navdata_file, "; %04u; %04u; %04u; %04d; %04d; %04d; %04d; %04u; %04u; %04u; %04u; %04u; %04u; %04u; %04u; %04u; %04u; %04u; %04u; %04u; %04u; %04u; %04u; %04d; %04d",
++	fprintf( navdata_file, "; %04u; %04u; %04u; %04d; %04d; %04d; %04d; %04u; %04u; %04u; %04u; %04u; %04u; %04u; %04u; %04u; %04u; %04u; %04u; %04u; %04u; %04u; %04d; %04d",
+ 			(unsigned int) pnd->navdata_raw_measures.raw_accs[ACC_X],
+ 			(unsigned int) pnd->navdata_raw_measures.raw_accs[ACC_Y],
+ 			(unsigned int) pnd->navdata_raw_measures.raw_accs[ACC_Z],
+ 			(int) pnd->navdata_raw_measures.raw_gyros[GYRO_X],
+ 			(int) pnd->navdata_raw_measures.raw_gyros[GYRO_Y],
+ 			(int) pnd->navdata_raw_measures.raw_gyros[GYRO_Z],
+-			(int) pnd->navdata_zimmu_3000.vzimmuLSB,
++			//(int) pnd->navdata_zimmu_3000.vzimmuLSB,
+ 			(unsigned int) pnd->navdata_raw_measures.raw_gyros_110[0],
+ 			(unsigned int) pnd->navdata_raw_measures.raw_gyros_110[1],
+ 			(unsigned int) pnd->navdata_raw_measures.vbat_raw,
+@@ -332,7 +332,7 @@
+ 			pnd->navdata_wind_speed.magneto_debug2,
+ 			pnd->navdata_wind_speed.magneto_debug3);
+ 
+-	fprintf( navdata_file, "; %f; %04u; % 5f; % 5f; % 5f; % 6f; % 6f; % 6f; %6f",
++	fprintf( navdata_file, "; %f; %04u; % 5f; % 5f; % 5f; % 6f; % 6f; % 6f",//; %6f",
+ 			pnd->navdata_phys_measures.accs_temp,
+ 			(unsigned int)pnd->navdata_phys_measures.gyro_temp,
+ 			pnd->navdata_phys_measures.phys_accs[ACC_X],
+@@ -340,8 +340,8 @@
+ 			pnd->navdata_phys_measures.phys_accs[ACC_Z],
+ 			pnd->navdata_phys_measures.phys_gyros[GYRO_X],
+ 			pnd->navdata_phys_measures.phys_gyros[GYRO_Y],
+-			pnd->navdata_phys_measures.phys_gyros[GYRO_Z],
+-			pnd->navdata_zimmu_3000.vzfind                );
++			pnd->navdata_phys_measures.phys_gyros[GYRO_Z]);
++//,			pnd->navdata_zimmu_3000.vzfind                );
+ 
+ 	fprintf( navdata_file, "; % f; % f; % f",
+ 			pnd->navdata_gyros_offsets.offset_g[GYRO_X],
