@@ -16,6 +16,15 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <!-- Dependencies needed to compile this package. -->
+  <!-- Fat SDK dependencies -->
+  <build_depend>binutils</build_depend>
+  <build_depend>daemontools</build_depend>
+  <build_depend>sdl</build_depend>
+  <build_depend>gtk2</build_depend>
+  <build_depend>libxml2</build_depend>
+  <build_depend>libudev-dev</build_depend>
+  <build_depend>libiw-dev</build_depend>
+  <!-- ROS Driver -->
   <build_depend>roscpp</build_depend>
   <build_depend>image_transport</build_depend>
   <build_depend>sensor_msgs</build_depend>
