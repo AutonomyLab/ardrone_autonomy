@@ -1,7 +1,7 @@
-diff --git a/ARDroneLib/Soft/Lib/ardrone_tool/ardrone_tool.c b/ARDroneLib/Soft/Lib/ardrone_tool/ardrone_tool.c
+diff --git a/ardrone-sdk-stripped-2.0.1/ARDroneLib/Soft/Lib/ardrone_tool/ardrone_tool.c b/ardrone-sdk-stripped-2.0.1-patched/ARDroneLib/Soft/Lib/ardrone_tool/ardrone_tool.c
 index 8466d4c..0b4f2e7 100644
---- a/ARDroneLib/Soft/Lib/ardrone_tool/ardrone_tool.c
-+++ b/ARDroneLib/Soft/Lib/ardrone_tool/ardrone_tool.c
+--- a/ardrone-sdk-stripped-2.0.1/ARDroneLib/Soft/Lib/ardrone_tool/ardrone_tool.c
++++ b/ardrone-sdk-stripped-2.0.1-patched/ARDroneLib/Soft/Lib/ardrone_tool/ardrone_tool.c
 @@ -332,11 +332,11 @@ int ardrone_tool_main(int argc, char **argv)
      argc--; argv++;
    }
@@ -16,10 +16,10 @@ index 8466d4c..0b4f2e7 100644
    
    /* After a first analysis, the arguments are restored so they can be passed to the user-defined functions */
    argc=argc_backup;
-diff --git a/ARDroneLib/Soft/Lib/ardrone_tool/ardrone_tool.h b/ARDroneLib/Soft/Lib/ardrone_tool/ardrone_tool.h
+diff --git a/ardrone-sdk-stripped-2.0.1/ARDroneLib/Soft/Lib/ardrone_tool/ardrone_tool.h b/ardrone-sdk-stripped-2.0.1-patched/ARDroneLib/Soft/Lib/ardrone_tool/ardrone_tool.h
 index a081c9a..93005ec 100644
---- a/ARDroneLib/Soft/Lib/ardrone_tool/ardrone_tool.h
-+++ b/ARDroneLib/Soft/Lib/ardrone_tool/ardrone_tool.h
+--- a/ardrone-sdk-stripped-2.0.1/ARDroneLib/Soft/Lib/ardrone_tool/ardrone_tool.h
++++ b/ardrone-sdk-stripped-2.0.1-patched/ARDroneLib/Soft/Lib/ardrone_tool/ardrone_tool.h
 @@ -66,7 +66,7 @@ C_RESULT ardrone_tool_shutdown(void);
  
  void ardrone_tool_init_timers_and_mutex();
@@ -29,10 +29,10 @@ index a081c9a..93005ec 100644
  
  // There because not defined in embedded
  void api_configuration_get_ctrl_mode(void);
-diff --git a/ARDroneLib/VP_SDK/Build/Makefile b/ARDroneLib/VP_SDK/Build/Makefile
+diff --git a/ardrone-sdk-stripped-2.0.1/ARDroneLib/VP_SDK/Build/Makefile b/ardrone-sdk-stripped-2.0.1-patched/ARDroneLib/VP_SDK/Build/Makefile
 index bda3259..27418d2 100644
---- a/ARDroneLib/VP_SDK/Build/Makefile
-+++ b/ARDroneLib/VP_SDK/Build/Makefile
+--- a/ardrone-sdk-stripped-2.0.1/ARDroneLib/VP_SDK/Build/Makefile
++++ b/ardrone-sdk-stripped-2.0.1-patched/ARDroneLib/VP_SDK/Build/Makefile
 @@ -105,6 +105,10 @@ define ADD_RULE_TEMPLATE
    ifeq ($(USE_ANDROID),yes)
       build_lib: build_$(1)
@@ -44,11 +44,44 @@ index bda3259..27418d2 100644
    endif
    endif
    endif
-diff --git a/Makefile b/Makefile
+diff --git a/ardrone-sdk-stripped-2.0.1/ARDroneLib/VP_SDK/Build/generic.makefile b/ardrone-sdk-stripped-2.0.1-patched/ARDroneLib/VP_SDK/Build/generic.makefile
+index 91895b3..94d1cb8 100644
+--- a/ardrone-sdk-stripped-2.0.1/ARDroneLib/VP_SDK/Build/generic.makefile
++++ b/ardrone-sdk-stripped-2.0.1-patched/ARDroneLib/VP_SDK/Build/generic.makefile
+@@ -35,10 +35,25 @@ INTERNAL_MKDIR=mkdir -p
+ INTERNAL_ECHO=echo
+ 
+ # (in) GENERIC_COMMAND_PREFIX
++
++# solve problem with system-wide ccache:
++# gcc is in different folder (/usr/lib/ccache) than and ar,objdump and strip.
++# This is only a hack to fix this issue
+ INTERNAL_CC:=$(GENERIC_COMMAND_PREFIX)gcc
+-INTERNAL_AR:=$(GENERIC_COMMAND_PREFIX)ar
+-INTERNAL_OBJCOPY:=$(GENERIC_COMMAND_PREFIX)objcopy
+-INTERNAL_STRIP:=$(GENERIC_COMMAND_PREFIX)strip
++
++ifneq (,$(findstring ccache,$(GENERIC_COMMAND_PREFIX)))
++    # Found ccache
++    NON_TOOLCHAIN_PATH=$(shell which ar | sed "s:/ar::")
++    NON_GENERIC_COMMAND_PREFIX=$(NON_TOOLCHAIN_PATH)/
++    INTERNAL_AR:=$(NON_GENERIC_COMMAND_PREFIX)ar
++    INTERNAL_OBJCOPY:=$(NON_GENERIC_COMMAND_PREFIX)objcopy
++    INTERNAL_STRIP:=$(NON_GENERIC_COMMAND_PREFIX)strip
++else
++    INTERNAL_AR:=$(GENERIC_COMMAND_PREFIX)ar
++    INTERNAL_OBJCOPY:=$(GENERIC_COMMAND_PREFIX)objcopy
++    INTERNAL_STRIP:=$(GENERIC_COMMAND_PREFIX)strip
++endif
++
+ 
+ # (in) GENERIC_CFLAGS
+ # (in) GENERIC_LDFLAGS
+diff --git a/ardrone-sdk-stripped-2.0.1-patched/Makefile b/ardrone-sdk-stripped-2.0.1-patched/Makefile
 new file mode 100644
-index 0000000..aef450a
+index 0000000..2ad03a2
 --- /dev/null
-+++ b/Makefile
++++ b/ardrone-sdk-stripped-2.0.1-patched/Makefile
 @@ -0,0 +1,25 @@
 +SDK_PATH:=$(shell pwd)/ARDroneLib
 +PC_TARGET=yes

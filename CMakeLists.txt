@@ -62,7 +62,7 @@ include(ExternalProject)
 ExternalProject_Add(ardronelib
 	URL ${PROJECT_SOURCE_DIR}/ARDroneSDK/ardrone-sdk-stripped-2.0.1.tgz
 	PREFIX ${CMAKE_BINARY_DIR}/ardrone
-	PATCH_COMMAND patch -p1 < ${PROJECT_SOURCE_DIR}/ardrone_lib.patch
+	PATCH_COMMAND patch -p2 < ${PROJECT_SOURCE_DIR}/ardrone_lib.patch
 	CONFIGURE_COMMAND echo "No configure"
 	BUILD_COMMAND make
 	INSTALL_COMMAND make install INSTALL_PREFIX=${CATKIN_DEVEL_PREFIX}/lib/ardrone
