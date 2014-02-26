@@ -2,6 +2,10 @@
 Changelog for package ardrone_autonomy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* SDK related bug fixes for building binaries.
+
 1.3.1 (2014-02-18)
 ------------------
 * Preparing the initial binary release.
