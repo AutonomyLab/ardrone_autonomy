@@ -2,8 +2,8 @@
 Changelog for package ardrone_autonomy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.3.3 (2014-03-01)
+------------------
 * Fixed tf deprecated setEulerZYX
 * New SDK patch to remove deprecated warnings from FFMPEG
 
