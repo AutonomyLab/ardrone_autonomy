@@ -173,7 +173,7 @@ void ARDroneDriver::run()
                 {
                     vp_os_mutex_lock(&navdata_lock);
                     last_navdata_id = copy_current_navdata_id;
-                    
+
                     // Thread safe copy of interesting Navdata data
                     // TODO: This is a very expensive task, can we optimize here?
                     // maybe ignoring the copy when it is not needed.
@@ -182,7 +182,7 @@ void ARDroneDriver::run()
                     vp_os_mutex_unlock(&navdata_lock);
 
                     PublishNavdataTypes(navdata_raw, navdata_receive_time); // This function is defined in the template NavdataMessageDefinitions.h template file
-                    publish_navdata(navdata_raw, navdata_receive_time);                
+                    publish_navdata(navdata_raw, navdata_receive_time);
                 }
             }
             if (freq_dev == 0) publish_tf();
@@ -347,19 +347,19 @@ void ARDroneDriver::publish_video()
         * Information on buffer and image sizes.
         * Buffer is always in QVGA size, however for different Camera Modes
         * The picture and PIP sizes are different.
-        * 
+        *
         * image_raw and buffer are always 320x240. In order to preserve backward compatibilty image_raw remains
         * always as before. Two new set of topics are added for two new cameras : /ardrone/front/xxx and /ardrone/bottom/xxx
-        * 
+        *
         * In Camera State 0 front image relays the buffer  and image_raw and bottom image are not updated.
-        * 
+        *
         * In Camera State 1 bottom image is a 174x144 crop of the buffer. The front image is not updated
-        * 
+        *
         * In Camera State 2 bottom image is a PIP cut of size (87x72) from buffer.
         * The bottom image is a (320-87)x(240) cut of the buffer.
-        * 
+        *
         * In Camera State 3 front image is a PIP cut of size (58x42) from buffer.
-        * The bottom image is a (174-58)x144 crop of the buffer. 
+        * The bottom image is a (174-58)x144 crop of the buffer.
         */
         sensor_msgs::Image image_msg;
         sensor_msgs::Image::_data_type::iterator _it;
@@ -392,7 +392,7 @@ void ARDroneDriver::publish_video()
         if (cam_state == ZAP_CHANNEL_HORI)
         {
             /*
-            * Horizontal camera is activated, only /ardrone/front/ is being updated 
+            * Horizontal camera is activated, only /ardrone/front/ is being updated
             */
             cinfo_msg_hori.width = D1_STREAM_WIDTH;
             cinfo_msg_hori.height = D1_STREAM_HEIGHT;
@@ -403,7 +403,7 @@ void ARDroneDriver::publish_video()
         else if (cam_state == ZAP_CHANNEL_VERT)
         {
             /*
-            * Vertical camera is activated, only /ardrone/bottom/ is being updated 
+            * Vertical camera is activated, only /ardrone/bottom/ is being updated
             */
             image_msg.width = D1_VERTSTREAM_WIDTH;
             image_msg.height = D1_VERTSTREAM_HEIGHT;
@@ -529,7 +529,7 @@ void ARDroneDriver::publish_video()
             hori_pub.publish(image_msg, cinfo_msg_hori);
         }
     }
-    
+
     /**
      * For Drone 2 w/ SDK2. Both camera streams are 360p.
      * No 720p support for now.
@@ -537,12 +537,12 @@ void ARDroneDriver::publish_video()
      */
     if (IS_ARDRONE2)
     {
-        sensor_msgs::Image image_msg;        
+        sensor_msgs::Image image_msg;
         sensor_msgs::Image::_data_type::iterator _it;
 
         image_msg.header.stamp = ros::Time::now();
-        cinfo_msg_hori.header.stamp = image_msg.header.stamp; 
-        cinfo_msg_vert.header.stamp = image_msg.header.stamp; 
+        cinfo_msg_hori.header.stamp = image_msg.header.stamp;
+        cinfo_msg_vert.header.stamp = image_msg.header.stamp;
 
         if (cam_state == ZAP_CHANNEL_HORI)
         {
@@ -572,7 +572,7 @@ void ARDroneDriver::publish_video()
         if (cam_state == ZAP_CHANNEL_HORI)
         {
             /*
-            * Horizontal camera is activated, only /ardrone/front/ is being updated 
+            * Horizontal camera is activated, only /ardrone/front/ is being updated
             */
             cinfo_msg_hori.width = D2_STREAM_WIDTH;
             cinfo_msg_hori.height = D2_STREAM_HEIGHT;
@@ -582,7 +582,7 @@ void ARDroneDriver::publish_video()
         else if (cam_state == ZAP_CHANNEL_VERT)
         {
             /*
-            * Vertical camera is activated, only /ardrone/bottom/ is being updated 
+            * Vertical camera is activated, only /ardrone/bottom/ is being updated
             */
             cinfo_msg_vert.width = D2_STREAM_WIDTH;
             cinfo_msg_vert.height = D2_STREAM_HEIGHT;
@@ -590,7 +590,7 @@ void ARDroneDriver::publish_video()
             vert_pub.publish(image_msg, cinfo_msg_vert);
         }
     }
-	
+
 }
 
 void ARDroneDriver::publish_navdata(navdata_unpacked_t &navdata_raw, const ros::Time &navdata_receive_time)
@@ -642,7 +642,7 @@ void ARDroneDriver::publish_navdata(navdata_unpacked_t &navdata_raw, const ros::
     legacynavdata_msg.header.frame_id = droneFrameBase;
     legacynavdata_msg.batteryPercent = navdata_raw.navdata_demo.vbat_flying_percentage;
     legacynavdata_msg.state = (navdata_raw.navdata_demo.ctrl_state >> 16);
-    
+
     // positive means counterclockwise rotation around axis
     legacynavdata_msg.rotX = navdata_raw.navdata_demo.phi / 1000.0; // tilt left/right
     legacynavdata_msg.rotY = -navdata_raw.navdata_demo.theta / 1000.0; // tilt forward/backward
@@ -732,7 +732,7 @@ void ARDroneDriver::publish_navdata(navdata_unpacked_t &navdata_raw, const ros::
 
     // IMU - Rotation Matrix
     tf::Quaternion q;
-    q.setEulerZYX(legacynavdata_msg.rotZ * _DEG2RAD, legacynavdata_msg.rotY * _DEG2RAD, legacynavdata_msg.rotX * _DEG2RAD);
+    q.setRPY(legacynavdata_msg.rotZ * _DEG2RAD, legacynavdata_msg.rotY * _DEG2RAD, legacynavdata_msg.rotX * _DEG2RAD);
     tf::quaternionTFToMsg(q, imu_msg.orientation);
 
     // IMU - Gyro (Gyro is being sent in deg/sec)
@@ -793,7 +793,7 @@ bool ARDroneDriver::imuReCalibCallback(std_srvs::Empty::Request &request, std_sr
 void controlCHandler (int signal)
 {
     ros::shutdown();
-    should_exit = 1;    
+    should_exit = 1;
 }
 ////////////////////////////////////////////////////////////////////////////////
 // custom_main
@@ -809,7 +809,7 @@ int main(int argc, char** argv)
     // the SDK threads correctly.
 
     ros::init(argc, argv, "ardrone_driver", ros::init_options::NoSigintHandler);
-    
+
     signal (SIGABRT, &controlCHandler);
     signal (SIGTERM, &controlCHandler);
     signal (SIGINT, &controlCHandler);
