@@ -1,7 +1,20 @@
-diff --git a/ardrone-sdk-stripped-2.0.1/ARDroneLib/Soft/Lib/ardrone_tool/ardrone_tool.c b/ardrone-sdk-stripped-2.0.1-patched/ARDroneLib/Soft/Lib/ardrone_tool/ardrone_tool.c
+diff --git a/ARDroneLib/FFMPEG/Makefile b/ARDroneLib/FFMPEG/Makefile
+index 0b96558..0c101a0 100644
+--- a/ARDroneLib/FFMPEG/Makefile
++++ b/ARDroneLib/FFMPEG/Makefile
+@@ -40,6 +40,8 @@ ifneq ($(FFMPEG_ARCHIVE_ROOTDIR), ffmpeg/)
+ 	$(SILENT_MAKE)rm -rf $(FFMPEG_ARCHIVE_ROOTDIR)
+ endif
+ 	$(SILENT_MAKE)tar xzf parrot_ffmpeg_build_utils.tar.gz
++	# Extra pacth to remove deprecated warnings
++	$(SILENT_MAKE)sed -i "s/check_cflags -Wall/check_cflags -Wall\ncheck_cflags -Wno-deprecated-declarations/g" ffmpeg/configure
+ 	$(SILENT_MAKE)echo "Done"
+ endif
+ endif
+diff --git a/ARDroneLib/Soft/Lib/ardrone_tool/ardrone_tool.c b/ARDroneLib/Soft/Lib/ardrone_tool/ardrone_tool.c
 index 8466d4c..0b4f2e7 100644
---- a/ardrone-sdk-stripped-2.0.1/ARDroneLib/Soft/Lib/ardrone_tool/ardrone_tool.c
-+++ b/ardrone-sdk-stripped-2.0.1-patched/ARDroneLib/Soft/Lib/ardrone_tool/ardrone_tool.c
+--- a/ARDroneLib/Soft/Lib/ardrone_tool/ardrone_tool.c
++++ b/ARDroneLib/Soft/Lib/ardrone_tool/ardrone_tool.c
 @@ -332,11 +332,11 @@ int ardrone_tool_main(int argc, char **argv)
      argc--; argv++;
    }
@@ -16,10 +29,10 @@ index 8466d4c..0b4f2e7 100644
    
    /* After a first analysis, the arguments are restored so they can be passed to the user-defined functions */
    argc=argc_backup;
-diff --git a/ardrone-sdk-stripped-2.0.1/ARDroneLib/Soft/Lib/ardrone_tool/ardrone_tool.h b/ardrone-sdk-stripped-2.0.1-patched/ARDroneLib/Soft/Lib/ardrone_tool/ardrone_tool.h
+diff --git a/ARDroneLib/Soft/Lib/ardrone_tool/ardrone_tool.h b/ARDroneLib/Soft/Lib/ardrone_tool/ardrone_tool.h
 index a081c9a..93005ec 100644
---- a/ardrone-sdk-stripped-2.0.1/ARDroneLib/Soft/Lib/ardrone_tool/ardrone_tool.h
-+++ b/ardrone-sdk-stripped-2.0.1-patched/ARDroneLib/Soft/Lib/ardrone_tool/ardrone_tool.h
+--- a/ARDroneLib/Soft/Lib/ardrone_tool/ardrone_tool.h
++++ b/ARDroneLib/Soft/Lib/ardrone_tool/ardrone_tool.h
 @@ -66,7 +66,7 @@ C_RESULT ardrone_tool_shutdown(void);
  
  void ardrone_tool_init_timers_and_mutex();
@@ -29,10 +42,10 @@ index a081c9a..93005ec 100644
  
  // There because not defined in embedded
  void api_configuration_get_ctrl_mode(void);
-diff --git a/ardrone-sdk-stripped-2.0.1/ARDroneLib/VP_SDK/Build/Makefile b/ardrone-sdk-stripped-2.0.1-patched/ARDroneLib/VP_SDK/Build/Makefile
+diff --git a/ARDroneLib/VP_SDK/Build/Makefile b/ARDroneLib/VP_SDK/Build/Makefile
 index bda3259..27418d2 100644
---- a/ardrone-sdk-stripped-2.0.1/ARDroneLib/VP_SDK/Build/Makefile
-+++ b/ardrone-sdk-stripped-2.0.1-patched/ARDroneLib/VP_SDK/Build/Makefile
+--- a/ARDroneLib/VP_SDK/Build/Makefile
++++ b/ARDroneLib/VP_SDK/Build/Makefile
 @@ -105,6 +105,10 @@ define ADD_RULE_TEMPLATE
    ifeq ($(USE_ANDROID),yes)
       build_lib: build_$(1)
@@ -44,10 +57,10 @@ index bda3259..27418d2 100644
    endif
    endif
    endif
-diff --git a/ardrone-sdk-stripped-2.0.1/ARDroneLib/VP_SDK/Build/generic.makefile b/ardrone-sdk-stripped-2.0.1-patched/ARDroneLib/VP_SDK/Build/generic.makefile
+diff --git a/ARDroneLib/VP_SDK/Build/generic.makefile b/ARDroneLib/VP_SDK/Build/generic.makefile
 index 91895b3..94d1cb8 100644
---- a/ardrone-sdk-stripped-2.0.1/ARDroneLib/VP_SDK/Build/generic.makefile
-+++ b/ardrone-sdk-stripped-2.0.1-patched/ARDroneLib/VP_SDK/Build/generic.makefile
+--- a/ARDroneLib/VP_SDK/Build/generic.makefile
++++ b/ARDroneLib/VP_SDK/Build/generic.makefile
 @@ -35,10 +35,25 @@ INTERNAL_MKDIR=mkdir -p
  INTERNAL_ECHO=echo
  
@@ -77,11 +90,11 @@ index 91895b3..94d1cb8 100644
  
  # (in) GENERIC_CFLAGS
  # (in) GENERIC_LDFLAGS
-diff --git a/ardrone-sdk-stripped-2.0.1-patched/Makefile b/ardrone-sdk-stripped-2.0.1-patched/Makefile
+diff --git a/Makefile b/Makefile
 new file mode 100644
 index 0000000..2ad03a2
 --- /dev/null
-+++ b/ardrone-sdk-stripped-2.0.1-patched/Makefile
++++ b/Makefile
 @@ -0,0 +1,25 @@
 +SDK_PATH:=$(shell pwd)/ARDroneLib
 +PC_TARGET=yes
