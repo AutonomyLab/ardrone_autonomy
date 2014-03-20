@@ -11,8 +11,39 @@ index 0b96558..0c101a0 100644
  	$(SILENT_MAKE)echo "Done"
  endif
  endif
+diff --git a/ARDroneLib/Soft/Common/config.h b/ARDroneLib/Soft/Common/config.h
+index ba83536..51fa71b 100644
+--- a/ARDroneLib/Soft/Common/config.h
++++ b/ARDroneLib/Soft/Common/config.h
+@@ -86,15 +86,17 @@
+ 
+ #define WIFI_PASSKEY            "9F1C3EE11CBA230B27BF1C1B6F"
+ 
+-#define FTP_PORT				5551
+-#define AUTH_PORT				5552
+-#define VIDEO_RECORDER_PORT     5553
+-#define NAVDATA_PORT            5554
+-#define VIDEO_PORT              5555
+-#define AT_PORT                 5556
+-#define RAW_CAPTURE_PORT        5557
+-#define PRINTF_PORT             5558
+-#define CONTROL_PORT            5559
++// Replace constants with variables (see ../Lib/ardrone_tool/ardrone_tool.*)
++// Using unconvential all-caps to minimize impact on rest of code
++extern unsigned short FTP_PORT;
++extern unsigned short AUTH_PORT;
++extern unsigned short VIDEO_RECORDER_PORT;
++extern unsigned short NAVDATA_PORT;
++extern unsigned short VIDEO_PORT;
++extern unsigned short AT_PORT;
++extern unsigned short RAW_CAPTURE_PORT;
++extern unsigned short PRINTF_PORT;
++extern unsigned short CONTROL_PORT;
+ 
+ ///////////////////////////////////////////////
+ // Wired configuration
 diff --git a/ARDroneLib/Soft/Lib/ardrone_tool/ardrone_tool.c b/ARDroneLib/Soft/Lib/ardrone_tool/ardrone_tool.c
-index 8466d4c..0b4f2e7 100644
+index 8466d4c..8dd43cd 100644
 --- a/ARDroneLib/Soft/Lib/ardrone_tool/ardrone_tool.c
 +++ b/ARDroneLib/Soft/Lib/ardrone_tool/ardrone_tool.c
 @@ -332,11 +332,11 @@ int ardrone_tool_main(int argc, char **argv)
@@ -29,11 +60,40 @@ index 8466d4c..0b4f2e7 100644
    
    /* After a first analysis, the arguments are restored so they can be passed to the user-defined functions */
    argc=argc_backup;
+@@ -420,6 +420,28 @@ int ardrone_tool_main(int argc, char **argv)
+   return SUCCEED(res) ? 0 : -1;
+ }
+ 
++// Set default ports for variables that replace old constants
++unsigned short FTP_PORT                 = 5551;
++unsigned short AUTH_PORT                = 5552;
++unsigned short VIDEO_RECORDER_PORT      = 5553;
++unsigned short NAVDATA_PORT             = 5554;
++unsigned short VIDEO_PORT               = 5555;
++unsigned short AT_PORT                  = 5556;
++unsigned short RAW_CAPTURE_PORT         = 5557;
++unsigned short PRINTF_PORT              = 5558;
++unsigned short CONTROL_PORT             = 5559;
++
++// Provide port setter functions for application
++void set_FTP_PORT(uint16_t p) { FTP_PORT = p; }
++void set_AUTH_PORT(uint16_t p) { AUTH_PORT = p; }
++void set_VIDEO_RECORDER_PORT(uint16_t p) { VIDEO_RECORDER_PORT = p; }
++void set_NAVDATA_PORT(uint16_t p) { NAVDATA_PORT = p; }
++void set_VIDEO_PORT(uint16_t p) { VIDEO_PORT = p; }
++void set_AT_PORT(uint16_t p) { AT_PORT = p; }
++void set_RAW_CAPTURE_PORT(uint16_t p) { RAW_CAPTURE_PORT = p; }
++void set_PRINTF_PORT(uint16_t p) { PRINTF_PORT = p; }
++void set_CONTROL_PORT(uint16_t p) { CONTROL_PORT = p; }
++
+ // Default implementation for weak functions
+ #ifndef _WIN32
+ 	C_RESULT ardrone_tool_init_custom(void) { return C_OK; }
 diff --git a/ARDroneLib/Soft/Lib/ardrone_tool/ardrone_tool.h b/ARDroneLib/Soft/Lib/ardrone_tool/ardrone_tool.h
-index a081c9a..93005ec 100644
+index a081c9a..f65a6da 100644
 --- a/ARDroneLib/Soft/Lib/ardrone_tool/ardrone_tool.h
 +++ b/ARDroneLib/Soft/Lib/ardrone_tool/ardrone_tool.h
-@@ -66,7 +66,7 @@ C_RESULT ardrone_tool_shutdown(void);
+@@ -66,12 +66,23 @@ C_RESULT ardrone_tool_shutdown(void);
  
  void ardrone_tool_init_timers_and_mutex();
  void ardrone_tool_send_com_watchdog(void); // To send it only once
@@ -42,6 +102,22 @@ index a081c9a..93005ec 100644
  
  // There because not defined in embedded
  void api_configuration_get_ctrl_mode(void);
+ void api_configuration_ack_ctrl_mode(void);
+ 
++// Provide port setter functions for application
++void set_FTP_PORT(uint16_t p);
++void set_AUTH_PORT(uint16_t p);
++void set_VIDEO_RECORDER_PORT(uint16_t p);
++void set_NAVDATA_PORT(uint16_t p);
++void set_VIDEO_PORT(uint16_t p);
++void set_AT_PORT(uint16_t p);
++void set_RAW_CAPTURE_PORT(uint16_t p);
++void set_PRINTF_PORT(uint16_t p);
++void set_CONTROL_PORT(uint16_t p);
++
+ /*! \page page2
+  * @defgroup ARDrone_Tool ARDrone_Tool
+ 
 diff --git a/ARDroneLib/VP_SDK/Build/Makefile b/ARDroneLib/VP_SDK/Build/Makefile
 index bda3259..27418d2 100644
 --- a/ARDroneLib/VP_SDK/Build/Makefile
