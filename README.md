@@ -1,14 +1,16 @@
 # ardrone_autonomy : A ROS Driver for ARDrone 1.0 & 2.0
 
-"ardrone_autonomy" is a [ROS](http://ros.org/ "Robot Operating System") driver for [Parrot AR-Drone](http://http://ardrone.parrot.com/parrot-ar-drone/select-site) quadrocopter. This driver is based on official [AR-Drone SDK](https://projects.ardrone.org/) version 2.0 and supports both AR-Drone 1.0 and 2.0. "ardrone_autonomy" is a fork of [AR-Drone Brown](http://code.google.com/p/brown-ros-pkg/wiki/ardrone_brown) driver. This package has been developed in [Autonomy Lab](http://autonomy.cs.sfu.ca) of [Simon Fraser University](http://www.sfu.ca) by [Mani Monajjemi](http://sfu.ca/~mmonajje) ( +other [contributors](#contributors)).
+[![](http://jenkins.ros.org/buildStatus/icon?job=devel-hydro-ardrone_autonomy)](http://jenkins.ros.org/buildStatus/icon?job=devel-hydro-ardrone_autonomy)
+
+"ardrone_autonomy" is a [ROS](http://ros.org/ "Robot Operating System") driver for [Parrot AR-Drone](http://ardrone2.parrot.com/) quadrocopter. This driver is based on official [AR-Drone SDK](https://projects.ardrone.org/) version 2.0.1 and supports both AR-Drone 1.0 and 2.0. "ardrone_autonomy" is a fork of [AR-Drone Brown](http://code.google.com/p/brown-ros-pkg/wiki/ardrone_brown) driver. This package has been developed in [Autonomy Lab](http://autonomy.cs.sfu.ca) of [Simon Fraser University](http://www.sfu.ca) by [Mani Monajjemi](http://sfu.ca/~mmonajje) ( +other [contributors](#contributors)).
 
 
 ## Table of Contents
 
 - [Updates](#updates)
 - [Installation](#installation)
-	- [Pre-requirements](#pre-requirements)
-	- [Installation Steps](#installation-steps)
+	- [Binary Install](#binary-install)
+	- [Compile and Install from Source](#compile-and-install-from-source)
 - [How to Run](#how-to-run)
 - [Reading from AR-Drone](#reading-from-ar-drone)
 	- [Update Frequencies ](#update-frequencies-new)
@@ -40,7 +42,8 @@
 
 ## Updates
 
-- *January 17 2014*: ARDroneLib has been configured to be built as an external project. The ARDroneLib is replaced by the vanilla SDK's stripped tarball. ([More info](https://github.com/AutonomyLab/ardrone_autonomy/pull/80)) 
+- *March 14 2014*: The binary packages of the driver are now built on [ROS build farm](http://wiki.ros.org/BuildFarm). You can install the driver for ROS _Hydro_ and _Groovy_ using `apt-get` on _Ubuntu_.
+- *January 17 2014*: Fully _catkinized_ package ([#75](https://github.com/AutonomyLab/ardrone_autonomy/pull/75) & [#79](https://github.com/AutonomyLab/ardrone_autonomy/pull/79)). ARDroneLib has been configured to be built as an external project. The ARDroneLib is replaced by the vanilla SDK's stripped tarball. ([More info](https://github.com/AutonomyLab/ardrone_autonomy/pull/80)).
 - *October 22 2013*: Update to Parrot SDK 2.0.1 (Fixes crashes on 2.4.x firmwares, no support for flight recorder (yet). **Please check the FAQ section for instructions on how to re-compile the SDK**. (Tested on 2.3.3 and 2.4.x firmwares) 
 - *February 13 2013*: Support for USB key recording ([More info](https://github.com/AutonomyLab/ardrone_autonomy/pull/53)). Motor PWM added to legacy Navdata.
 - *January 9 2013*: ROS Groovy support. Support for zero-command without hovering ([More info](https://github.com/AutonomyLab/ardrone_autonomy/pull/34)). Full configurable Navdata support ([More info](https://github.com/AutonomyLab/ardrone_autonomy/pull/31)). Support for "Flight Animations". Support for Real-time navdata and video publishing ([More info](https://github.com/AutonomyLab/ardrone_autonomy/pull/44)). Support for configurable data publishing rate.
@@ -55,27 +58,24 @@
 
 ## Installation
 
-### Pre-requirements
+### Binary Install
 
-This driver has been tested on Linux machines running Ubuntu 11.10, 12.04 & 12.10 (32 bit and 64 bit). However it should also work on any other mainstream Linux distribution. The driver has been tested on both ROS "electric" and "fuerte". The AR-Drone SDK has its own build system which usually handles system wide dependencies itself. The ROS package depends on these standard ROS packages: `roscpp`, `image_transport`, `sensor_msgs`, `tf`, `camera_info_manager` and `std_srvs`.
+On supported _Ubuntu_ platform and for ROS _Hydro_ and _Groovy_ you can install the driver using `apt-get install ros-*-ardrone_autonomy` e.g. `apt-get install ros-hydro-ardrone_autonomy`.
 
-### Installation Steps
+### Compile and Install from Source
 
-The installation follows the same steps needed usually to compile a ROS driver using [catkin](http://wiki.ros.org/catkin).
+The bundled AR-Drone SDK has its own build system which usually handles system wide dependencies itself. The ROS package depends on these standard ROS packages: `roscpp`, `image_transport`, `sensor_msgs`, `tf`, `camera_info_manager` and `std_srvs`.
 
-* Get the code: Clone (or download and unpack) the driver to the `src` folder of a new or existing catkin [workspace](http://wiki.ros.org/catkin/Tutorials/create_a_workspace) (e.g `~/catkin_ws/src`) and use `catkin_make` to compile.
+The installation follows the same steps needed usually to compile a ROS driver using [catkin](http://wiki.ros.org/catkin). Clone (or download and unpack) the driver to the `src` folder of a new or existing catkin [workspace](http://wiki.ros.org/catkin/Tutorials/create_a_workspace) (e.g `~/catkin_ws/src`) and use `catkin_make` to compile. Assuming you are compiling for ROS _Hydro_:
 
-        ```bash
-        $ cd ~/catkin_ws/src
-        $ git clone https://github.com/AutonomyLab/ardrone_autonomy.git -b catkin
-        $ cd ~/catkin_ws
-        $ catkin_make
-        ```
-**NOTE (For advanced users):** TBA
+```bash
+$ cd ~/catkin_ws/src
+$ git clone https://github.com/AutonomyLab/ardrone_autonomy.git -b hydro-devel
+$ cd ~/catkin_ws
+$ catkin_make
+```
 
-<!--
-Instead of the `master` branch you can use the `dev-unstable` branch for the latest _unstable_ code which may contain bug fixes or new features. This is the branch that all developments happen on. Please use this branch to submit pull requests.
--->
+If you need to compile for older ROS distros or you are bound to use `rosbuild`, please check the `fuerte-devel` branch.
 
 ## How to Run
 
@@ -319,6 +319,7 @@ The Parrot's license, copyright and disclaimer for `ARDroneLib` are included wit
 - [Devmax](https://github.com/devmax) - [Flat Trim](https://github.com/AutonomyLab/ardrone_autonomy/issues/18) + Various
 comments for enhancements
 - [Rachel Brindle](https://github.com/younata) - [Enhanced Navdata for AR-Drone 2.0](https://github.com/AutonomyLab/ardrone_autonomy/pull/2)
+- [boris-il-forte](boris-il-forte) & [Charles Lesire-Cabaniols](https://github.com/lesire)- [Catkinization](https://github.com/AutonomyLab/ardrone_autonomy/pull/79) [+](https://github.com/AutonomyLab/ardrone_autonomy/pull/82)
 - [Kenneth Bogert](https://github.com/kbogert) - [Move ARDroneLIB to an external project](https://github.com/AutonomyLab/ardrone_autonomy/pull/80)
  
 ## FAQ
