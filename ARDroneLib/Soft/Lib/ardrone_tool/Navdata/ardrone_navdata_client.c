@@ -36,10 +36,11 @@ C_RESULT ardrone_navdata_client_init(void)
 {
   C_RESULT res;
 
-  COM_CONFIG_SOCKET_NAVDATA(&navdata_socket, VP_COM_CLIENT, NAVDATA_PORT, wifi_ardrone_ip);
+  COM_CONFIG_SOCKET_NAVDATA(&navdata_socket, VP_COM_CLIENT, 0, wifi_ardrone_ip);
   navdata_socket.protocol = VP_COM_UDP;
   navdata_socket.is_multicast = 0;      // disable multicast for Navdata
   navdata_socket.multicast_base_addr = MULTICAST_BASE_ADDR;
+  navdata_socket.remotePort = NAVDATA_PORT;
 
   vp_os_mutex_init(&navdata_client_mutex);
   vp_os_cond_init(&navdata_client_condition, &navdata_client_mutex);

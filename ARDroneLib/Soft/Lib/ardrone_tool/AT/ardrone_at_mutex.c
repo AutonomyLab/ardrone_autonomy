@@ -138,8 +138,9 @@ AT_CODEC_ERROR_CODE host_open( void )
 
   if( !init_ok )
   {
-    COM_CONFIG_SOCKET_AT(&at_socket, VP_COM_CLIENT, AT_PORT, wifi_ardrone_ip);
+    COM_CONFIG_SOCKET_AT(&at_socket, VP_COM_CLIENT, 0, wifi_ardrone_ip);
     at_socket.protocol = VP_COM_UDP;
+    at_socket.remotePort = AT_PORT;
 
     if(VP_FAILED(vp_com_init(COM_AT())))
     {
