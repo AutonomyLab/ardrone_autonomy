@@ -1,5 +1,9 @@
 # ardrone_autonomy : A ROS Driver for ARDrone 1.0 & 2.0
 
+<div style="color:#555; border-radius:10px; padding:10px 36px; margin:10px; background:#fff8c4 50%; border:1px solid #f2c779;">
+    <strong>This branch is not the active development branch. Please check the default branch (*-devel) for latest development.</strong>
+</div>
+
 "ardrone_autonomy" is a [ROS](http://ros.org/ "Robot Operating System") driver for [Parrot AR-Drone](http://http://ardrone.parrot.com/parrot-ar-drone/select-site) quadrocopter. This driver is based on official [AR-Drone SDK](https://projects.ardrone.org/) version 2.0 and supports both AR-Drone 1.0 and 2.0. "ardrone_autonomy" is a fork of [AR-Drone Brown](http://code.google.com/p/brown-ros-pkg/wiki/ardrone_brown) driver. This package has been developed in [Autonomy Lab](http://autonomy.cs.sfu.ca) of [Simon Fraser University](http://www.sfu.ca) by [Mani Monajjemi](http://sfu.ca/~mmonajje) ( +other [contributors](#contributors)).
 
 
