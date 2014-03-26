@@ -832,6 +832,51 @@ int main(int argc, char** argv)
             printf("Using custom ip address %s\n",drone_ip_address);
             argc--; argv++;
         }
+        else if ( !strcmp(*argv, "-ftp-port") && ( argc > 1 ) ) /* 5551 */
+        {
+            set_FTP_PORT((unsigned short)atoi(*(argv+1)));
+            argc--; argv++;
+        }
+        else if ( !strcmp(*argv, "-auth-port") && ( argc > 1 ) ) /* 5552 */
+        {
+            set_AUTH_PORT((unsigned short)atoi(*(argv+1)));
+            argc--; argv++;
+        }
+        else if ( !strcmp(*argv, "-video-recorder-port") && ( argc > 1 ) ) /* 5553 */
+        {
+            set_VIDEO_RECORDER_PORT((unsigned short)atoi(*(argv+1)));
+            argc--; argv++;
+        }
+        else if ( !strcmp(*argv, "-navdata-port") && ( argc > 1 ) ) /* 5554 */
+        {
+            set_NAVDATA_PORT((unsigned short)atoi(*(argv+1)));
+            argc--; argv++;
+        }
+        else if ( !strcmp(*argv, "-video-port") && ( argc > 1 ) ) /* 5555 */
+        {
+            set_VIDEO_PORT((unsigned short)atoi(*(argv+1)));
+            argc--; argv++;
+        }
+        else if ( !strcmp(*argv, "-at-port") && ( argc > 1 ) ) /* 5556 */
+        {
+            set_AT_PORT((unsigned short)atoi(*(argv+1)));
+            argc--; argv++;
+        }
+        else if ( !strcmp(*argv, "-raw-capture-port") && ( argc > 1 ) ) /* 5557 */
+        {
+            set_RAW_CAPTURE_PORT((unsigned short)atoi(*(argv+1)));
+            argc--; argv++;
+        }
+        else if ( !strcmp(*argv, "-printf-port") && ( argc > 1 ) ) /* 5558 */
+        {
+            set_PRINTF_PORT((unsigned short)atoi(*(argv+1)));
+            argc--; argv++;
+        }
+        else if ( !strcmp(*argv, "-control-port") && ( argc > 1 ) ) /* 5559 */
+        {
+            set_CONTROL_PORT((unsigned short)atoi(*(argv+1)));
+            argc--; argv++;
+        }
         argc--; argv++;
     }
 
