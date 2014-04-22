@@ -67,10 +67,10 @@ ExternalProject_Add(ardronelib
 	URL ${PROJECT_SOURCE_DIR}/ARDroneSDK/ardrone-sdk-stripped-2.0.1.tgz
 	PREFIX ${CMAKE_BINARY_DIR}/ardrone
 	PATCH_COMMAND
-		patch -p1 < ${PROJECT_SOURCE_DIR}/ardrone_lib.patch &&
-		patch -p0 < ${PROJECT_SOURCE_DIR}/ardrone-sdk-navdata-common-gps.patch &&
-		patch -p0 < ${PROJECT_SOURCE_DIR}/ardrone-sdk-navdata-keys-gps.patch &&
-		patch -p0 < ${PROJECT_SOURCE_DIR}/ardrone-sdk-navdata-file-gps.patch
+		patch -p1 < ${PROJECT_SOURCE_DIR}/ARDroneSDK/ardrone_lib.patch &&
+		patch -p0 < ${PROJECT_SOURCE_DIR}/ARDroneSDK/ardrone-sdk-navdata-common-gps.patch &&
+		patch -p0 < ${PROJECT_SOURCE_DIR}/ARDroneSDK/ardrone-sdk-navdata-keys-gps.patch &&
+		patch -p0 < ${PROJECT_SOURCE_DIR}/ARDroneSDK/ardrone-sdk-navdata-file-gps.patch
 	CONFIGURE_COMMAND echo "No configure"
 	BUILD_COMMAND make
 	INSTALL_COMMAND make install INSTALL_PREFIX=${CATKIN_DEVEL_PREFIX}/lib/ardrone
