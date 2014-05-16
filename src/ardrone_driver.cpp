@@ -891,6 +891,8 @@ int main(int argc, char** argv)
         {
             res = ardrone_tool_update();
         }
+        landOnExit();
+        ardrone_tool_update();
         res = ardrone_tool_shutdown();
     }
     return SUCCEED(res) ? 0 : -1;

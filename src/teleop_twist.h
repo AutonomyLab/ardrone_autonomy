@@ -27,6 +27,8 @@ bool flatTrimCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Respon
 bool setFlightAnimationCallback(ardrone_autonomy::FlightAnim::Request& request, ardrone_autonomy::FlightAnim::Response& response);
 bool setRecordCallback(ardrone_autonomy::RecordEnable::Request &request, ardrone_autonomy::RecordEnable::Response& response);
 
+void landOnExit(void);
+
 //All global drone configs that should be sent on init
 
 #define DEFAULT_CAM_STATE 0
