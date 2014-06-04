@@ -2,8 +2,8 @@
 Changelog for package ardrone_autonomy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.3.4 (2014-06-03)
+------------------
 * Decreased the frequency of magnetometer warning message
 * Fixed some warnings to address `#104 <https://github.com/AutonomyLab/ardrone_autonomy/issues/104>`_
 * Contributors: Mani Monajjemi
