@@ -755,7 +755,7 @@ void ARDroneDriver::publish_navdata(navdata_unpacked_t &navdata_raw, const ros::
     }
     else
     {
-        ROS_WARN_THROTTLE(1, "There is something wrong with the magnetometer readings (Magnitude is extremely small).");
+        ROS_WARN_THROTTLE(30, "There is something wrong with the magnetometer readings (Magnitude is extremely small).");
     }
 
     navdata_pub.publish(legacynavdata_msg);
