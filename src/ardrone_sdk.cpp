@@ -1,6 +1,6 @@
-#include "ardrone_sdk.h"
-#include "video.h"
-#include "teleop_twist.h"
+#include <ardrone_autonomy/ardrone_sdk.h>
+#include <ardrone_autonomy/video.h>
+#include <ardrone_autonomy/teleop_twist.h>
 
 
 navdata_unpacked_t *shared_raw_navdata;

@@ -56,7 +56,10 @@ add_message_files(
 generate_messages(DEPENDENCIES geometry_msgs std_msgs)
 
 # catkin_package parameters: http://ros.org/doc/groovy/api/catkin/html/dev_guide/generated_cmake_api.html#catkin-package
-catkin_package(DEPENDS roscpp image_transport sensor_msgs std_srvs tf camera_info_manager libsdl-dev CATKIN_DEPENDS message_runtime)
+catkin_package(
+  DEPENDS roscpp image_transport sensor_msgs std_srvs tf camera_info_manager libsdl-dev
+  CATKIN_DEPENDS message_runtime
+)
 
 include(ExternalProject)
 ExternalProject_Add(ardronelib
@@ -79,6 +82,9 @@ include_directories(${catkin_INCLUDE_DIRS})
 
 # add Boost_INCLUDE_DIRS
 include_directories(${Boost_INCLUDE_DIRS})
+
+# add headers directory
+include_directories(include)
 
 # build executable
 add_executable(ardrone_driver src/ardrone_driver.cpp src/video.cpp src/ardrone_sdk.cpp src/teleop_twist.cpp)
