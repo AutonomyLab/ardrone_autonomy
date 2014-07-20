@@ -133,7 +133,7 @@ void ARDroneDriver::run()
                 configureDrone();
 
                 vp_os_mutex_lock(&navdata_lock);
-                ROS_INFO("Successfully connected to '%s' (AR-Drone %d.0 - Firmware: %s) - Battery(\%): %d",
+                ROS_INFO("Successfully connected to '%s' (AR-Drone %d.0 - Firmware: %s) - Battery(%%): %d",
                          ardrone_control_config.ardrone_name,
                          (IS_ARDRONE1) ? 1 : 2,
                          ardrone_control_config.num_version_soft,
@@ -304,7 +304,7 @@ bool ARDroneDriver::readCovParams(std::string param_name, boost::array<double, 9
              str_stream << cov_array[i] << ((i < 8) ? ", " : "");
          }
          str_stream << "]";
-         ROS_INFO(str_stream.str().c_str());
+         ROS_INFO("%s", str_stream.str().c_str());
          return true;
 
     }
@@ -755,7 +755,7 @@ void ARDroneDriver::publish_navdata(navdata_unpacked_t &navdata_raw, const ros::
     }
     else
     {
-        ROS_WARN_THROTTLE(1, "There is something wrong with the magnetometer readings (Magnitude is extremely small).");
+        ROS_WARN_THROTTLE(30, "There is something wrong with the magnetometer readings (Magnitude is extremely small).");
     }
 
     navdata_pub.publish(legacynavdata_msg);
@@ -877,8 +877,8 @@ int main(int argc, char** argv)
     {
         // setup the application and user profiles for the driver
 
-        char* appname = DRIVER_APPNAME;
-        char* usrname = DRIVER_USERNAME;
+        char* appname = (char*) DRIVER_APPNAME;
+        char* usrname = (char*) DRIVER_USERNAME;
         ardrone_gen_appid (appname, "2.0", app_id, app_name, APPLI_NAME_SIZE);
         ardrone_gen_usrid (usrname, usr_id, usr_name, USER_NAME_SIZE);
 
