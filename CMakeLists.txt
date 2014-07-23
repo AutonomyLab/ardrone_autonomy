@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(ardrone_autonomy)
 
 # Load catkin and all dependencies required for this package
-find_package(catkin REQUIRED COMPONENTS roscpp image_transport sensor_msgs std_srvs tf camera_info_manager message_generation)
+find_package(catkin REQUIRED COMPONENTS roscpp image_transport sensor_msgs std_srvs tf camera_info_manager message_generation geographic_msgs)
 
 add_service_files(
 	DIRECTORY srv
@@ -13,6 +13,7 @@ add_service_files(
 	FlightAnim.srv
 	LedAnim.srv
 	RecordEnable.srv
+	SetGPSTarget.srv
 )
 
 add_message_files(
@@ -57,23 +58,21 @@ add_message_files(
 )
 
 ## Generate added messages and services with any dependencies listed here
-generate_messages(DEPENDENCIES geometry_msgs std_msgs)
+generate_messages(DEPENDENCIES geometry_msgs std_msgs geographic_msgs)
 
 # catkin_package parameters: http://ros.org/doc/groovy/api/catkin/html/dev_guide/generated_cmake_api.html#catkin-package
 catkin_package(
-  DEPENDS roscpp image_transport sensor_msgs std_srvs tf camera_info_manager libsdl-dev
+  DEPENDS roscpp image_transport sensor_msgs std_srvs tf camera_info_manager libsdl-dev geographic_msgs
   CATKIN_DEPENDS message_runtime
 )
 
+
 include(ExternalProject)
 ExternalProject_Add(ardronelib
-	URL ${PROJECT_SOURCE_DIR}/ARDroneSDK/ardrone-sdk-stripped-2.0.1.tgz
+	#URL ${PROJECT_SOURCE_DIR}/ARDroneSDK/ardrone-sdk-stripped-2.0.1.tgz
+	GIT_REPOSITORY /home/autolab/Dev/ardrone-sdk-mod
+	GIT_TAG flying_camera_str 
 	PREFIX ${CMAKE_BINARY_DIR}/ardrone
-	PATCH_COMMAND
-		patch -p1 < ${PROJECT_SOURCE_DIR}/ARDroneSDK/ardrone_lib.patch &&
-		patch -p0 < ${PROJECT_SOURCE_DIR}/ARDroneSDK/ardrone-sdk-navdata-common-gps.patch &&
-		patch -p0 < ${PROJECT_SOURCE_DIR}/ARDroneSDK/ardrone-sdk-navdata-keys-gps.patch &&
-		patch -p0 < ${PROJECT_SOURCE_DIR}/ARDroneSDK/ardrone-sdk-navdata-file-gps.patch
 	CONFIGURE_COMMAND echo "No configure"
 	BUILD_COMMAND make
 	INSTALL_COMMAND make install INSTALL_PREFIX=${CATKIN_DEVEL_PREFIX}/lib/ardrone

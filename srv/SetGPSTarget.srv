@@ -1,0 +1,4 @@
+geographic_msgs/WayPoint target
+
+---
+bool result

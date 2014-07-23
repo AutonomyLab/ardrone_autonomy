@@ -2,6 +2,9 @@
 #include "ardrone_autonomy/LedAnim.h"
 #include "utils/ardrone_date.h"
 
+#include <geographic_msgs/KeyValue.h>
+#include <vector>
+
 inline float max(float a, float b) { return a > b ? a : b; }
 inline float min(float a, float b) { return a < b ? a : b; }
 
@@ -44,7 +47,9 @@ bool toggleCamCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Respo
 {
     const int _modes = (IS_ARDRONE1) ? 4 : 2;
     cam_state = (cam_state + 1) % _modes;
+    bool_t _flying_camera_enabled = true;
     ARDRONE_TOOL_CONFIGURATION_ADDEVENT (video_channel, &cam_state, NULL);
+    //ARDRONE_TOOL_CONFIGURATION_ADDEVENT(flying_camera_enable, &_flying_camera_enabled, NULL);
     fprintf(stderr, "\nSetting camera channel to : %d.\n", cam_state);
     return true;
 }
@@ -106,6 +111,55 @@ bool flatTrimCallback(std_srvs::Empty::Request &request, std_srvs::Empty::Respon
     ardrone_at_set_flat_trim();
     vp_os_mutex_unlock(&twist_lock);
     fprintf(stderr, "\nFlat Trim Set.\n");
+}
+
+void setAutomousFlight(const bool enable) {
+    bool_t _e = (bool_t) enable;
+    vp_os_mutex_lock(&twist_lock);
+    ARDRONE_TOOL_CONFIGURATION_ADDEVENT(flying_camera_enable, &_e, NULL);
+    vp_os_mutex_unlock(&twist_lock);
+    fprintf(stderr, "\nSet Autonomouse Flight to %s\n", enable ? "ON" : "OFF");
+}
+
+bool setAutomousFlightCallback(ardrone_autonomy::RecordEnable::Request &request, ardrone_autonomy::RecordEnable::Response &response){
+    setAutomousFlight(request.enable);
+    response.result = true;
+    return true;
+}
+
+bool setGPSTargetWayPointCallback(ardrone_autonomy::SetGPSTarget::Request &request, ardrone_autonomy::SetGPSTarget::Response &response){
+
+    //"10000,0,492767188,-1229157891,994,165,165,525000,0,0"
+    char param_str[100]; // TODO: WTF?
+
+    const int lat = (int) round(request.target.position.latitude * 1.0e7);
+    const int lon = (int) round(request.target.position.longitude * 1.0e7);
+    const int alt = (int) round(request.target.position.altitude * 1000.0); //mm
+
+    if ((request.target.props.size() == 1) && (request.target.props[0].key == "velocity")) {
+        const int v = (int) round(atof(request.target.props[0].value.c_str()) * 1000.0); //mm / s
+        sprintf(param_str,"%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
+                10000,
+                0,
+                lat,
+                lon,
+                alt,
+                v,
+                v,
+                525000,
+                0,
+                0
+                );
+        vp_os_mutex_lock(&twist_lock);
+        ARDRONE_TOOL_CONFIGURATION_ADDEVENT(flying_camera_mode, param_str, NULL);
+        vp_os_mutex_unlock(&twist_lock);
+        fprintf(stderr, "\nSet GPS WayPoint \"%s\"\n", param_str);
+        response.result = true;
+    } else {
+        fprintf(stderr, "\nSet GPS WayPoint failed becasue the request does not have proper key:value");
+        response.result = false;
+    }
+    return true;
 }
 
 void cmdVelCallback(const geometry_msgs::TwistConstPtr &msg)
