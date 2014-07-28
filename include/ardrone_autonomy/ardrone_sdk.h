@@ -43,7 +43,7 @@ extern "C" {
 extern video_decoder_config_t vec;
 }
 
-#include "ardrone_driver.h"
+#include <ardrone_autonomy/ardrone_driver.h>
 
 #define NB_DRIVER_POST_STAGES   10
 

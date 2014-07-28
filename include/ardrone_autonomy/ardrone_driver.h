@@ -12,7 +12,7 @@ class ARDroneDriver;
 #include <geometry_msgs/Vector3Stamped.h>
 #include <std_srvs/Empty.h>
 #include <ardrone_autonomy/Navdata.h>
-#include "ardrone_sdk.h"
+#include <ardrone_autonomy/ardrone_sdk.h>
 #include <vector>
 #include <utils/ardrone_gen_ids.h>
 #include <ardrone_tool/ardrone_version.h>
@@ -20,7 +20,7 @@ class ARDroneDriver;
 
 // Load auto-generated include files for full navdata
 #define NAVDATA_STRUCTS_INCLUDES
-#include "NavdataMessageDefinitions.h"
+#include <ardrone_autonomy/NavdataMessageDefinitions.h>
 #undef NAVDATA_STRUCTS_INCLUDES
 
 
@@ -51,7 +51,7 @@ public:
     bool imuReCalibCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Response &response);
 
     #define NAVDATA_STRUCTS_HEADER_PUBLIC
-    #include "NavdataMessageDefinitions.h"
+    #include <ardrone_autonomy/NavdataMessageDefinitions.h>
     #undef NAVDATA_STRUCTS_HEADER_PUBLIC
 
     void publish_video();
@@ -117,7 +117,7 @@ private:
 
     // Load auto-generated declarations for full navdata
     #define NAVDATA_STRUCTS_HEADER_PRIVATE
-    #include "NavdataMessageDefinitions.h"
+    #include <ardrone_autonomy/NavdataMessageDefinitions.h>
     #undef NAVDATA_STRUCTS_HEADER_PRIVATE
 
     /*
