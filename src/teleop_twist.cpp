@@ -47,9 +47,7 @@ bool toggleCamCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Respo
 {
     const int _modes = (IS_ARDRONE1) ? 4 : 2;
     cam_state = (cam_state + 1) % _modes;
-    bool_t _flying_camera_enabled = true;
     ARDRONE_TOOL_CONFIGURATION_ADDEVENT (video_channel, &cam_state, NULL);
-    //ARDRONE_TOOL_CONFIGURATION_ADDEVENT(flying_camera_enable, &_flying_camera_enabled, NULL);
     fprintf(stderr, "\nSetting camera channel to : %d.\n", cam_state);
     return true;
 }
