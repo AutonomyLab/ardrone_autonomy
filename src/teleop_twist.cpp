@@ -136,8 +136,9 @@ bool setGPSTargetWayPointCallback(ardrone_autonomy::SetGPSTarget::Request &reque
     const int lon = (int) round(request.target.position.longitude * 1.0e7);
     const int alt = (int) round(request.target.position.altitude * 1000.0); //mm
 
-    if ((request.target.props.size() == 1) && (request.target.props[0].key == "velocity")) {
-        const int v = (int) round(atof(request.target.props[0].value.c_str()) * 1000.0); //mm / s
+    //if ((request.target.props.size() == 1) && (request.target.props[0].key == "velocity")) {
+        //const int v = (int) round(atof(request.target.props[0].value.c_str()) * 1000.0); //mm / s
+        const int v = 501;
         sprintf(param_str,"%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
                 10000,
                 0,
@@ -155,10 +156,10 @@ bool setGPSTargetWayPointCallback(ardrone_autonomy::SetGPSTarget::Request &reque
         vp_os_mutex_unlock(&twist_lock);
         fprintf(stderr, "\nSet GPS WayPoint \"%s\"\n", param_str);
         response.result = true;
-    } else {
-        fprintf(stderr, "\nSet GPS WayPoint failed becasue the request does not have proper key:value");
-        response.result = false;
-    }
+    //} else {
+     //   fprintf(stderr, "\nSet GPS WayPoint failed becasue the request does not have proper key:value");
+     //   response.result = false;
+    //}
     return true;
 }
 
