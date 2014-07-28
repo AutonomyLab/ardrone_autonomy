@@ -121,3 +121,15 @@ index 0000000..2ad03a2
 +install:
 +	mkdir -p ${INSTALL_PREFIX}
 +	find $(SDK_PATH)/Soft/Build -type f -name '*.a' -exec cp '{}' ${INSTALL_PREFIX} \;
+--- a/ARDroneLib/VP_SDK/Build/lib.makefile	2014-01-09 21:31:23.000000000 -0700
++++ b/ARDroneLib/VP_SDK/Build/lib.makefile	2014-03-01 21:58:38.202254926 -0700
+@@ -11,7 +11,9 @@
+ include common.makefile
+ 
+ GENERIC_LIBRARY_TARGET_DIR=$(LIB_TARGET_DIR)
++ifneq ($(GENERIC_TARGET_LIBRARY),)
+ GENERIC_TARGET_LIBRARY:=$(GENERIC_LIBRARY_TARGET_DIR)/$(GENERIC_TARGET_LIBRARY)
++endif
+ 
+ export GENERIC_TARGET_LIBRARY
+ export GENERIC_LIBRARY_TARGET_DIR=$(LIB_TARGET_DIR)
