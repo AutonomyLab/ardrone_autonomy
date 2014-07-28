@@ -60,7 +60,7 @@
 
 ### Binary Install
 
-On supported _Ubuntu_ platform and for ROS _Hydro_ and _Groovy_ you can install the driver using `apt-get install ros-*-ardrone_autonomy` e.g. `apt-get install ros-hydro-ardrone_autonomy`.
+On supported _Ubuntu_ platform and for ROS _Hydro_ and _Groovy_ you can install the driver using `apt-get install ros-*-ardrone-autonomy` e.g. `apt-get install ros-hydro-ardrone-autonomy`.
 
 ### Compile and Install from Source
 
