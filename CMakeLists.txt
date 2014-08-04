@@ -98,5 +98,7 @@ add_dependencies(ardrone_driver ardronelib ${PROJECT_NAME}_gencpp)
 
 #install Rules
 install(TARGETS ardrone_driver RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
-
+install(DIRECTORY launch/
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
+  PATTERN ".git" EXCLUDE)
 
