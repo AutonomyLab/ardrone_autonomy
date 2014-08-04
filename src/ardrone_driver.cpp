@@ -732,7 +732,7 @@ void ARDroneDriver::publish_navdata(navdata_unpacked_t &navdata_raw, const ros::
 
     // IMU - Rotation Matrix
     tf::Quaternion q;
-    q.setRPY(legacynavdata_msg.rotZ * _DEG2RAD, legacynavdata_msg.rotY * _DEG2RAD, legacynavdata_msg.rotX * _DEG2RAD);
+    q.setRPY(legacynavdata_msg.rotX * _DEG2RAD, legacynavdata_msg.rotY * _DEG2RAD, legacynavdata_msg.rotZ * _DEG2RAD);
     tf::quaternionTFToMsg(q, imu_msg.orientation);
 
     // IMU - Gyro (Gyro is being sent in deg/sec)
