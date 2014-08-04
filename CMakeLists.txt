@@ -57,8 +57,8 @@ generate_messages(DEPENDENCIES geometry_msgs std_msgs)
 
 # catkin_package parameters: http://ros.org/doc/groovy/api/catkin/html/dev_guide/generated_cmake_api.html#catkin-package
 catkin_package(
-  DEPENDS roscpp image_transport sensor_msgs std_srvs tf camera_info_manager libsdl-dev
-  CATKIN_DEPENDS message_runtime
+  DEPENDS libsdl-dev
+  CATKIN_DEPENDS roscpp image_transport message_runtime sensor_msgs std_srvs tf camera_info_manager
 )
 
 include(ExternalProject)
