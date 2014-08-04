@@ -7,6 +7,8 @@
 
 inline float max(float a, float b) { return a > b ? a : b; }
 inline float min(float a, float b) { return a < b ? a : b; }
+inline bool in_rangef(float a, float _min, float _max) {return a >= _min && a <= _max; } //inclusive
+inline bool in_range(int a, int _min, int _max) {return a >= _min && a <= _max; } //inclusive
 
 bool needs_takeoff = false;
 bool needs_land = false;
@@ -128,36 +130,53 @@ bool setAutomousFlightCallback(ardrone_autonomy::RecordEnable::Request &request,
 bool setGPSTargetWayPointCallback(ardrone_autonomy::SetGPSTarget::Request &request, ardrone_autonomy::SetGPSTarget::Response &response){
 
     //"10000,0,492767188,-1229157891,994,165,165,525000,0,0"
-    char param_str[100]; // TODO: WTF?
+    char param_str[255];
+    long int lat = 0, lon = 0;
+    int alt = 0, v = 0;
 
-    const int lat = (int) round(request.target.position.latitude * 1.0e7);
-    const int lon = (int) round(request.target.position.longitude * 1.0e7);
-    const int alt = (int) round(request.target.position.altitude * 1000.0); //mm
+    if (
+            in_rangef(request.target.position.latitude, -90.0, 90.0) &&
+            in_rangef(request.target.position.longitude, -180.0, 180.0) &&
+            in_rangef(request.target.position.altitude, 0.0, 1000.0) // Don't be crazy though!
+        )
+    {
+        lat = (long int) round(request.target.position.latitude * 1.0e7);
+        lon = (long int) round(request.target.position.longitude * 1.0e7);
+        alt = (int) round(request.target.position.altitude * 1000.0); //mm
+    } else {
+        fprintf(stderr, "Invalid value for latitude, longitude or altitude.\n");
+        return false;
+    }
 
-    //if ((request.target.props.size() == 1) && (request.target.props[0].key == "velocity")) {
-        //const int v = (int) round(atof(request.target.props[0].value.c_str()) * 1000.0); //mm / s
-        const int v = 501;
-        sprintf(param_str,"%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
-                10000,
-                0,
-                lat,
-                lon,
-                alt,
-                v,
-                v,
-                525000,
-                0,
-                0
-                );
-        vp_os_mutex_lock(&twist_lock);
-        ARDRONE_TOOL_CONFIGURATION_ADDEVENT(flying_camera_mode, param_str, NULL);
-        vp_os_mutex_unlock(&twist_lock);
-        fprintf(stderr, "\nSet GPS WayPoint \"%s\"\n", param_str);
-        response.result = true;
-    //} else {
-     //   fprintf(stderr, "\nSet GPS WayPoint failed becasue the request does not have proper key:value");
-     //   response.result = false;
-    //}
+    if ((request.target.props.size() == 1) && (request.target.props[0].key == "velocity")) {
+        v = (int) round(atof(request.target.props[0].value.c_str()) * 1000.0); // mm/s
+        if (!in_range(v, 0, 10000)) { // max: 10m/s
+            fprintf(stderr, "Requested velocity is not in range: %d\n", v);
+            return false;
+        }
+    } else {
+        v = 500;
+    }
+
+    sprintf(param_str,"%d,%d,%ld,%ld,%d,%d,%d,%d,%d,%d",
+            10000,
+            0,
+            lat,
+            lon,
+            alt,
+            v,
+            v,
+            525000,
+            0,
+            0
+            );
+
+    vp_os_mutex_lock(&twist_lock);
+    ARDRONE_TOOL_CONFIGURATION_ADDEVENT(flying_camera_mode, param_str, NULL);
+    vp_os_mutex_unlock(&twist_lock);
+    fprintf(stderr, "\nSet GPS WayPoint \"%s\"\n", param_str);
+    response.result = true;
+
     return true;
 }
 

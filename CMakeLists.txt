@@ -69,9 +69,8 @@ catkin_package(
 
 include(ExternalProject)
 ExternalProject_Add(ardronelib
-	#URL ${PROJECT_SOURCE_DIR}/ARDroneSDK/ardrone-sdk-stripped-2.0.1.tgz
-	GIT_REPOSITORY /home/autolab/Dev/ardrone-sdk-mod
-	GIT_TAG flying_camera_str 
+	GIT_REPOSITORY https://github.com/AutonomyLab/ardronelib.git
+	GIT_TAG gps
 	PREFIX ${CMAKE_BINARY_DIR}/ardrone
 	CONFIGURE_COMMAND echo "No configure"
 	BUILD_COMMAND make
