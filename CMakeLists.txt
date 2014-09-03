@@ -56,13 +56,16 @@ add_message_files(
 generate_messages(DEPENDENCIES geometry_msgs std_msgs)
 
 # catkin_package parameters: http://ros.org/doc/groovy/api/catkin/html/dev_guide/generated_cmake_api.html#catkin-package
-catkin_package(DEPENDS roscpp image_transport sensor_msgs std_srvs tf camera_info_manager libsdl-dev CATKIN_DEPENDS message_runtime)
+catkin_package(
+  DEPENDS libsdl-dev
+  CATKIN_DEPENDS roscpp image_transport message_runtime sensor_msgs std_srvs tf camera_info_manager
+)
 
 include(ExternalProject)
 ExternalProject_Add(ardronelib
-	URL ${PROJECT_SOURCE_DIR}/ARDroneSDK/ardrone-sdk-stripped-2.0.1.tgz
+	GIT_REPOSITORY https://github.com/AutonomyLab/ardronelib.git
+	GIT_TAG bdacd1cbd3fbc54263d29e6e2067265e5941d10e
 	PREFIX ${CMAKE_BINARY_DIR}/ardrone
-	PATCH_COMMAND patch -p1 < ${PROJECT_SOURCE_DIR}/ardrone_lib.patch
 	CONFIGURE_COMMAND echo "No configure"
 	BUILD_COMMAND make
 	INSTALL_COMMAND make install INSTALL_PREFIX=${CATKIN_DEVEL_PREFIX}/lib/ardrone
@@ -80,9 +83,12 @@ include_directories(${catkin_INCLUDE_DIRS})
 # add Boost_INCLUDE_DIRS
 include_directories(${Boost_INCLUDE_DIRS})
 
+# add headers directory
+include_directories(include)
+
 # build executable
 add_executable(ardrone_driver src/ardrone_driver.cpp src/video.cpp src/ardrone_sdk.cpp src/teleop_twist.cpp)
-target_link_libraries(ardrone_driver pc_ardrone avcodec avutil swscale vlib  sdk SDL ${Boost_LIBRARIES} ${catkin_LIBRARIES})
+target_link_libraries(ardrone_driver pc_ardrone avcodec swscale avutil vlib  sdk SDL ${Boost_LIBRARIES} ${catkin_LIBRARIES})
 
 #If you have a package which builds messages and/or services as well as
 #executables that use them, you need to create an explicit dependency on
@@ -92,5 +98,7 @@ add_dependencies(ardrone_driver ardronelib ${PROJECT_NAME}_gencpp)
 
 #install Rules
 install(TARGETS ardrone_driver RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
-
+install(DIRECTORY launch/
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
+  PATTERN ".git" EXCLUDE)
 

@@ -1,4 +1,4 @@
-#include "video.h"
+#include <ardrone_autonomy/video.h>
 
 #define NB_STAGES 10
 #define CAMIF_H_CAMERA_USED CAMIF_CAMERA_OVTRULY

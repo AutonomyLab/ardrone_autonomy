@@ -2,6 +2,16 @@
 Changelog for package ardrone_autonomy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.3.5 (2014-09-03)
+------------------
+* Fixed Incorrect orientation in ardrone/imu #113  ht @tomas-c
+* Added install rules for launch files. #114 ht @kbogert @fig0451
+* ARDroneSDK is now fetched from an external repository. Patches are applied there.
+* Add unit for pressure readings to README @garyservin
+* Moved header files to include directory #110 @garyservin
+* Fix ffmpeg library link order #109 @garyservin
+* Contributors: Gary Servin, Mani Monajjemi
+
 1.3.4 (2014-06-03)
 ------------------
 * Decreased the frequency of magnetometer warning message

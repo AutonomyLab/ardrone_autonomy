@@ -1,6 +1,6 @@
-#include "ardrone_driver.h"
-#include "teleop_twist.h"
-#include "video.h"
+#include <ardrone_autonomy/ardrone_driver.h>
+#include <ardrone_autonomy/teleop_twist.h>
+#include <ardrone_autonomy/video.h>
 #include <signal.h>
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -248,7 +248,7 @@ void ARDroneDriver::configureDrone()
 
 
     #define NAVDATA_STRUCTS_INITIALIZE
-    #include "NavdataMessageDefinitions.h"
+    #include <ardrone_autonomy/NavdataMessageDefinitions.h>
     #undef NAVDATA_STRUCTS_INITIALIZE
 }
 
@@ -732,7 +732,7 @@ void ARDroneDriver::publish_navdata(navdata_unpacked_t &navdata_raw, const ros::
 
     // IMU - Rotation Matrix
     tf::Quaternion q;
-    q.setRPY(legacynavdata_msg.rotZ * _DEG2RAD, legacynavdata_msg.rotY * _DEG2RAD, legacynavdata_msg.rotX * _DEG2RAD);
+    q.setRPY(legacynavdata_msg.rotX * _DEG2RAD, legacynavdata_msg.rotY * _DEG2RAD, legacynavdata_msg.rotZ * _DEG2RAD);
     tf::quaternionTFToMsg(q, imu_msg.orientation);
 
     // IMU - Gyro (Gyro is being sent in deg/sec)
@@ -764,7 +764,7 @@ void ARDroneDriver::publish_navdata(navdata_unpacked_t &navdata_raw, const ros::
 
 // Load actual auto-generated code to publish full navdata
 #define NAVDATA_STRUCTS_SOURCE
-#include "NavdataMessageDefinitions.h"
+#include <ardrone_autonomy/NavdataMessageDefinitions.h>
 #undef NAVDATA_STRUCTS_SOURCE
 
 void ARDroneDriver::publish_tf()

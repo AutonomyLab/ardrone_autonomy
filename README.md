@@ -2,8 +2,7 @@
 
 [![](http://jenkins.ros.org/buildStatus/icon?job=devel-groovy-ardrone_autonomy)](http://jenkins.ros.org/job/devel-groovy-ardrone_autonomy)
 
-"ardrone_autonomy" is a [ROS](http://ros.org/ "Robot Operating System") driver for [Parrot AR-Drone](http://ardrone2.parrot.com/) quadrocopter. This driver is based on official [AR-Drone SDK](https://projects.ardrone.org/) version 2.0.1 and supports both AR-Drone 1.0 and 2.0. "ardrone_autonomy" is a fork of [AR-Drone Brown](http://code.google.com/p/brown-ros-pkg/wiki/ardrone_brown) driver. This package has been developed in [Autonomy Lab](http://autonomy.cs.sfu.ca) of [Simon Fraser University](http://www.sfu.ca) by [Mani Monajjemi](http://sfu.ca/~mmonajje) ( +other [contributors](#contributors)).
-
+ardrone_autonomy is a [ROS](http://ros.org/ "Robot Operating System") driver for [Parrot AR-Drone](http://ardrone2.parrot.com/) quadrocopter. This driver is based on official [AR-Drone SDK](https://projects.ardrone.org/) version 2.0.1. The driver supports both AR-Drone 1.0 and 2.0. "ardrone_autonomy" is a fork of [AR-Drone Brown](http://code.google.com/p/brown-ros-pkg/wiki/ardrone_brown) driver. This package has been developed in [Autonomy Lab](http://autonomy.cs.sfu.ca) of [Simon Fraser University](http://www.sfu.ca) by [Mani Monajjemi](http://sfu.ca/~mmonajje) ( +other [contributors](#contributors)).
 
 ## Table of Contents
 
@@ -38,10 +37,9 @@
 - [Contributors](#contributors)
 - [FAQ](#faq) :new:
 
-
-
 ## Updates
 
+- *September 3 2014*: 1.3.5 [Bug Fixes & Minor Improvements](https://github.com/AutonomyLab/ardrone_autonomy/milestones/1.3.5)
 - *March 14 2014*: The binary packages of the driver are now built on [ROS build farm](http://wiki.ros.org/BuildFarm). You can install the driver for ROS _Hydro_ and _Groovy_ using `apt-get` on _Ubuntu_.
 - *January 17 2014*: Fully _catkinized_ package ([#75](https://github.com/AutonomyLab/ardrone_autonomy/pull/75) & [#79](https://github.com/AutonomyLab/ardrone_autonomy/pull/79)). ARDroneLib has been configured to be built as an external project. The ARDroneLib is replaced by the vanilla SDK's stripped tarball. ([More info](https://github.com/AutonomyLab/ardrone_autonomy/pull/80)).
 - *October 22 2013*: Update to Parrot SDK 2.0.1 (Fixes crashes on 2.4.x firmwares, no support for flight recorder (yet). **Please check the FAQ section for instructions on how to re-compile the SDK**. (Tested on 2.3.3 and 2.4.x firmwares) 
@@ -60,7 +58,7 @@
 
 ### Binary Install
 
-On supported _Ubuntu_ platform and for ROS _Hydro_ and _Groovy_ you can install the driver using `apt-get install ros-*-ardrone_autonomy` e.g. `apt-get install ros-hydro-ardrone_autonomy`.
+On supported _Ubuntu_ platform and for ROS _Hydro_ and _Groovy_ you can install the driver using `apt-get install ros-*-ardrone-autonomy` e.g. `apt-get install ros-hydro-ardrone-autonomy`.
 
 ### Compile and Install from Source
 
@@ -122,7 +120,7 @@ Information received from the drone will be published to the `ardrone/navdata` t
 * `rotY`: Forward/backward tilt in degrees (rotation about the Y axis)
 * `rotZ`: Orientation in degrees (rotation about the Z axis)
 * `magX`, `magY`, `magZ`: Magnetometer readings (AR-Drone 2.0 Only) (TBA: Convention)
-* `pressure`: Pressure sensed by Drone's barometer (AR-Drone 2.0 Only) (TBA: Unit)
+* `pressure`: Pressure sensed by Drone's barometer (AR-Drone 2.0 Only) (Pa)
 * `temp` : Temperature sensed by Drone's sensor (AR-Drone 2.0 Only) (TBA: Unit)
 * `wind_speed`: Estimated wind speed (AR-Drone 2.0 Only) (TBA: Unit)
 * `wind_angle`: Estimated wind angle (AR-Drone 2.0 Only) (TBA: Unit)
@@ -307,22 +305,23 @@ These parameters control the behaviour of the driver.
 
 ## License
 
-The Parrot's license, copyright and disclaimer for `ARDroneLib` are included with the package and can be found in `ParrotLicense.txt` and `ParrotCopyrightAndDisclaimer.txt` files respectively. The other parts of the code are subject to `BSD` license.
+- [The Parrot's license, copyright and disclaimer for `ARDroneLib`]https://github.com/AutonomyLab/ardronelib/blob/master/LICENSE) 
+- Other parts of the code are subject to `BSD` license.
 
 ## Contributors
 
 [List of all commiters to the repository](http://autonomylab.org/ardrone_autonomy/contribution.html).
 
-- [Mike Hamer](https://github.com/mikehamer) - Added support for proper SDK2 way of configuring the Drone via parameter (critical bug fix) ([More Info](https://github.com/AutonomyLab/ardrone_autonomy/pull/26)). Support for zero-command without hovering ([More info](https://github.com/AutonomyLab/ardrone_autonomy/pull/34)). Full configurable Navdata support ([More info](https://github.com/AutonomyLab/ardrone_autonomy/pull/31)). Support for Real-time navdata and video publishing ([More info](https://github.com/AutonomyLab/ardrone_autonomy/pull/44)). Support for configurable data publishing rate.
-- [Jacokb Engel](https://github.com/JakobEngel)
-- [Sameer Parekh](https://github.com/sameerparekh) - [Turn on and off USB stick recording](https://github.com/AutonomyLab/ardrone_autonomy/pull/53) - [Seperate Magnetometer Topic](https://github.com/AutonomyLab/ardrone_autonomy/pull/25)
-- [Devmax](https://github.com/devmax) - [Flat Trim](https://github.com/AutonomyLab/ardrone_autonomy/issues/18) + Various
-comments for enhancements
-- [Rachel Brindle](https://github.com/younata) - [Enhanced Navdata for AR-Drone 2.0](https://github.com/AutonomyLab/ardrone_autonomy/pull/2)
-- [boris-il-forte](boris-il-forte) & [Charles Lesire-Cabaniols](https://github.com/lesire)- [Catkinization](https://github.com/AutonomyLab/ardrone_autonomy/pull/79) [+](https://github.com/AutonomyLab/ardrone_autonomy/pull/82)
-- [Kenneth Bogert](https://github.com/kbogert) - [Move ARDroneLIB to an external project](https://github.com/AutonomyLab/ardrone_autonomy/pull/80)
- 
-## FAQ
+- @mikehamer - Added support for proper SDK2 way of configuring the Drone via parameter (critical bug fix) ([More Info](https://github.com/AutonomyLab/ardrone_autonomy/pull/26)). Support for zero-command without hovering ([More info](https://github.com/AutonomyLab/ardrone_autonomy/pull/34)). Full configurable Navdata support ([More info](https://github.com/AutonomyLab/ardrone_autonomy/pull/31)). Support for Real-time navdata and video publishing ([More info](https://github.com/AutonomyLab/ardrone_autonomy/pull/44)). Support for configurable data publishing rate.
+- @JakobEngel
+- @sameerparekh - [Turn on and off USB stick recording](https://github.com/AutonomyLab/ardrone_autonomy/pull/53) - [Seperate Magnetometer Topic](https://github.com/AutonomyLab/ardrone_autonomy/pull/25)
+- @devmax - [Flat Trim](https://github.com/AutonomyLab/ardrone_autonomy/issues/18) + Various comments for enhancements
+- @younata - [Enhanced Navdata for AR-Drone 2.0](https://github.com/AutonomyLab/ardrone_autonomy/pull/2)
+- @boris-il-forte & @lesire - [Catkinization](https://github.com/AutonomyLab/ardrone_autonomy/pull/79) [+](https://github.com/AutonomyLab/ardrone_autonomy/pull/82)
+- @kbogert - [Move ARDroneLIB to an external project](https://github.com/AutonomyLab/ardrone_autonomy/pull/80)
+- @garyservin - [Fix ffmpeg library link order](https://github.com/AutonomyLab/ardrone_autonomy/pull/109), [Moved header files to include directory](https://github.com/AutonomyLab/ardrone_autonomy/pull/110), [Add pressure unit](https://github.com/AutonomyLab/ardrone_autonomy/pull/117)
+
+## FAQ 
 
 ### Where should I go next? Is there any ROS package or stack that can be used as a tutorial/sample to use ardrone_autonomy?
 
@@ -353,7 +352,7 @@ If you want to submit a pull request, please submit to `dev-unstable` branch.
 
 ### Why the `ARDroneLib` has been patched?
 
-The ARDrone 2.0 SDK has been patched to 1) Enable the lib only build 2) Make its command parsing compatible with ROS and 3) To fix its weird `main()` function issue
+The ARDrone 2.0.1 SDK has been patched to 1) Enable the lib only build 2) Make its command line parsing compatible with ROS and 3) To fix its weird `main()` function issue. The patched SDK is being hosted on an [external repository](https://github.com/AutonomyLab/ardronelib).
 
 ### Why the wifi bandwidth usage is too much?
 
