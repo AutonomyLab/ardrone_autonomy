@@ -2,8 +2,8 @@
 Changelog for package ardrone_autonomy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.3.5 (2014-09-03)
+------------------
 * Fixed Incorrect orientation in ardrone/imu #113  ht @tomas-c
 * Added install rules for launch files. #114 ht @kbogert @fig0451
 * ARDroneSDK is now fetched from an external repository. Patches are applied there.
