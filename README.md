@@ -39,7 +39,7 @@ ardrone_autonomy is a [ROS](http://ros.org/ "Robot Operating System") driver for
 
 ## Updates
 
-- *September 3 2014*: 1.3.5 (Bug Fixes & Minor Improvements)[https://github.com/AutonomyLab/ardrone_autonomy/milestones/1.3.5]
+- *September 3 2014*: 1.3.5 [Bug Fixes & Minor Improvements](https://github.com/AutonomyLab/ardrone_autonomy/milestones/1.3.5)
 - *March 14 2014*: The binary packages of the driver are now built on [ROS build farm](http://wiki.ros.org/BuildFarm). You can install the driver for ROS _Hydro_ and _Groovy_ using `apt-get` on _Ubuntu_.
 - *January 17 2014*: Fully _catkinized_ package ([#75](https://github.com/AutonomyLab/ardrone_autonomy/pull/75) & [#79](https://github.com/AutonomyLab/ardrone_autonomy/pull/79)). ARDroneLib has been configured to be built as an external project. The ARDroneLib is replaced by the vanilla SDK's stripped tarball. ([More info](https://github.com/AutonomyLab/ardrone_autonomy/pull/80)).
 - *October 22 2013*: Update to Parrot SDK 2.0.1 (Fixes crashes on 2.4.x firmwares, no support for flight recorder (yet). **Please check the FAQ section for instructions on how to re-compile the SDK**. (Tested on 2.3.3 and 2.4.x firmwares) 
