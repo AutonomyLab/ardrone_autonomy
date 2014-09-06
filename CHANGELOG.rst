@@ -2,8 +2,8 @@
 Changelog for package ardrone_autonomy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.3.6 (2014-09-05)
+------------------
 * Adding git as build dependency to fix binary build
 
 1.3.5 (2014-09-03)
