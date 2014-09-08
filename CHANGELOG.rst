@@ -2,6 +2,11 @@
 Changelog for package ardrone_autonomy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+
+1.3.7 (2014-09-08)
+------------------
+* Use git protocol instead of https for cmake external project (fixes ca-certificate issues on the build farm)
+
 1.3.6 (2014-09-05)
 ------------------
 * Adding git as build dependency to fix binary build
