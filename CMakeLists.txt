@@ -62,14 +62,14 @@ generate_messages(DEPENDENCIES geometry_msgs std_msgs geographic_msgs)
 
 # catkin_package parameters: http://ros.org/doc/groovy/api/catkin/html/dev_guide/generated_cmake_api.html#catkin-package
 catkin_package(
-  DEPENDS roscpp image_transport sensor_msgs std_srvs tf camera_info_manager libsdl-dev geographic_msgs
-  CATKIN_DEPENDS message_runtime
+  DEPENDS libsdl-dev
+  CATKIN_DEPENDS roscpp image_transport message_runtime sensor_msgs std_srvs tf camera_info_manager
 )
 
 
 include(ExternalProject)
 ExternalProject_Add(ardronelib
-	GIT_REPOSITORY https://github.com/AutonomyLab/ardronelib.git
+	GIT_REPOSITORY git://github.com/AutonomyLab/ardronelib.git
 	GIT_TAG gps
 	PREFIX ${CMAKE_BINARY_DIR}/ardrone
 	CONFIGURE_COMMAND echo "No configure"
@@ -104,5 +104,7 @@ add_dependencies(ardrone_driver ardronelib ${PROJECT_NAME}_gencpp)
 
 #install Rules
 install(TARGETS ardrone_driver RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
-
+install(DIRECTORY launch/
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
+  PATTERN ".git" EXCLUDE)
 
