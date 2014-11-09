@@ -63,6 +63,7 @@ extern "C" {
         ros::param::param("~looprate",looprate,50);
         ros::param::param("~realtime_navdata",realtime_navdata,false);
         ros::param::param("~realtime_video",realtime_video,false);
+        if (!realtime_navdata) ROS_WARN("realtime navdata is off, odometry may be imprecise");
 
         // SET SOME NON-STANDARD DEFAULT VALUES FOR THE DRIVER
         // THESE CAN BE OVERWRITTEN BY ROS PARAMETERS (below)
