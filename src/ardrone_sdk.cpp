@@ -233,6 +233,7 @@ extern "C" {
 
         if(realtime_navdata)
         {
+            // TODO: Optimize de-refs
             rosDriver->PublishNavdataTypes(*shared_raw_navdata, shared_navdata_receive_time); //if we're publishing navdata at full speed, publish!
             rosDriver->publish_navdata(*shared_raw_navdata, shared_navdata_receive_time);
             rosDriver->publish_odometry(*shared_raw_navdata, shared_navdata_receive_time);

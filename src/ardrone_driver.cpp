@@ -10,7 +10,8 @@
 ARDroneDriver::ARDroneDriver()
     : image_transport(node_handle),
       // Ugly: This has been defined in the template file. Cleaner way to guarantee initilaztion?
-      initialized_navdata_publishers(false)
+      initialized_navdata_publishers(false),
+      last_receive_time(0.0)
 {
     inited = false;
     last_frame_id = -1;
