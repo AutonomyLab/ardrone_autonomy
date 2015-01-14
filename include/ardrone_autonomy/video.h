@@ -22,11 +22,12 @@ OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTE
 ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-#ifndef _VIDEO_H_
-#define _VIDEO_H_
+#ifndef ARDRONE_AUTONOMY_VIDEO_H
+#define ARDRONE_AUTONOMY_VIDEO_H
 
 #include <ardrone_autonomy/ardrone_sdk.h>
 #include <ardrone_autonomy/ardrone_driver.h>
+#include <stdint.h>
 
 // The maximum memory allocation
 #define MAX_STREAM_WIDTH 640
@@ -39,15 +40,15 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 #define D1_STREAM_WIDTH 320
 #define D1_STREAM_HEIGHT 240
 
-//Vertical Camera standalone
+// Vertical Camera standalone
 #define D1_VERTSTREAM_WIDTH 174
 #define D1_VERTSTREAM_HEIGHT 144
 
 // Vertical Camera in PIP
-#define D1_MODE2_PIP_WIDTH 87 //Huh?
+#define D1_MODE2_PIP_WIDTH 87  // Huh?
 #define D1_MODE2_PIP_HEIGHT 72
 
-//Horizontal Camera in PIP
+// Horizontal Camera in PIP
 #define D1_MODE3_PIP_WIDTH 58
 #define D1_MODE3_PIP_HEIGHT 42
 
@@ -59,8 +60,8 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 
 extern video_com_multisocket_config_t icc;
 extern const vp_api_stage_funcs_t vp_stages_export_funcs;
-extern unsigned char buffer[]; // size STREAM_WIDTH * STREAM_HEIGHT * 3
-extern long int current_frame_id; // this will be incremented for every frame
-extern long int current_navdata_id;
+extern unsigned char buffer[];  // size STREAM_WIDTH * STREAM_HEIGHT * 3
+extern int32_t current_frame_id;  // this will be incremented for every frame
+extern int32_t current_navdata_id;
 
-#endif
+#endif  // ARDRONE_AUTONOMY_VIDEO_H

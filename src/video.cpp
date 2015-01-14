@@ -28,7 +28,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 #define CAMIF_H_CAMERA_USED CAMIF_CAMERA_OVTRULY
 
 unsigned char buffer[MAX_STREAM_WIDTH * MAX_STREAM_HEIGHT * 3];
-long int current_frame_id = 0;
+int32_t current_frame_id = 0;
 
 extern "C" C_RESULT export_stage_open(void *cfg, vp_api_io_data_t *in, vp_api_io_data_t *out)
 {

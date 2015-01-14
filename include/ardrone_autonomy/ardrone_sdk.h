@@ -22,10 +22,10 @@ OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTE
 ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-#ifndef _ARDRONE_SDK_H_
-#define _ARDRONE_SDK_H_
+#ifndef ARDRONE_AUTONOMY_ARDRONE_SDK_H
+#define ARDRONE_AUTONOMY_ARDRONE_SDK_H
 
-// TODO: Move these two defines to CMake
+// TODO(mani-monaj): Move these two defines to CMake
 #ifndef FFMPEG_SUPPORT
 #define FFMPEG_SUPPORT
 #endif
@@ -34,7 +34,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 #define USE_LINUX
 #endif
 
-// TODO: Research more on this issue, move the flag to CMake
+// TODO(mani-monaj): Research more on this issue, move the flag to CMake
 // The FFMPEG library INT macros fix
 #if defined __cplusplus
 #    define __STDC_CONSTANT_MACROS
@@ -46,8 +46,8 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 #define UINT64_C(c) (c ## ULL)
 #endif
 
-extern "C" {
-
+extern "C"
+{
 #include <config.h>
 
 #include <utils/ardrone_gen_ids.h>
@@ -86,4 +86,4 @@ extern bool realtime_video;
 
 extern int32_t should_exit;
 
-#endif
+#endif  // ARDRONE_AUTONOMY_ARDRONE_SDK_H

@@ -22,6 +22,7 @@ OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTE
 ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
+#include <algorithm>
 #include <ardrone_autonomy/teleop_twist.h>
 #include "ardrone_autonomy/LedAnim.h"
 #include "utils/ardrone_date.h"
@@ -44,7 +45,7 @@ float old_front_back = -10.0;
 float old_up_down = -10.0;
 float old_turn = -10.0;
 
-int cam_state = DEFAULT_CAM_STATE; // 0 for forward and 1 for vertical, change to enum later
+int cam_state = DEFAULT_CAM_STATE;  // 0 for forward and 1 for vertical, change to enum later
 int set_navdata_demo_value = DEFAULT_NAVDATA_DEMO;
 int32_t detect_enemy_color = ARDRONE_DETECTION_COLOR_ORANGE_YELLOW;
 int32_t detect_dtype = CAD_TYPE_MULTIPLE_DETECTION_MODE;
@@ -61,8 +62,9 @@ const LED_ANIMATION_IDS ledAnimMap[14] =
   LEFT_GREEN_RIGHT_RED, LEFT_RED_RIGHT_GREEN, BLINK_STANDARD
 };
 
-//ros service callback to set the camera channel
-bool setCamChannelCallback(ardrone_autonomy::CamSelect::Request& request, ardrone_autonomy::CamSelect::Response& response)
+// ros service callback to set the camera channel
+bool setCamChannelCallback(ardrone_autonomy::CamSelect::Request& request,
+                           ardrone_autonomy::CamSelect::Response& response)
 {
   const int _modes = (IS_ARDRONE1) ? 4 : 2;
   cam_state = request.channel % _modes;
@@ -72,7 +74,8 @@ bool setCamChannelCallback(ardrone_autonomy::CamSelect::Request& request, ardron
   return true;
 }
 // ros service callback function for toggling Cam
-bool toggleCamCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response)
+bool toggleCamCallback(std_srvs::Empty::Request& request,
+                       std_srvs::Empty::Response& response)
 {
   const int _modes = (IS_ARDRONE1) ? 4 : 2;
   cam_state = (cam_state + 1) % _modes;
@@ -82,7 +85,8 @@ bool toggleCamCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Respo
 }
 
 // ros service callback to turn on and off camera recording
-bool setRecordCallback(ardrone_autonomy::RecordEnable::Request &request, ardrone_autonomy::RecordEnable::Response& response)
+bool setRecordCallback(ardrone_autonomy::RecordEnable::Request &request,
+                       ardrone_autonomy::RecordEnable::Response& response)
 {
   char record_command[ARDRONE_DATE_MAXSIZE + 64];
   int32_t new_codec;
@@ -112,17 +116,21 @@ bool setRecordCallback(ardrone_autonomy::RecordEnable::Request &request, ardrone
   return true;
 }
 
-bool setLedAnimationCallback(ardrone_autonomy::LedAnim::Request& request, ardrone_autonomy::LedAnim::Response& response)
+bool setLedAnimationCallback(ardrone_autonomy::LedAnim::Request& request,
+                             ardrone_autonomy::LedAnim::Response& response)
 {
-  LED_ANIMATION_IDS anim_id = ledAnimMap[request.type % 14]; // Don't trick me
+  LED_ANIMATION_IDS anim_id = ledAnimMap[request.type % 14];  // Don't trick me
   vp_os_mutex_lock(&twist_lock);
-  ardrone_at_set_led_animation(anim_id, (float) fabs(request.freq), (uint32_t) abs(request.duration));
+  ardrone_at_set_led_animation(anim_id,
+                               static_cast<float>(fabs(request.freq)),
+                               static_cast<uint32_t>(abs(request.duration)));
   vp_os_mutex_unlock(&twist_lock);
   response.result = true;
   return true;
 }
 
-bool setFlightAnimationCallback(ardrone_autonomy::FlightAnim::Request &request, ardrone_autonomy::FlightAnim::Response &response)
+bool setFlightAnimationCallback(ardrone_autonomy::FlightAnim::Request &request,
+                                ardrone_autonomy::FlightAnim::Response &response)
 {
   char param[20];
   const int anim_type = request.type % ARDRONE_NB_ANIM_MAYDAY;
@@ -135,7 +143,8 @@ bool setFlightAnimationCallback(ardrone_autonomy::FlightAnim::Request &request, 
   return true;
 }
 
-bool flatTrimCallback(std_srvs::Empty::Request &request, std_srvs::Empty::Response &response)
+bool flatTrimCallback(std_srvs::Empty::Request &request,
+                      std_srvs::Empty::Response &response)
 {
   vp_os_mutex_lock(&twist_lock);
   ardrone_at_set_flat_trim();
@@ -206,18 +215,16 @@ C_RESULT update_teleop(void)
   }
   else
   {
-
-    float left_right = (float) cmd_vel.linear.y;
-    float front_back = (float) cmd_vel.linear.x;
-    float up_down = (float) cmd_vel.linear.z;
-    float turn = (float) cmd_vel.angular.z;
+    float left_right = static_cast<float>(cmd_vel.linear.y);
+    float front_back = static_cast<float>(cmd_vel.linear.x);
+    float up_down = static_cast<float>(cmd_vel.linear.z);
+    float turn = static_cast<float>(cmd_vel.angular.z);
 
     bool is_changed = !(
                         (fabs(left_right - old_left_right) < _EPS) &&
                         (fabs(front_back - old_front_back) < _EPS) &&
                         (fabs(up_down - old_up_down) < _EPS) &&
-                        (fabs(turn - old_turn) < _EPS)
-                      );
+                        (fabs(turn - old_turn) < _EPS));
 
     // These lines are for testing, they should be moved to configurations
     // Bit 0 of control_flag == 0: should we hover?
@@ -236,23 +243,21 @@ C_RESULT update_teleop(void)
                       // Set angular.x or angular.y to a non-zero value to disable entering hover
                       // even when 4DOF control command is ~0
                       (fabs(cmd_vel.angular.x) < _EPS) &&
-                      (fabs(cmd_vel.angular.y) < _EPS)
-                    );
+                      (fabs(cmd_vel.angular.y) < _EPS));
 
     control_flag |= ((1 - hover) << 0);
     control_flag |= (combined_yaw << 1);
-    //ROS_INFO (">>> Control Flag: %d", control_flag);
+    // ROS_INFO (">>> Control Flag: %d", control_flag);
 
     old_left_right = left_right;
     old_front_back = front_back;
     old_up_down = up_down;
     old_turn = turn;
-    //is_changed = true;
+    // is_changed = true;
     if ((is_changed) || (hover))
     {
       ardrone_tool_set_progressive_cmd(control_flag, left_right, front_back, up_down, turn, 0.0, 0.0);
     }
-
   }
   vp_os_mutex_unlock(&twist_lock);
   return C_OK;

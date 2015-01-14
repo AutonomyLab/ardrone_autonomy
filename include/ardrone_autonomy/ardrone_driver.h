@@ -27,6 +27,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 
 class ARDroneDriver;
 
+// ROS
 #include <ros/ros.h>
 #include <image_transport/image_transport.h>
 #include <tf/transform_broadcaster.h>
@@ -38,7 +39,13 @@ class ARDroneDriver;
 #include <nav_msgs/Odometry.h>
 #include <ardrone_autonomy/Navdata.h>
 #include <ardrone_autonomy/ardrone_sdk.h>
+
+// C/C++
+#include <stdint.h>
 #include <vector>
+#include <string>
+
+// ardronelib
 #include <utils/ardrone_gen_ids.h>
 #include <ardrone_tool/ardrone_version.h>
 #include <ardrone_tool/ardrone_tool.h>
@@ -132,12 +139,12 @@ private:
    */
   // ros::ServiceServer setHullType_service;
 
-  long int last_frame_id;
-  long int last_navdata_id;
-  long int copy_current_frame_id;
-  long int copy_current_navdata_id;
+  int32_t last_frame_id;
+  int32_t last_navdata_id;
+  int32_t copy_current_frame_id;
+  int32_t copy_current_navdata_id;
 
-  int flying_state;
+  int16_t flying_state;
 
   bool inited;
   std::string droneFrameId;
@@ -152,7 +159,7 @@ private:
    * Base: Should be COM
    */
   std::string droneFrameBase, droneFrameIMU, droneFrameFrontCam, droneFrameBottomCam;
-  int drone_root_frame;
+  int32_t drone_root_frame;
   tf::StampedTransform tf_base_front, tf_base_bottom, tf_odom;
 
   // Huge part of IMU message is constant, let's fill'em once.
@@ -162,7 +169,7 @@ private:
 
   // Manual IMU caliberation
   bool do_caliberation;
-  int max_num_samples;
+  uint16_t max_num_samples;
   bool caliberated;
   double acc_bias[3];
   double gyro_bias[3];
