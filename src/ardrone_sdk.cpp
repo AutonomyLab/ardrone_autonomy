@@ -28,7 +28,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 #include <stdint.h>
 
 
-navdata_unpacked_t *shared_raw_navdata;
+const navdata_unpacked_t* shared_raw_navdata;
 ros::Time shared_navdata_receive_time;
 
 vp_os_mutex_t navdata_lock;
@@ -202,7 +202,7 @@ extern "C"
   {
     vp_os_mutex_lock(&navdata_lock);
     shared_navdata_receive_time = ros::Time::now();
-    shared_raw_navdata = reinterpret_cast<navdata_unpacked_t*>(pnd);
+    shared_raw_navdata = reinterpret_cast<const navdata_unpacked_t*>(pnd);
 
     if (realtime_navdata)
     {

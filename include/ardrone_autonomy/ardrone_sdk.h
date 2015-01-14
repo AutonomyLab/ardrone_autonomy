@@ -73,7 +73,7 @@ extern "C"
 
 extern ARDroneDriver *rosDriver;
 
-extern navdata_unpacked_t *shared_raw_navdata;
+extern const navdata_unpacked_t* shared_raw_navdata;
 extern ros::Time shared_navdata_receive_time;
 
 extern vp_os_mutex_t navdata_lock;

@@ -87,8 +87,8 @@ public:
 #undef NAVDATA_STRUCTS_HEADER_PUBLIC
 
   void publish_video();
-  void publish_navdata(navdata_unpacked_t &navdata_raw, const ros::Time &navdata_receive_time);
-  void publish_odometry(navdata_unpacked_t &navdata_raw, const ros::Time &navdata_receive_time);
+  void publish_navdata(const navdata_unpacked_t &navdata_raw, const ros::Time &navdata_receive_time);
+  void publish_odometry(const navdata_unpacked_t &navdata_raw, const ros::Time &navdata_receive_time);
 
 private:
   void publish_tf();

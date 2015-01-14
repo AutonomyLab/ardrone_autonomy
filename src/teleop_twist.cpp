@@ -22,19 +22,12 @@ OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTE
 ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-#include <algorithm>
+
 #include <ardrone_autonomy/teleop_twist.h>
 #include "ardrone_autonomy/LedAnim.h"
 #include "utils/ardrone_date.h"
 
-inline float max(float a, float b)
-{
-  return a > b ? a : b;
-}
-inline float min(float a, float b)
-{
-  return a < b ? a : b;
-}
+#include <algorithm>
 
 bool needs_takeoff = false;
 bool needs_land = false;
@@ -156,10 +149,10 @@ void cmdVelCallback(const geometry_msgs::TwistConstPtr &msg)
 {
   vp_os_mutex_lock(&twist_lock);
   // Main 4DOF
-  cmd_vel.linear.x  = max(min(-msg->linear.x, 1.0), -1.0);
-  cmd_vel.linear.y  = max(min(-msg->linear.y, 1.0), -1.0);
-  cmd_vel.linear.z  = max(min(msg->linear.z, 1.0), -1.0);
-  cmd_vel.angular.z = max(min(-msg->angular.z, 1.0), -1.0);
+  cmd_vel.linear.x  = std::max(std::min(-msg->linear.x, 1.0), -1.0);
+  cmd_vel.linear.y  = std::max(std::min(-msg->linear.y, 1.0), -1.0);
+  cmd_vel.linear.z  = std::max(std::min(msg->linear.z, 1.0), -1.0);
+  cmd_vel.angular.z = std::max(std::min(-msg->angular.z, 1.0), -1.0);
   // These 2DOF just change the auto hover behaviour
   // No bound() required
   cmd_vel.angular.x = msg->angular.x;

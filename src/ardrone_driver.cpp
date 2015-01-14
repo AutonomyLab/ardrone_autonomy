@@ -577,7 +577,7 @@ void ARDroneDriver::publish_video()
   }
 }
 
-void ARDroneDriver::publish_navdata(navdata_unpacked_t &navdata_raw, const ros::Time &navdata_receive_time)
+void ARDroneDriver::publish_navdata(const navdata_unpacked_t &navdata_raw, const ros::Time &navdata_receive_time)
 {
   if ((do_caliberation) && (!caliberated))
   {
@@ -608,17 +608,17 @@ void ARDroneDriver::publish_navdata(navdata_unpacked_t &navdata_raw, const ros::
       caliberated = true;
     }
   }
-  if ((do_caliberation) && (caliberated))
-  {
-    for (int j = 0; j < 3; j++)
-    {
-      if (j != 2) navdata_raw.navdata_phys_measures.phys_accs[j] -= acc_bias[j];
-      navdata_raw.navdata_phys_measures.phys_gyros[j] -= gyro_bias[j];
-    }
-    navdata_raw.navdata_demo.vx -= vel_bias[0];
-    navdata_raw.navdata_demo.vy -= vel_bias[1];
-    navdata_raw.navdata_demo.vz -= vel_bias[2];
-  }
+//  if ((do_caliberation) && (caliberated))
+//  {
+//    for (int j = 0; j < 3; j++)
+//    {
+//      if (j != 2) navdata_raw.navdata_phys_measures.phys_accs[j] -= acc_bias[j];
+//      navdata_raw.navdata_phys_measures.phys_gyros[j] -= gyro_bias[j];
+//    }
+//    navdata_raw.navdata_demo.vx -= vel_bias[0];
+//    navdata_raw.navdata_demo.vy -= vel_bias[1];
+//    navdata_raw.navdata_demo.vz -= vel_bias[2];
+//  }
 
   if (!enabled_legacy_navdata ||
       ((navdata_pub.getNumSubscribers() == 0) &&
@@ -767,7 +767,7 @@ void ARDroneDriver::publish_tf()
   tf_broad.sendTransform(tf_odom);
 }
 
-void ARDroneDriver::publish_odometry(navdata_unpacked_t &navdata_raw, const ros::Time &navdata_receive_time)
+void ARDroneDriver::publish_odometry(const navdata_unpacked_t &navdata_raw, const ros::Time &navdata_receive_time)
 {
   if (last_receive_time.isValid())
   {
