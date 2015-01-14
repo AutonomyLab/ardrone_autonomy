@@ -25,6 +25,7 @@
   <build_depend>libudev-dev</build_depend>
   <build_depend>libiw-dev</build_depend>
   <build_depend>git</build_depend>
+
   <!-- ROS Driver -->
   <build_depend>roscpp</build_depend>
   <build_depend>image_transport</build_depend>
@@ -34,6 +35,7 @@
   <build_depend>camera_info_manager</build_depend>
   <build_depend>message_generation</build_depend>
   <build_depend>nav_msgs</build_depend>
+  <build_depend>roslint</build_depend>
 
   <!-- Dependencies needed after this package is compiled. -->
   <run_depend>roscpp</run_depend>
