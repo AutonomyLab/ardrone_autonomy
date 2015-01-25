@@ -55,49 +55,36 @@ class ARDroneDriver;
 #include <ardrone_autonomy/NavdataMessageDefinitions.h>
 #undef NAVDATA_STRUCTS_INCLUDES
 
-
 #define _DEG2RAD 0.01745331111
 #define _RAD2DEG 57.2957184819
 
 #define DRIVER_USERNAME "ardrone_driver"
 #define DRIVER_APPNAME "ardrone_driver"
-#define CAMERA_QUEUE_SIZE (10)
-#define NAVDATA_QUEUE_SIZE (25)
-
-enum ROOT_FRAME
-{
-  ROOT_FRAME_BASE = 0,
-  ROOT_FRAME_FRONT = 1,
-  ROOT_FRAME_BOTTOM = 2,
-  ROOT_FRAME_NUM
-};
+#define CAMERA_QUEUE_SIZE (30)
+#define NAVDATA_QUEUE_SIZE (200)
 
 class ARDroneDriver
 {
 public:
   ARDroneDriver();
   ~ARDroneDriver();
-
   void run();
-  double getRosParam(char* param, double defaultVal);
-  bool imuReCalibCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Response &response);
+  static bool ReadCovParams(const std::string& param_name, boost::array<double, 9> &cov_array);
+  static double CalcAverage(const std::vector<double> &vec);
+  void PublishVideo();
+  void PublishNavdata(const navdata_unpacked_t &navdata_raw, const ros::Time &navdata_receive_time);
+  void PublishOdometry(const navdata_unpacked_t &navdata_raw, const ros::Time &navdata_receive_time);
 
 #define NAVDATA_STRUCTS_HEADER_PUBLIC
 #include <ardrone_autonomy/NavdataMessageDefinitions.h>
 #undef NAVDATA_STRUCTS_HEADER_PUBLIC
 
-  void publish_video();
-  void publish_navdata(const navdata_unpacked_t &navdata_raw, const ros::Time &navdata_receive_time);
-  void publish_odometry(const navdata_unpacked_t &navdata_raw, const ros::Time &navdata_receive_time);
-
 private:
-  void publish_tf();
-  bool readCovParams(std::string param_name, boost::array<double, 9> &cov_array);
-  double calcAverage(std::vector<double> &vec);
-  void resetCaliberation();
-  void configureDrone();
+  void PublishTF();
+  void ConfigureDrone();
 
   ros::NodeHandle node_handle;
+  ros::NodeHandle private_nh;
   ros::Subscriber cmd_vel_sub;
   ros::Subscriber takeoff_sub;
   ros::Subscriber reset_sub;
@@ -107,8 +94,8 @@ private:
   image_transport::CameraPublisher hori_pub;
   image_transport::CameraPublisher vert_pub;
 
-  camera_info_manager::CameraInfoManager *cinfo_hori_;
-  camera_info_manager::CameraInfoManager *cinfo_vert_;
+  camera_info_manager::CameraInfoManager *cinfo_hori;
+  camera_info_manager::CameraInfoManager *cinfo_vert;
 
   ros::Publisher navdata_pub;
   ros::Publisher imu_pub;
@@ -117,27 +104,12 @@ private:
 
   tf::TransformBroadcaster tf_broad;
 
-  // ros::Subscriber toggleCam_sub;
   ros::ServiceServer toggleCam_service;
   ros::ServiceServer setCamChannel_service;
   ros::ServiceServer setLedAnimation_service;
-  ros::ServiceServer imuReCalib_service;
   ros::ServiceServer flatTrim_service;
   ros::ServiceServer setFlightAnimation_service;
   ros::ServiceServer setRecord_service;
-
-  /*
-   * Orange Green : 1
-   * Orange Yellow: 2
-   * Orange Blue: 3
-   */
-  // ros::ServiceServer setEnemyColor_service;
-
-  /*
-   * Indoor: 1
-   * Oudoor: 0
-   */
-  // ros::ServiceServer setHullType_service;
 
   int32_t last_frame_id;
   int32_t last_navdata_id;
@@ -146,8 +118,8 @@ private:
 
   int16_t flying_state;
 
-  bool inited;
-  std::string droneFrameId;
+  bool is_inited;
+  std::string drone_frame_id;
 
   // Load auto-generated declarations for full navdata
 #define NAVDATA_STRUCTS_HEADER_PRIVATE
@@ -158,25 +130,13 @@ private:
    * TF Frames
    * Base: Should be COM
    */
-  std::string droneFrameBase, droneFrameIMU, droneFrameFrontCam, droneFrameBottomCam;
-  int32_t drone_root_frame;
+  std::string drone_frame_base, drone_frame_imu, drone_frame_front_cam, drone_frame_bottom_cam;
   tf::StampedTransform tf_base_front, tf_base_bottom, tf_odom;
 
   // Huge part of IMU message is constant, let's fill'em once.
   sensor_msgs::Imu imu_msg;
   geometry_msgs::Vector3Stamped mag_msg;
   ardrone_autonomy::Navdata legacynavdata_msg;
-
-  // Manual IMU caliberation
-  bool do_caliberation;
-  uint16_t max_num_samples;
-  bool caliberated;
-  double acc_bias[3];
-  double gyro_bias[3];
-  double vel_bias[3];
-  std::vector< std::vector<double> > acc_samples;
-  std::vector< std::vector<double> > gyro_samples;
-  std::vector< std::vector<double> > vel_samples;
 
   // odometry (x,y)
   ros::Time last_receive_time;

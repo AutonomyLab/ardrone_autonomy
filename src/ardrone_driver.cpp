@@ -37,14 +37,15 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 ////////////////////////////////////////////////////////////////////////////////
 
 ARDroneDriver::ARDroneDriver()
-  : image_transport(node_handle),
+  : private_nh("~"),
+    image_transport(node_handle),
     // Ugly: This has been defined in the template file. Cleaner way to guarantee initilaztion?
     initialized_navdata_publishers(false),
+    last_frame_id(-1),
+    last_navdata_id(-1),
+    is_inited(false),
     last_receive_time(0.0)
 {
-  inited = false;
-  last_frame_id = -1;
-  last_navdata_id = -1;
   cmd_vel_sub = node_handle.subscribe("cmd_vel", 1, &cmdVelCallback);
   takeoff_sub = node_handle.subscribe("ardrone/takeoff", 1, &takeoffCallback);
   reset_sub = node_handle.subscribe("ardrone/reset", 1, &resetCallback);
@@ -59,51 +60,38 @@ ARDroneDriver::ARDroneDriver()
   setFlightAnimation_service = node_handle.advertiseService("ardrone/setflightanimation", setFlightAnimationCallback);
   setRecord_service = node_handle.advertiseService("ardrone/setrecord", setRecordCallback);
 
-  /*
-      To be honest, I am not sure why advertising a service using class members should be this complicated!
-      One day, I should learn what is exactly happenning here. /M
-  */
-  imuReCalib_service = node_handle.advertiseService<std_srvs::Empty::Request, std_srvs::Empty::Response>
-                       ("ardrone/imu_recalib", boost::bind(&ARDroneDriver::imuReCalibCallback, this, _1, _2));
+  /* TF Frames */
+  private_nh.param<std::string>("drone_frame_id", drone_frame_id, "ardrone_base");
+  drone_frame_base = drone_frame_id + "_link";
+  drone_frame_imu = drone_frame_id + "_imu";
+  drone_frame_front_cam = drone_frame_id + "_frontcam";
+  drone_frame_bottom_cam = drone_frame_id + "_bottomcam";
 
-  //  setEnemyColor_service = node_handle.advertiseService("/ardrone/setenemycolor", setEnemyColorCallback);
-  //  setHullType_service = node_handle.advertiseService("/ardrone/sethulltype", setHullTypeCallback);
-
-  droneFrameId = (ros::param::get("~drone_frame_id", droneFrameId)) ? droneFrameId : "ardrone_base";
-  droneFrameBase = droneFrameId + "_link";
-  droneFrameIMU = droneFrameId + "_imu";
-  droneFrameFrontCam = droneFrameId + "_frontcam";
-  droneFrameBottomCam = droneFrameId + "_bottomcam";
-
-  drone_root_frame = (ros::param::get("~root_frame", drone_root_frame)) ? drone_root_frame : ROOT_FRAME_BASE;
-  drone_root_frame = drone_root_frame % ROOT_FRAME_NUM;
-  ROS_INFO("Root Frame is: %d", drone_root_frame);
+  if (private_nh.hasParam("root_frame"))
+  {
+    ROS_WARN("Changing `root_frame` has been deprecated since version 1.4. ");
+  }
 
   // Fill constant parts of IMU Message
   // If no rosparam is set then the default value of 0.0 will be assigned to all covariance values
-
   for (int i = 0; i < 9; i++)
   {
     imu_msg.linear_acceleration_covariance[i] = 0.0;
     imu_msg.angular_velocity_covariance[i] = 0.0;
     imu_msg.orientation_covariance[i] = 0.0;
   }
-  readCovParams("~cov/imu_la", imu_msg.linear_acceleration_covariance);
-  readCovParams("~cov/imu_av", imu_msg.angular_velocity_covariance);
-  readCovParams("~cov/imu_or", imu_msg.orientation_covariance);
+  ReadCovParams("~cov/imu_la", imu_msg.linear_acceleration_covariance);
+  ReadCovParams("~cov/imu_av", imu_msg.angular_velocity_covariance);
+  ReadCovParams("~cov/imu_or", imu_msg.orientation_covariance);
 
-  // Caliberation
-  max_num_samples = 50;
-  do_caliberation = (ros::param::get("~do_imu_caliberation", do_caliberation)) ? do_caliberation : false;
-  if (do_caliberation)
+  if (private_nh.hasParam("do_imu_caliberation"))
   {
-    resetCaliberation();
-    ROS_WARN("Automatic IMU Caliberation is active.");
+    ROS_WARN("IMU Caliberation has been deprecated since 1.4.");
   }
 
   // Camera Info Manager
-  cinfo_hori_ = new camera_info_manager::CameraInfoManager(ros::NodeHandle("ardrone/front"), "ardrone_front");
-  cinfo_vert_ = new camera_info_manager::CameraInfoManager(ros::NodeHandle("ardrone/bottom"), "ardrone_bottom");
+  cinfo_hori = new camera_info_manager::CameraInfoManager(ros::NodeHandle("ardrone/front"), "ardrone_front");
+  cinfo_vert = new camera_info_manager::CameraInfoManager(ros::NodeHandle("ardrone/bottom"), "ardrone_bottom");
 
   // TF Stuff
 
@@ -114,7 +102,7 @@ ARDroneDriver::ARDroneDriver()
                     tf::Transform(
                       tf::createQuaternionFromRPY(-90.0 * _DEG2RAD, 0.0, -90.0 * _DEG2RAD),
                       tf::Vector3(0.21, 0.0, 0.0)),
-                    ros::Time::now(), droneFrameBase, droneFrameFrontCam);
+                    ros::Time::now(), drone_frame_base, drone_frame_front_cam);
 
   // Bottom Cam to Base (Bad Assumption: No translation from IMU and Base)
   // TODO(mani-monaj): This should be different from Drone 1 & 2.
@@ -122,19 +110,7 @@ ARDroneDriver::ARDroneDriver()
                      tf::Transform(
                        tf::createQuaternionFromRPY(180.0 * _DEG2RAD, 0.0, 90.0 * _DEG2RAD),
                        tf::Vector3(0.0, -0.02, 0.0)),
-                     ros::Time::now(), droneFrameBase, droneFrameBottomCam);
-
-  // Changing the root for TF if needed
-  if (drone_root_frame == ROOT_FRAME_FRONT)
-  {
-    tf_base_front.setData(tf_base_front.inverse());
-    tf_base_front.child_frame_id_.swap(tf_base_front.frame_id_);
-  }
-  else if (drone_root_frame == ROOT_FRAME_BOTTOM)
-  {
-    tf_base_bottom.setData(tf_base_bottom.inverse());
-    tf_base_bottom.child_frame_id_.swap(tf_base_bottom.frame_id_);
-  }
+                     ros::Time::now(), drone_frame_base, drone_frame_bottom_cam);
 
   // reset odometry
   odometry[0] = odometry[1] = 0;
@@ -142,8 +118,8 @@ ARDroneDriver::ARDroneDriver()
 
 ARDroneDriver::~ARDroneDriver()
 {
-  delete cinfo_hori_;
-  delete cinfo_vert_;
+  delete cinfo_hori;
+  delete cinfo_vert;
 }
 
 void ARDroneDriver::run()
@@ -153,21 +129,21 @@ void ARDroneDriver::run()
   static int freq_dev = 0;
   while (node_handle.ok())
   {
-    if (!inited)  // Give the Drone 5s of free time to finish init phase
+    if (!is_inited)  // Give the Drone 5s of free time to finish init phase
     {
       if (((ros::Time::now() - startTime).toSec()) > 5.0)
       {
-        inited = true;
+        is_inited = true;
 
         // Send the configuration to the drone
-        configureDrone();
+        ConfigureDrone();
 
         vp_os_mutex_lock(&navdata_lock);
         ROS_INFO("Successfully connected to '%s' (AR-Drone %d.0 - Firmware: %s) - Battery(%%): %d",
                  ardrone_control_config.ardrone_name,
                  (IS_ARDRONE1) ? 1 : 2,
                  ardrone_control_config.num_version_soft,
-                 shared_raw_navdata->navdata_demo.vbat_flying_percentage);
+                 shared_raw_navdata_ptr->navdata_demo.vbat_flying_percentage);
         ROS_INFO("Navdata Publish Settings:");
         ROS_INFO("    Legacy Navdata Mode: %s", enabled_legacy_navdata ? "On" : "Off");
         ROS_INFO("    ROS Loop Rate: %d Hz", looprate);
@@ -194,7 +170,7 @@ void ARDroneDriver::run()
         if (copy_current_frame_id != last_frame_id)
         {
           last_frame_id = copy_current_frame_id;
-          publish_video();
+          PublishVideo();
         }
       }
 
@@ -211,17 +187,17 @@ void ARDroneDriver::run()
           // Thread safe copy of interesting Navdata data
           // TODO(mani-monaj): This is a very expensive task, can we optimize here?
           // maybe ignoring the copy when it is not needed.
-          navdata_unpacked_t navdata_raw = *shared_raw_navdata;
-          ros::Time navdata_receive_time = shared_navdata_receive_time;
+          const navdata_unpacked_t navdata_raw = *shared_raw_navdata_ptr;
+          const ros::Time navdata_receive_time = shared_navdata_receive_time;
           vp_os_mutex_unlock(&navdata_lock);
 
           // This function is defined in the template NavdataMessageDefinitions.h template file
           PublishNavdataTypes(navdata_raw, navdata_receive_time);
-          publish_navdata(navdata_raw, navdata_receive_time);
-          publish_odometry(navdata_raw, navdata_receive_time);
+          PublishNavdata(navdata_raw, navdata_receive_time);
+          PublishOdometry(navdata_raw, navdata_receive_time);
         }
       }
-      if (freq_dev == 0) publish_tf();
+      if (freq_dev == 0) PublishTF();
 
       // (looprate / 5)Hz  TF publish
       // TODO(mani-monaj): Make TF publish rate fixed
@@ -233,39 +209,22 @@ void ARDroneDriver::run()
   printf("ROS loop terminated ... \n");
 }
 
-void ARDroneDriver::configureDrone()
+void ARDroneDriver::ConfigureDrone()
 {
   #include "ardrone_autonomy/snippet_configure_drone.h"
 }
 
-void ARDroneDriver::resetCaliberation()
-{
-  caliberated = false;
-  acc_samples.clear();
-  gyro_samples.clear();
-  vel_samples.clear();
-  for (int i = 0; i < 3; i++)
-  {
-    acc_bias[i] = 0.0;
-    vel_bias[i] = 0.0;
-    gyro_bias[i] = 0.0;
-    acc_samples.push_back(std::vector<double> ());
-    gyro_samples.push_back(std::vector<double> ());
-    vel_samples.push_back(std::vector<double> ());
-  }
-}
-
-double ARDroneDriver::calcAverage(std::vector<double> &vec)
+double ARDroneDriver::CalcAverage(const std::vector<double> &vec)
 {
   double ret = 0.0;
   for (unsigned int i = 0; i < vec.size(); i++)
   {
-    ret += vec.at(i);
+    ret += vec[i];
   }
   return (ret / vec.size());
 }
 
-bool ARDroneDriver::readCovParams(std::string param_name, boost::array<double, 9> &cov_array)
+bool ARDroneDriver::ReadCovParams(const std::string &param_name, boost::array<double, 9> &cov_array)
 {
   XmlRpc::XmlRpcValue cov_list;
   std::stringstream str_stream;
@@ -300,16 +259,7 @@ bool ARDroneDriver::readCovParams(std::string param_name, boost::array<double, 9
   }
 }
 
-double ARDroneDriver::getRosParam(char* param, double defaultVal)
-{
-  std::string name(param);
-  double res, ret;
-  ret = (ros::param::get(name, res)) ? res : defaultVal;
-  ROS_INFO("SET %-30s: %4.2f", param, ret);
-  return ret;
-}
-
-void ARDroneDriver::publish_video()
+void ARDroneDriver::PublishVideo()
 {
   if (
     (image_pub.getNumSubscribers() == 0) &&
@@ -319,11 +269,11 @@ void ARDroneDriver::publish_video()
 
   // Camera Info (NO PIP)
 
-  sensor_msgs::CameraInfo cinfo_msg_hori = cinfo_hori_->getCameraInfo();
-  sensor_msgs::CameraInfo cinfo_msg_vert = cinfo_vert_->getCameraInfo();
+  sensor_msgs::CameraInfo cinfo_msg_hori = cinfo_hori->getCameraInfo();
+  sensor_msgs::CameraInfo cinfo_msg_vert = cinfo_vert->getCameraInfo();
 
-  cinfo_msg_hori.header.frame_id = droneFrameFrontCam;
-  cinfo_msg_vert.header.frame_id = droneFrameBottomCam;
+  cinfo_msg_hori.header.frame_id = drone_frame_front_cam;
+  cinfo_msg_vert.header.frame_id = drone_frame_bottom_cam;
 
   if (IS_ARDRONE1)
   {
@@ -351,11 +301,11 @@ void ARDroneDriver::publish_video()
     image_msg.header.stamp = ros::Time::now();
     if ((cam_state == ZAP_CHANNEL_HORI) || (cam_state == ZAP_CHANNEL_LARGE_HORI_SMALL_VERT))
     {
-      image_msg.header.frame_id = droneFrameFrontCam;
+      image_msg.header.frame_id = drone_frame_front_cam;
     }
     else if ((cam_state == ZAP_CHANNEL_VERT) || (cam_state == ZAP_CHANNEL_LARGE_VERT_SMALL_HORI))
     {
-      image_msg.header.frame_id = droneFrameBottomCam;
+      image_msg.header.frame_id = drone_frame_bottom_cam;
     }
     else
     {
@@ -531,11 +481,11 @@ void ARDroneDriver::publish_video()
 
     if (cam_state == ZAP_CHANNEL_HORI)
     {
-      image_msg.header.frame_id = droneFrameFrontCam;
+      image_msg.header.frame_id = drone_frame_front_cam;
     }
     else if (cam_state == ZAP_CHANNEL_VERT)
     {
-      image_msg.header.frame_id = droneFrameBottomCam;
+      image_msg.header.frame_id = drone_frame_bottom_cam;
     }
     else
     {
@@ -577,49 +527,8 @@ void ARDroneDriver::publish_video()
   }
 }
 
-void ARDroneDriver::publish_navdata(const navdata_unpacked_t &navdata_raw, const ros::Time &navdata_receive_time)
+void ARDroneDriver::PublishNavdata(const navdata_unpacked_t &navdata_raw, const ros::Time &navdata_receive_time)
 {
-  if ((do_caliberation) && (!caliberated))
-  {
-    acc_samples[0].push_back(navdata_raw.navdata_phys_measures.phys_accs[ACC_X]);
-    acc_samples[1].push_back(navdata_raw.navdata_phys_measures.phys_accs[ACC_Y]);
-    acc_samples[2].push_back(navdata_raw.navdata_phys_measures.phys_accs[ACC_Z]);
-    gyro_samples[0].push_back(navdata_raw.navdata_phys_measures.phys_gyros[GYRO_X]);
-    gyro_samples[1].push_back(navdata_raw.navdata_phys_measures.phys_gyros[GYRO_Y]);
-    gyro_samples[2].push_back(navdata_raw.navdata_phys_measures.phys_gyros[GYRO_Z]);
-    vel_samples[0].push_back(navdata_raw.navdata_demo.vx);
-    vel_samples[1].push_back(navdata_raw.navdata_demo.vy);
-    vel_samples[2].push_back(navdata_raw.navdata_demo.vz);
-    if (acc_samples[0].size() == max_num_samples)
-    {
-      for (int j = 0; j < 3; j++)
-      {
-        acc_bias[j] = calcAverage(acc_samples[j]);
-        gyro_bias[j] = calcAverage(gyro_samples[j]);
-        vel_bias[j] = calcAverage(vel_samples[j]);
-      }
-      ROS_INFO("Bias in linear acceleration (mg): [%4.4lf, %4.4lf, %4.4lf]", acc_bias[0], acc_bias[1], acc_bias[2]);
-      ROS_INFO("Bias in angular velocity (deg/s): [%4.4lf, %4.4lf, %4.4lf]", gyro_bias[0], gyro_bias[1], gyro_bias[2]);
-      ROS_INFO("Bias in linear velocity (mm/s): [%4.4lf, %4.4lf, %4.4lf]", vel_bias[0], vel_bias[1], vel_bias[2]);
-      ROS_INFO("Above values (except z-axis accel) will be substracted from actual IMU data in"
-               "navdata_raw.navdata_demo` and `imu` topic.");
-      ROS_INFO("This feature can be disabled using `do_imu_caliberation` parameter."
-               "Recaliberate using `imu_recalib` service.");
-      caliberated = true;
-    }
-  }
-//  if ((do_caliberation) && (caliberated))
-//  {
-//    for (int j = 0; j < 3; j++)
-//    {
-//      if (j != 2) navdata_raw.navdata_phys_measures.phys_accs[j] -= acc_bias[j];
-//      navdata_raw.navdata_phys_measures.phys_gyros[j] -= gyro_bias[j];
-//    }
-//    navdata_raw.navdata_demo.vx -= vel_bias[0];
-//    navdata_raw.navdata_demo.vy -= vel_bias[1];
-//    navdata_raw.navdata_demo.vz -= vel_bias[2];
-//  }
-
   if (!enabled_legacy_navdata ||
       ((navdata_pub.getNumSubscribers() == 0) &&
        (imu_pub.getNumSubscribers() == 0) &&
@@ -627,7 +536,7 @@ void ARDroneDriver::publish_navdata(const navdata_unpacked_t &navdata_raw, const
     return;  // why bother, no one is listening.
 
   legacynavdata_msg.header.stamp = navdata_receive_time;
-  legacynavdata_msg.header.frame_id = droneFrameBase;
+  legacynavdata_msg.header.frame_id = drone_frame_base;
   legacynavdata_msg.batteryPercent = navdata_raw.navdata_demo.vbat_flying_percentage;
   legacynavdata_msg.state = (navdata_raw.navdata_demo.ctrl_state >> 16);
 
@@ -710,7 +619,7 @@ void ARDroneDriver::publish_navdata(const navdata_unpacked_t &navdata_raw, const
   }
 
   /* IMU */
-  imu_msg.header.frame_id = droneFrameBase;
+  imu_msg.header.frame_id = drone_frame_base;
   imu_msg.header.stamp = navdata_receive_time;
 
   // IMU - Linear Acc
@@ -729,7 +638,7 @@ void ARDroneDriver::publish_navdata(const navdata_unpacked_t &navdata_raw, const
   imu_msg.angular_velocity.y = -navdata_raw.navdata_phys_measures.phys_gyros[GYRO_Y] * DEG_TO_RAD;
   imu_msg.angular_velocity.z = -navdata_raw.navdata_phys_measures.phys_gyros[GYRO_Z] * DEG_TO_RAD;
 
-  mag_msg.header.frame_id = droneFrameBase;
+  mag_msg.header.frame_id = drone_frame_base;
   mag_msg.header.stamp = navdata_receive_time;
   const float mag_normalizer = sqrt(legacynavdata_msg.magX * legacynavdata_msg.magX +
                                     legacynavdata_msg.magY * legacynavdata_msg.magY +
@@ -757,7 +666,7 @@ void ARDroneDriver::publish_navdata(const navdata_unpacked_t &navdata_raw, const
 #include <ardrone_autonomy/NavdataMessageDefinitions.h>
 #undef NAVDATA_STRUCTS_SOURCE
 
-void ARDroneDriver::publish_tf()
+void ARDroneDriver::PublishTF()
 {
   tf_base_front.stamp_ = ros::Time::now();
   tf_base_bottom.stamp_ = ros::Time::now();
@@ -767,16 +676,16 @@ void ARDroneDriver::publish_tf()
   tf_broad.sendTransform(tf_odom);
 }
 
-void ARDroneDriver::publish_odometry(const navdata_unpacked_t &navdata_raw, const ros::Time &navdata_receive_time)
+void ARDroneDriver::PublishOdometry(const navdata_unpacked_t &navdata_raw, const ros::Time &navdata_receive_time)
 {
   if (last_receive_time.isValid())
   {
     double delta_t = (navdata_receive_time - last_receive_time).toSec();
-    odometry[0] += ((cos((navdata_raw.navdata_demo.psi / 180000) * M_PI) *
-                     navdata_raw.navdata_demo.vx - sin((navdata_raw.navdata_demo.psi / 180000) * M_PI) *
+    odometry[0] += ((cos((navdata_raw.navdata_demo.psi / 180000.0) * M_PI) *
+                     navdata_raw.navdata_demo.vx - sin((navdata_raw.navdata_demo.psi / 180000.0) * M_PI) *
                      -navdata_raw.navdata_demo.vy) * delta_t) / 1000.0;
-    odometry[1] += ((sin((navdata_raw.navdata_demo.psi / 180000) * M_PI) *
-                     navdata_raw.navdata_demo.vx + cos((navdata_raw.navdata_demo.psi / 180000) * M_PI) *
+    odometry[1] += ((sin((navdata_raw.navdata_demo.psi / 180000.0) * M_PI) *
+                     navdata_raw.navdata_demo.vx + cos((navdata_raw.navdata_demo.psi / 180000.0) * M_PI) *
                      -navdata_raw.navdata_demo.vy) * delta_t) / 1000.0;
   }
   last_receive_time = navdata_receive_time;
@@ -784,7 +693,7 @@ void ARDroneDriver::publish_odometry(const navdata_unpacked_t &navdata_raw, cons
   nav_msgs::Odometry odo_msg;
   odo_msg.header.stamp = navdata_receive_time;
   odo_msg.header.frame_id = "odom";
-  odo_msg.child_frame_id = droneFrameBase;
+  odo_msg.child_frame_id = drone_frame_base;
 
   odo_msg.pose.pose.position.x = odometry[0];
   odo_msg.pose.pose.position.y = odometry[1];
@@ -798,7 +707,10 @@ void ARDroneDriver::publish_odometry(const navdata_unpacked_t &navdata_raw, cons
   odo_msg.twist.twist.linear.y = -navdata_raw.navdata_demo.vy / 1000.0;
   odo_msg.twist.twist.linear.z = -navdata_raw.navdata_demo.vz / 1000.0;
 
-  odo_pub.publish(odo_msg);
+  if (odo_pub.getNumSubscribers() > 0)
+  {
+    odo_pub.publish(odo_msg);
+  }
 
   tf::Vector3 t;
   tf::pointMsgToTF(odo_msg.pose.pose.position, t);
@@ -806,31 +718,17 @@ void ARDroneDriver::publish_odometry(const navdata_unpacked_t &navdata_raw, cons
   tf::quaternionMsgToTF(odo_msg.pose.pose.orientation, q);
 
   tf_odom.frame_id_ = "odom";
-  tf_odom.child_frame_id_ = droneFrameBase;
+  tf_odom.child_frame_id_ = drone_frame_base;
   tf_odom.setOrigin(t);
   tf_odom.setRotation(q);
 }
 
-bool ARDroneDriver::imuReCalibCallback(std_srvs::Empty::Request &request, std_srvs::Empty::Response &response)
-{
-  if (!do_caliberation)
-  {
-    ROS_WARN("Automatic IMU Caliberation is not active. Activate first using `do_imu_caliberation` parameter");
-    return false;
-  }
-  else
-  {
-    ROS_WARN("Recaliberating IMU, please do not move the drone for a couple of seconds.");
-    resetCaliberation();
-    return true;
-  }
-}
-
-void controlCHandler(int signal)
+void ControlCHandler(int signal)
 {
   ros::shutdown();
   should_exit = 1;
 }
+
 ////////////////////////////////////////////////////////////////////////////////
 // custom_main
 ////////////////////////////////////////////////////////////////////////////////
@@ -846,9 +744,9 @@ int main(int argc, char** argv)
 
   ros::init(argc, argv, "ardrone_driver", ros::init_options::NoSigintHandler);
 
-  signal(SIGABRT, &controlCHandler);
-  signal(SIGTERM, &controlCHandler);
-  signal(SIGINT, &controlCHandler);
+  signal(SIGABRT, &ControlCHandler);
+  signal(SIGTERM, &ControlCHandler);
+  signal(SIGINT, &ControlCHandler);
 
   // Now to setup the drone and communication channels
   // We do this here because calling ardrone_tool_main uses an old
@@ -914,7 +812,6 @@ int main(int argc, char** argv)
   else
   {
     // setup the application and user profiles for the driver
-
     const char* appname = reinterpret_cast<const char*>(DRIVER_APPNAME);
     const char* usrname = reinterpret_cast<const char*>(DRIVER_USERNAME);
     ardrone_gen_appid(appname, "2.0", app_id, app_name, APPLI_NAME_SIZE);

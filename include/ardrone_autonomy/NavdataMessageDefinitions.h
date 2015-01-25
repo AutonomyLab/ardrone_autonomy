@@ -167,11 +167,11 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 		ros::param::param("~enable_legacy_navdata", enabled_legacy_navdata, true);
 		if(enabled_legacy_navdata)
 		{
-			navdata_pub = node_handle.advertise<ardrone_autonomy::Navdata>("ardrone/navdata", 25);
-			imu_pub = node_handle.advertise<sensor_msgs::Imu>("ardrone/imu", 25);
-			mag_pub = node_handle.advertise<geometry_msgs::Vector3Stamped>("ardrone/mag", 25);
-			odo_pub = node_handle.advertise<nav_msgs::Odometry>("ardrone/odometry", 25);
+      navdata_pub = node_handle.advertise<ardrone_autonomy::Navdata>("ardrone/navdata", 200);
+      imu_pub = node_handle.advertise<sensor_msgs::Imu>("ardrone/imu", 200);
+      mag_pub = node_handle.advertise<geometry_msgs::Vector3Stamped>("ardrone/mag", 200);
 		}
+    odo_pub = node_handle.advertise<nav_msgs::Odometry>("ardrone/odometry", 200);
 
 		//-------------------------
 
@@ -411,7 +411,7 @@ void ARDroneDriver::PublishNavdataTypes(const navdata_unpacked_t &n, const ros::
 		{
 			navdata_demo_msg.drone_time = ((double)ardrone_time_to_usec(n.navdata_time.time))/1000000.0;
 			navdata_demo_msg.header.stamp = received;
-			navdata_demo_msg.header.frame_id = droneFrameBase;
+      navdata_demo_msg.header.frame_id = drone_frame_base;
 
 			{				
 			uint16_t c = n.navdata_demo.tag;
@@ -526,7 +526,7 @@ void ARDroneDriver::PublishNavdataTypes(const navdata_unpacked_t &n, const ros::
 		{
 			navdata_time_msg.drone_time = ((double)ardrone_time_to_usec(n.navdata_time.time))/1000000.0;
 			navdata_time_msg.header.stamp = received;
-			navdata_time_msg.header.frame_id = droneFrameBase;
+      navdata_time_msg.header.frame_id = drone_frame_base;
 
 			{				
 			uint16_t c = n.navdata_time.tag;
@@ -561,7 +561,7 @@ void ARDroneDriver::PublishNavdataTypes(const navdata_unpacked_t &n, const ros::
 		{
 			navdata_raw_measures_msg.drone_time = ((double)ardrone_time_to_usec(n.navdata_time.time))/1000000.0;
 			navdata_raw_measures_msg.header.stamp = received;
-			navdata_raw_measures_msg.header.frame_id = droneFrameBase;
+      navdata_raw_measures_msg.header.frame_id = drone_frame_base;
 
 			{				
 			uint16_t c = n.navdata_raw_measures.tag;
@@ -712,7 +712,7 @@ void ARDroneDriver::PublishNavdataTypes(const navdata_unpacked_t &n, const ros::
 		{
 			navdata_phys_measures_msg.drone_time = ((double)ardrone_time_to_usec(n.navdata_time.time))/1000000.0;
 			navdata_phys_measures_msg.header.stamp = received;
-			navdata_phys_measures_msg.header.frame_id = droneFrameBase;
+      navdata_phys_measures_msg.header.frame_id = drone_frame_base;
 
 			{				
 			uint16_t c = n.navdata_phys_measures.tag;
@@ -799,7 +799,7 @@ void ARDroneDriver::PublishNavdataTypes(const navdata_unpacked_t &n, const ros::
 		{
 			navdata_gyros_offsets_msg.drone_time = ((double)ardrone_time_to_usec(n.navdata_time.time))/1000000.0;
 			navdata_gyros_offsets_msg.header.stamp = received;
-			navdata_gyros_offsets_msg.header.frame_id = droneFrameBase;
+      navdata_gyros_offsets_msg.header.frame_id = drone_frame_base;
 
 			{				
 			uint16_t c = n.navdata_gyros_offsets.tag;
@@ -836,7 +836,7 @@ void ARDroneDriver::PublishNavdataTypes(const navdata_unpacked_t &n, const ros::
 		{
 			navdata_euler_angles_msg.drone_time = ((double)ardrone_time_to_usec(n.navdata_time.time))/1000000.0;
 			navdata_euler_angles_msg.header.stamp = received;
-			navdata_euler_angles_msg.header.frame_id = droneFrameBase;
+      navdata_euler_angles_msg.header.frame_id = drone_frame_base;
 
 			{				
 			uint16_t c = n.navdata_euler_angles.tag;
@@ -879,7 +879,7 @@ void ARDroneDriver::PublishNavdataTypes(const navdata_unpacked_t &n, const ros::
 		{
 			navdata_references_msg.drone_time = ((double)ardrone_time_to_usec(n.navdata_time.time))/1000000.0;
 			navdata_references_msg.header.stamp = received;
-			navdata_references_msg.header.frame_id = droneFrameBase;
+      navdata_references_msg.header.frame_id = drone_frame_base;
 
 			{				
 			uint16_t c = n.navdata_references.tag;
@@ -1074,7 +1074,7 @@ void ARDroneDriver::PublishNavdataTypes(const navdata_unpacked_t &n, const ros::
 		{
 			navdata_trims_msg.drone_time = ((double)ardrone_time_to_usec(n.navdata_time.time))/1000000.0;
 			navdata_trims_msg.header.stamp = received;
-			navdata_trims_msg.header.frame_id = droneFrameBase;
+      navdata_trims_msg.header.frame_id = drone_frame_base;
 
 			{				
 			uint16_t c = n.navdata_trims.tag;
@@ -1125,7 +1125,7 @@ void ARDroneDriver::PublishNavdataTypes(const navdata_unpacked_t &n, const ros::
 		{
 			navdata_rc_references_msg.drone_time = ((double)ardrone_time_to_usec(n.navdata_time.time))/1000000.0;
 			navdata_rc_references_msg.header.stamp = received;
-			navdata_rc_references_msg.header.frame_id = droneFrameBase;
+      navdata_rc_references_msg.header.frame_id = drone_frame_base;
 
 			{				
 			uint16_t c = n.navdata_rc_references.tag;
@@ -1192,7 +1192,7 @@ void ARDroneDriver::PublishNavdataTypes(const navdata_unpacked_t &n, const ros::
 		{
 			navdata_pwm_msg.drone_time = ((double)ardrone_time_to_usec(n.navdata_time.time))/1000000.0;
 			navdata_pwm_msg.header.stamp = received;
-			navdata_pwm_msg.header.frame_id = droneFrameBase;
+      navdata_pwm_msg.header.frame_id = drone_frame_base;
 
 			{				
 			uint16_t c = n.navdata_pwm.tag;
@@ -1419,7 +1419,7 @@ void ARDroneDriver::PublishNavdataTypes(const navdata_unpacked_t &n, const ros::
 		{
 			navdata_altitude_msg.drone_time = ((double)ardrone_time_to_usec(n.navdata_time.time))/1000000.0;
 			navdata_altitude_msg.header.stamp = received;
-			navdata_altitude_msg.header.frame_id = droneFrameBase;
+      navdata_altitude_msg.header.frame_id = drone_frame_base;
 
 			{				
 			uint16_t c = n.navdata_altitude.tag;
@@ -1529,7 +1529,7 @@ void ARDroneDriver::PublishNavdataTypes(const navdata_unpacked_t &n, const ros::
 		{
 			navdata_vision_raw_msg.drone_time = ((double)ardrone_time_to_usec(n.navdata_time.time))/1000000.0;
 			navdata_vision_raw_msg.header.stamp = received;
-			navdata_vision_raw_msg.header.frame_id = droneFrameBase;
+      navdata_vision_raw_msg.header.frame_id = drone_frame_base;
 
 			{				
 			uint16_t c = n.navdata_vision_raw.tag;
@@ -1580,7 +1580,7 @@ void ARDroneDriver::PublishNavdataTypes(const navdata_unpacked_t &n, const ros::
 		{
 			navdata_vision_of_msg.drone_time = ((double)ardrone_time_to_usec(n.navdata_time.time))/1000000.0;
 			navdata_vision_of_msg.header.stamp = received;
-			navdata_vision_of_msg.header.frame_id = droneFrameBase;
+      navdata_vision_of_msg.header.frame_id = drone_frame_base;
 
 			{				
 			uint16_t c = n.navdata_vision_of.tag;
@@ -1627,7 +1627,7 @@ void ARDroneDriver::PublishNavdataTypes(const navdata_unpacked_t &n, const ros::
 		{
 			navdata_vision_msg.drone_time = ((double)ardrone_time_to_usec(n.navdata_time.time))/1000000.0;
 			navdata_vision_msg.header.stamp = received;
-			navdata_vision_msg.header.frame_id = droneFrameBase;
+      navdata_vision_msg.header.frame_id = drone_frame_base;
 
 			{				
 			uint16_t c = n.navdata_vision.tag;
@@ -1816,7 +1816,7 @@ void ARDroneDriver::PublishNavdataTypes(const navdata_unpacked_t &n, const ros::
 		{
 			navdata_vision_perf_msg.drone_time = ((double)ardrone_time_to_usec(n.navdata_time.time))/1000000.0;
 			navdata_vision_perf_msg.header.stamp = received;
-			navdata_vision_perf_msg.header.frame_id = droneFrameBase;
+      navdata_vision_perf_msg.header.frame_id = drone_frame_base;
 
 			{				
 			uint16_t c = n.navdata_vision_perf.tag;
@@ -1893,7 +1893,7 @@ void ARDroneDriver::PublishNavdataTypes(const navdata_unpacked_t &n, const ros::
 		{
 			navdata_trackers_send_msg.drone_time = ((double)ardrone_time_to_usec(n.navdata_time.time))/1000000.0;
 			navdata_trackers_send_msg.header.stamp = received;
-			navdata_trackers_send_msg.header.frame_id = droneFrameBase;
+      navdata_trackers_send_msg.header.frame_id = drone_frame_base;
 
 			{				
 			uint16_t c = n.navdata_trackers_send.tag;
@@ -1941,7 +1941,7 @@ void ARDroneDriver::PublishNavdataTypes(const navdata_unpacked_t &n, const ros::
 		{
 			navdata_vision_detect_msg.drone_time = ((double)ardrone_time_to_usec(n.navdata_time.time))/1000000.0;
 			navdata_vision_detect_msg.header.stamp = received;
-			navdata_vision_detect_msg.header.frame_id = droneFrameBase;
+      navdata_vision_detect_msg.header.frame_id = drone_frame_base;
 
 			{				
 			uint16_t c = n.navdata_vision_detect.tag;
@@ -2086,7 +2086,7 @@ void ARDroneDriver::PublishNavdataTypes(const navdata_unpacked_t &n, const ros::
 		{
 			navdata_watchdog_msg.drone_time = ((double)ardrone_time_to_usec(n.navdata_time.time))/1000000.0;
 			navdata_watchdog_msg.header.stamp = received;
-			navdata_watchdog_msg.header.frame_id = droneFrameBase;
+      navdata_watchdog_msg.header.frame_id = drone_frame_base;
 
 			{				
 			uint16_t c = n.navdata_watchdog.tag;
@@ -2113,7 +2113,7 @@ void ARDroneDriver::PublishNavdataTypes(const navdata_unpacked_t &n, const ros::
 		{
 			navdata_adc_data_frame_msg.drone_time = ((double)ardrone_time_to_usec(n.navdata_time.time))/1000000.0;
 			navdata_adc_data_frame_msg.header.stamp = received;
-			navdata_adc_data_frame_msg.header.frame_id = droneFrameBase;
+      navdata_adc_data_frame_msg.header.frame_id = drone_frame_base;
 
 			{				
 			uint16_t c = n.navdata_adc_data_frame.tag;
@@ -2158,7 +2158,7 @@ void ARDroneDriver::PublishNavdataTypes(const navdata_unpacked_t &n, const ros::
 		{
 			navdata_video_stream_msg.drone_time = ((double)ardrone_time_to_usec(n.navdata_time.time))/1000000.0;
 			navdata_video_stream_msg.header.stamp = received;
-			navdata_video_stream_msg.header.frame_id = droneFrameBase;
+      navdata_video_stream_msg.header.frame_id = drone_frame_base;
 
 			{				
 			uint16_t c = n.navdata_video_stream.tag;
@@ -2289,7 +2289,7 @@ void ARDroneDriver::PublishNavdataTypes(const navdata_unpacked_t &n, const ros::
 		{
 			navdata_games_msg.drone_time = ((double)ardrone_time_to_usec(n.navdata_time.time))/1000000.0;
 			navdata_games_msg.header.stamp = received;
-			navdata_games_msg.header.frame_id = droneFrameBase;
+      navdata_games_msg.header.frame_id = drone_frame_base;
 
 			{				
 			uint16_t c = n.navdata_games.tag;
@@ -2332,7 +2332,7 @@ void ARDroneDriver::PublishNavdataTypes(const navdata_unpacked_t &n, const ros::
 		{
 			navdata_pressure_raw_msg.drone_time = ((double)ardrone_time_to_usec(n.navdata_time.time))/1000000.0;
 			navdata_pressure_raw_msg.header.stamp = received;
-			navdata_pressure_raw_msg.header.frame_id = droneFrameBase;
+      navdata_pressure_raw_msg.header.frame_id = drone_frame_base;
 
 			{				
 			uint16_t c = n.navdata_pressure_raw.tag;
@@ -2391,7 +2391,7 @@ void ARDroneDriver::PublishNavdataTypes(const navdata_unpacked_t &n, const ros::
 		{
 			navdata_magneto_msg.drone_time = ((double)ardrone_time_to_usec(n.navdata_time.time))/1000000.0;
 			navdata_magneto_msg.header.stamp = received;
-			navdata_magneto_msg.header.frame_id = droneFrameBase;
+      navdata_magneto_msg.header.frame_id = drone_frame_base;
 
 			{				
 			uint16_t c = n.navdata_magneto.tag;
@@ -2536,7 +2536,7 @@ void ARDroneDriver::PublishNavdataTypes(const navdata_unpacked_t &n, const ros::
 		{
 			navdata_wind_speed_msg.drone_time = ((double)ardrone_time_to_usec(n.navdata_time.time))/1000000.0;
 			navdata_wind_speed_msg.header.stamp = received;
-			navdata_wind_speed_msg.header.frame_id = droneFrameBase;
+      navdata_wind_speed_msg.header.frame_id = drone_frame_base;
 
 			{				
 			uint16_t c = n.navdata_wind_speed.tag;
@@ -2667,7 +2667,7 @@ void ARDroneDriver::PublishNavdataTypes(const navdata_unpacked_t &n, const ros::
 		{
 			navdata_kalman_pressure_msg.drone_time = ((double)ardrone_time_to_usec(n.navdata_time.time))/1000000.0;
 			navdata_kalman_pressure_msg.header.stamp = received;
-			navdata_kalman_pressure_msg.header.frame_id = droneFrameBase;
+      navdata_kalman_pressure_msg.header.frame_id = drone_frame_base;
 
 			{				
 			uint16_t c = n.navdata_kalman_pressure.tag;
@@ -2830,7 +2830,7 @@ void ARDroneDriver::PublishNavdataTypes(const navdata_unpacked_t &n, const ros::
 		{
 			navdata_hdvideo_stream_msg.drone_time = ((double)ardrone_time_to_usec(n.navdata_time.time))/1000000.0;
 			navdata_hdvideo_stream_msg.header.stamp = received;
-			navdata_hdvideo_stream_msg.header.frame_id = droneFrameBase;
+      navdata_hdvideo_stream_msg.header.frame_id = drone_frame_base;
 
 			{				
 			uint16_t c = n.navdata_hdvideo_stream.tag;
@@ -2913,7 +2913,7 @@ void ARDroneDriver::PublishNavdataTypes(const navdata_unpacked_t &n, const ros::
 		{
 			navdata_wifi_msg.drone_time = ((double)ardrone_time_to_usec(n.navdata_time.time))/1000000.0;
 			navdata_wifi_msg.header.stamp = received;
-			navdata_wifi_msg.header.frame_id = droneFrameBase;
+      navdata_wifi_msg.header.frame_id = drone_frame_base;
 
 			{				
 			uint16_t c = n.navdata_wifi.tag;
@@ -2948,7 +2948,7 @@ void ARDroneDriver::PublishNavdataTypes(const navdata_unpacked_t &n, const ros::
 		{
 			navdata_zimmu_3000_msg.drone_time = ((double)ardrone_time_to_usec(n.navdata_time.time))/1000000.0;
 			navdata_zimmu_3000_msg.header.stamp = received;
-			navdata_zimmu_3000_msg.header.frame_id = droneFrameBase;
+      navdata_zimmu_3000_msg.header.frame_id = drone_frame_base;
 
 			{				
 			uint16_t c = n.navdata_zimmu_3000.tag;

@@ -71,9 +71,9 @@ extern "C"
 
 #define NB_DRIVER_POST_STAGES   10
 
-extern ARDroneDriver *rosDriver;
+extern ARDroneDriver *ros_driver;
 
-extern const navdata_unpacked_t* shared_raw_navdata;
+extern const navdata_unpacked_t* shared_raw_navdata_ptr;
 extern ros::Time shared_navdata_receive_time;
 
 extern vp_os_mutex_t navdata_lock;

@@ -27,8 +27,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 #include <ardrone_autonomy/teleop_twist.h>
 #include <stdint.h>
 
-
-const navdata_unpacked_t* shared_raw_navdata;
+const navdata_unpacked_t* shared_raw_navdata_ptr;
 ros::Time shared_navdata_receive_time;
 
 vp_os_mutex_t navdata_lock;
@@ -37,7 +36,7 @@ vp_os_mutex_t twist_lock;
 
 int32_t current_navdata_id = 0;
 
-ARDroneDriver* rosDriver;
+ARDroneDriver* ros_driver;
 
 int32_t looprate;
 bool realtime_navdata;
@@ -48,7 +47,6 @@ int32_t should_exit;
 extern "C"
 {
   vp_stages_latency_estimation_config_t vlat;
-
 
   DEFINE_THREAD_ROUTINE(update_ros, data)
   {
@@ -65,7 +63,7 @@ extern "C"
     vp_os_mutex_init(&video_lock);
     vp_os_mutex_init(&twist_lock);
 
-    rosDriver = new ARDroneDriver();
+    ros_driver = new ARDroneDriver();
     int _w, _h;
 
     if (IS_ARDRONE2)
@@ -179,7 +177,7 @@ extern "C"
     video_stage_resume_thread();
     ardrone_tool_set_refresh_time(25);
     // rosDriver->configure_drone();
-    START_THREAD(update_ros, rosDriver);
+    START_THREAD(update_ros, ros_driver);
     return C_OK;
   }
 
@@ -187,7 +185,7 @@ extern "C"
   {
     PRINT("Shutting down ... \n ");
     JOIN_THREAD(update_ros);
-    delete rosDriver;
+    delete ros_driver;
     video_stage_resume_thread();
     ardrone_tool_input_remove(&teleop);
     return C_OK;
@@ -202,15 +200,15 @@ extern "C"
   {
     vp_os_mutex_lock(&navdata_lock);
     shared_navdata_receive_time = ros::Time::now();
-    shared_raw_navdata = reinterpret_cast<const navdata_unpacked_t*>(pnd);
+    shared_raw_navdata_ptr = reinterpret_cast<const navdata_unpacked_t*>(pnd);
 
     if (realtime_navdata)
     {
-      // TODO(mani-monaj): Optimize de-refs
       // if we're publishing navdata at full speed, publish!
-      rosDriver->PublishNavdataTypes(*shared_raw_navdata, shared_navdata_receive_time);
-      rosDriver->publish_navdata(*shared_raw_navdata, shared_navdata_receive_time);
-      rosDriver->publish_odometry(*shared_raw_navdata, shared_navdata_receive_time);
+      const navdata_unpacked_t shared_raw_navdata = *shared_raw_navdata_ptr;
+      ros_driver->PublishNavdataTypes(shared_raw_navdata, shared_navdata_receive_time);
+      ros_driver->PublishNavdata(shared_raw_navdata, shared_navdata_receive_time);
+      ros_driver->PublishOdometry(shared_raw_navdata, shared_navdata_receive_time);
     }
 
     current_navdata_id++;
