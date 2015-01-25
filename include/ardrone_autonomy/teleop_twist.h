@@ -38,33 +38,33 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 
 extern input_device_t teleop;
 
-void cmdVelCallback(const geometry_msgs::TwistConstPtr &msg);
-void landCallback(const std_msgs::Empty &msg);
-void resetCallback(const std_msgs::Empty &msg);
-void takeoffCallback(const std_msgs::Empty &msg);
+void CmdVelCallback(const geometry_msgs::TwistConstPtr &msg);
+void LandCallback(const std_msgs::Empty &msg);
+void ResetCallback(const std_msgs::Empty &msg);
+void TakeoffCallback(const std_msgs::Empty &msg);
 
 // void toggleCamCallback(const std_msgs::Empty &msg);
-bool setCamChannelCallback(
+bool SetCamChannelCallback(
     ardrone_autonomy::CamSelect::Request& request,
     ardrone_autonomy::CamSelect::Response& response);
 
-bool toggleCamCallback(
+bool ToggleCamCallback(
     std_srvs::Empty::Request& request,
     std_srvs::Empty::Response& response);
 
-bool setLedAnimationCallback(
+bool SetLedAnimationCallback(
     ardrone_autonomy::LedAnim::Request& request,
     ardrone_autonomy::LedAnim::Response& response);
 
-bool flatTrimCallback(
+bool FlatTrimCallback(
     std_srvs::Empty::Request& request,
     std_srvs::Empty::Response& response);
 
-bool setFlightAnimationCallback(
+bool SetFlightAnimationCallback(
     ardrone_autonomy::FlightAnim::Request& request,
     ardrone_autonomy::FlightAnim::Response& response);
 
-bool setRecordCallback(
+bool SetRecordCallback(
     ardrone_autonomy::RecordEnable::Request &request,
     ardrone_autonomy::RecordEnable::Response& response);
 

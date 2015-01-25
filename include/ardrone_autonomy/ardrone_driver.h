@@ -104,12 +104,12 @@ private:
 
   tf::TransformBroadcaster tf_broad;
 
-  ros::ServiceServer toggleCam_service;
-  ros::ServiceServer setCamChannel_service;
-  ros::ServiceServer setLedAnimation_service;
-  ros::ServiceServer flatTrim_service;
-  ros::ServiceServer setFlightAnimation_service;
-  ros::ServiceServer setRecord_service;
+  ros::ServiceServer toggle_cam_srv;
+  ros::ServiceServer set_cam_channel_srv;
+  ros::ServiceServer set_led_animation_srv;
+  ros::ServiceServer flat_trim_srv;
+  ros::ServiceServer set_flight_anim_srv;
+  ros::ServiceServer set_record_srv;
 
   int32_t last_frame_id;
   int32_t last_navdata_id;

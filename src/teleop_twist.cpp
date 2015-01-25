@@ -56,7 +56,7 @@ const LED_ANIMATION_IDS ledAnimMap[14] =
 };
 
 // ros service callback to set the camera channel
-bool setCamChannelCallback(ardrone_autonomy::CamSelect::Request& request,
+bool SetCamChannelCallback(ardrone_autonomy::CamSelect::Request& request,
                            ardrone_autonomy::CamSelect::Response& response)
 {
   const int _modes = (IS_ARDRONE1) ? 4 : 2;
@@ -67,7 +67,7 @@ bool setCamChannelCallback(ardrone_autonomy::CamSelect::Request& request,
   return true;
 }
 // ros service callback function for toggling Cam
-bool toggleCamCallback(std_srvs::Empty::Request& request,
+bool ToggleCamCallback(std_srvs::Empty::Request& request,
                        std_srvs::Empty::Response& response)
 {
   const int _modes = (IS_ARDRONE1) ? 4 : 2;
@@ -78,7 +78,7 @@ bool toggleCamCallback(std_srvs::Empty::Request& request,
 }
 
 // ros service callback to turn on and off camera recording
-bool setRecordCallback(ardrone_autonomy::RecordEnable::Request &request,
+bool SetRecordCallback(ardrone_autonomy::RecordEnable::Request &request,
                        ardrone_autonomy::RecordEnable::Response& response)
 {
   char record_command[ARDRONE_DATE_MAXSIZE + 64];
@@ -109,7 +109,7 @@ bool setRecordCallback(ardrone_autonomy::RecordEnable::Request &request,
   return true;
 }
 
-bool setLedAnimationCallback(ardrone_autonomy::LedAnim::Request& request,
+bool SetLedAnimationCallback(ardrone_autonomy::LedAnim::Request& request,
                              ardrone_autonomy::LedAnim::Response& response)
 {
   LED_ANIMATION_IDS anim_id = ledAnimMap[request.type % 14];  // Don't trick me
@@ -122,7 +122,7 @@ bool setLedAnimationCallback(ardrone_autonomy::LedAnim::Request& request,
   return true;
 }
 
-bool setFlightAnimationCallback(ardrone_autonomy::FlightAnim::Request &request,
+bool SetFlightAnimationCallback(ardrone_autonomy::FlightAnim::Request &request,
                                 ardrone_autonomy::FlightAnim::Response &response)
 {
   char param[20];
@@ -136,7 +136,7 @@ bool setFlightAnimationCallback(ardrone_autonomy::FlightAnim::Request &request,
   return true;
 }
 
-bool flatTrimCallback(std_srvs::Empty::Request &request,
+bool FlatTrimCallback(std_srvs::Empty::Request &request,
                       std_srvs::Empty::Response &response)
 {
   vp_os_mutex_lock(&twist_lock);
@@ -145,7 +145,7 @@ bool flatTrimCallback(std_srvs::Empty::Request &request,
   fprintf(stderr, "\nFlat Trim Set.\n");
 }
 
-void cmdVelCallback(const geometry_msgs::TwistConstPtr &msg)
+void CmdVelCallback(const geometry_msgs::TwistConstPtr &msg)
 {
   vp_os_mutex_lock(&twist_lock);
   // Main 4DOF
@@ -160,21 +160,21 @@ void cmdVelCallback(const geometry_msgs::TwistConstPtr &msg)
   vp_os_mutex_unlock(&twist_lock);
 }
 
-void landCallback(const std_msgs::Empty &msg)
+void LandCallback(const std_msgs::Empty &msg)
 {
   vp_os_mutex_lock(&twist_lock);
   needs_land = true;
   vp_os_mutex_unlock(&twist_lock);
 }
 
-void resetCallback(const std_msgs::Empty &msg)
+void ResetCallback(const std_msgs::Empty &msg)
 {
   vp_os_mutex_lock(&twist_lock);
   needs_reset = true;
   vp_os_mutex_unlock(&twist_lock);
 }
 
-void takeoffCallback(const std_msgs::Empty &msg)
+void TakeoffCallback(const std_msgs::Empty &msg)
 {
   vp_os_mutex_lock(&twist_lock);
   needs_takeoff = true;

@@ -46,19 +46,19 @@ ARDroneDriver::ARDroneDriver()
     is_inited(false),
     last_receive_time(0.0)
 {
-  cmd_vel_sub = node_handle.subscribe("cmd_vel", 1, &cmdVelCallback);
-  takeoff_sub = node_handle.subscribe("ardrone/takeoff", 1, &takeoffCallback);
-  reset_sub = node_handle.subscribe("ardrone/reset", 1, &resetCallback);
-  land_sub = node_handle.subscribe("ardrone/land", 1, &landCallback);
+  cmd_vel_sub = node_handle.subscribe("cmd_vel", 1, &CmdVelCallback);
+  takeoff_sub = node_handle.subscribe("ardrone/takeoff", 1, &TakeoffCallback);
+  reset_sub = node_handle.subscribe("ardrone/reset", 1, &ResetCallback);
+  land_sub = node_handle.subscribe("ardrone/land", 1, &LandCallback);
   image_pub = image_transport.advertiseCamera("ardrone/image_raw", 10);
   hori_pub = image_transport.advertiseCamera("ardrone/front/image_raw", 10);
   vert_pub = image_transport.advertiseCamera("ardrone/bottom/image_raw", 10);
-  toggleCam_service = node_handle.advertiseService("ardrone/togglecam", toggleCamCallback);
-  setCamChannel_service = node_handle.advertiseService("ardrone/setcamchannel", setCamChannelCallback);
-  setLedAnimation_service = node_handle.advertiseService("ardrone/setledanimation", setLedAnimationCallback);
-  flatTrim_service = node_handle.advertiseService("ardrone/flattrim", flatTrimCallback);
-  setFlightAnimation_service = node_handle.advertiseService("ardrone/setflightanimation", setFlightAnimationCallback);
-  setRecord_service = node_handle.advertiseService("ardrone/setrecord", setRecordCallback);
+  toggle_cam_srv = node_handle.advertiseService("ardrone/togglecam", ToggleCamCallback);
+  set_cam_channel_srv = node_handle.advertiseService("ardrone/setcamchannel", SetCamChannelCallback);
+  set_led_animation_srv = node_handle.advertiseService("ardrone/setledanimation", SetLedAnimationCallback);
+  flat_trim_srv = node_handle.advertiseService("ardrone/flattrim", FlatTrimCallback);
+  set_flight_anim_srv = node_handle.advertiseService("ardrone/setflightanimation", SetFlightAnimationCallback);
+  set_record_srv = node_handle.advertiseService("ardrone/setrecord", SetRecordCallback);
 
   /* TF Frames */
   private_nh.param<std::string>("drone_frame_id", drone_frame_id, "ardrone_base");
