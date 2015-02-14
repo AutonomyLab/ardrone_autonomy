@@ -110,8 +110,8 @@ private:
   ros::ServiceServer flat_trim_srv;
   ros::ServiceServer set_flight_anim_srv;
   ros::ServiceServer set_record_srv;
-  ros::ServiceServer setAutonomouseFlight_service;
-  ros::ServiceServer setGPSTarget_service;
+  ros::ServiceServer set_auto_flight_service;
+  ros::ServiceServer set_gps_target_service;
   
   int32_t last_frame_id;
   int32_t last_navdata_id;

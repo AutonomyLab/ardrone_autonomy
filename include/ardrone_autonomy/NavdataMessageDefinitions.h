@@ -3029,7 +3029,7 @@ void ARDroneDriver::PublishNavdataTypes(const navdata_unpacked_t &n, const ros::
 		if(enabled_navdata_camera_settings && pub_navdata_camera_settings.getNumSubscribers()>0)
 		{
 			navdata_camera_settings_msg.header.stamp = received;
-			navdata_camera_settings_msg.header.frame_id = droneFrameBase;
+      navdata_camera_settings_msg.header.frame_id = drone_frame_base;
 
 			{				
 			uint16_t c = n.navdata_camera_settings.tag;
@@ -3063,7 +3063,7 @@ void ARDroneDriver::PublishNavdataTypes(const navdata_unpacked_t &n, const ros::
 		if(enabled_navdata_host && pub_navdata_host.getNumSubscribers()>0)
 		{
 			navdata_host_msg.header.stamp = received;
-			navdata_host_msg.header.frame_id = droneFrameBase;
+      navdata_host_msg.header.frame_id = drone_frame_base;
 
 			{				
 			uint16_t c = n.navdata_host.tag;
@@ -3145,7 +3145,7 @@ void ARDroneDriver::PublishNavdataTypes(const navdata_unpacked_t &n, const ros::
 		if(enabled_navdata_gps && pub_navdata_gps.getNumSubscribers()>0)
 		{
 			navdata_gps_msg.header.stamp = received;
-			navdata_gps_msg.header.frame_id = droneFrameBase;
+      navdata_gps_msg.header.frame_id = drone_frame_base;
 
 			{				
 			uint16_t c = n.navdata_gps_info.tag;

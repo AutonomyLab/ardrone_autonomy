@@ -191,8 +191,9 @@ extern "C"
     return C_OK;
   }
 
-  C_RESULT navdata_custom_init(void*)
+  C_RESULT navdata_custom_init(void* data)
   {
+    (void) data;  // Silence unused variable warning
     return C_OK;
   }
 

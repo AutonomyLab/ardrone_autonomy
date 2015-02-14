@@ -53,13 +53,13 @@ bool ToggleCamCallback(
     std_srvs::Empty::Request& request,
     std_srvs::Empty::Response& response);
 
-bool setGPSTargetWayPointCallback(
+bool SetGPSTargetWayPointCallback(
     ardrone_autonomy::SetGPSTarget::Request &request,
     ardrone_autonomy::SetGPSTarget::Response& response);
 
-void setAutomousFlight(const bool enable);
+void SetAutoFlightCallback(const bool enable);
 
-bool setAutomousFlightCallback(
+bool SetAutomousFlightCallback(
     ardrone_autonomy::RecordEnable::Request &request,
     ardrone_autonomy::RecordEnable::Response& response);
 

@@ -59,8 +59,8 @@ ARDroneDriver::ARDroneDriver()
   flat_trim_srv = node_handle.advertiseService("ardrone/flattrim", FlatTrimCallback);
   set_flight_anim_srv = node_handle.advertiseService("ardrone/setflightanimation", SetFlightAnimationCallback);
   set_record_srv = node_handle.advertiseService("ardrone/setrecord", SetRecordCallback);
-  setAutonomouseFlight_service = node_handle.advertiseService("ardrone/setautoflight", setAutomousFlightCallback);
-  setGPSTarget_service = node_handle.advertiseService("ardrone/setgpstarget", setGPSTargetWayPointCallback);
+  set_auto_flight_service = node_handle.advertiseService("ardrone/setautoflight", SetAutomousFlightCallback);
+  set_gps_target_service = node_handle.advertiseService("ardrone/setgpstarget", SetGPSTargetWayPointCallback);
 
   /* TF Frames */
   private_nh.param<std::string>("drone_frame_id", drone_frame_id, "ardrone_base");
