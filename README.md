@@ -432,7 +432,7 @@ With some hacking yes! This [wiki page](https://github.com/AutonomyLab/ardrone_a
 
 ### How to re-compile parrot SDK?
 
-If the `git` updates include a SDK upgrade, you'd better cleanup previous vuild files.
+If the `git` updates include a SDK upgrade, you'd better cleanup previous build files.
 
 ```bash
 cd ARDroneLib/Soft/Build
