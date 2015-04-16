@@ -29,6 +29,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 
 unsigned char buffer[MAX_STREAM_WIDTH * MAX_STREAM_HEIGHT * 3];
 int32_t current_frame_id = 0;
+ros::Time shared_video_receive_time;
 
 extern "C" C_RESULT export_stage_open(void *cfg, vp_api_io_data_t *in, vp_api_io_data_t *out)
 {
@@ -40,6 +41,7 @@ extern "C" C_RESULT export_stage_transform(void *cfg, vp_api_io_data_t *in, vp_a
 //    PRINT("In Transform before copy\n");
 //        printf("The size of buffer is %d\n", in->size);
   vp_os_mutex_lock(&video_lock);
+  shared_video_receive_time = ros::Time::now();
   memcpy(buffer, in->buffers[0], in->size);
   current_frame_id++;
   if (realtime_video)
