@@ -141,6 +141,7 @@ target_link_libraries(
 add_dependencies(ardrone_driver ardronelib ${PROJECT_NAME}_gencpp)
 
 # roslint
+set(ROSLINT_CPP_OPTS "--filter=-runtime/references-runtime/threadsafe_fn")
 roslint_cpp(${AA_HEADERS} ${AA_SOURCES})
 
 # Install Rules

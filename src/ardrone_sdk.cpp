@@ -191,8 +191,9 @@ extern "C"
     return C_OK;
   }
 
-  C_RESULT navdata_custom_init(void*)
+  C_RESULT navdata_custom_init(void* data)
   {
+    (void) data;
     return C_OK;
   }
 
