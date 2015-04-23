@@ -78,10 +78,13 @@ GPS waypoint navigation
 .. note::
     Parrot's official SDK does not expose this functionality. This feature was added to the driver by reverse engineering the protocol used by `FreeFlight App`. All GPS related patches to the SDK are available `here <https://github.com/AutonomyLab/ardronelib/tree/gps>`_.
 
-AR-Drone 2.0 with Flight Recorder can perform on-board GPS waypoint navigation. Currently, the driver supports sending one target waypoint to the drone through ``ardrone/setgpstarget`` service. To set/overwrite the target call this service with a request of type `geographic_msgs/WayPoint <http://docs.ros.org/indigo/api/geographic_msgs/html/msg/WayPoint.html>`_. ``position`` field sets Latitude, longitude and altitude of the the target (`more info <http://docs.ros.org/indigo/api/geographic_msgs/html/msg/GeoPoint.html>`_). ``props`` field is a vector of ROS `key-values <http://docs.ros.org/indigo/api/geographic_msgs/html/msg/KeyValue.html>`_. Supported `keys` are:
+AR-Drone 2.0 with Flight Recorder can perform on-board GPS waypoint navigation. Currently, the driver supports sending one target waypoint to the drone through ``ardrone/setgpstarget`` service. To set/overwrite the target, call this service with a request of type `geographic_msgs/WayPoint <http://docs.ros.org/indigo/api/geographic_msgs/html/msg/WayPoint.html>`_. ``position`` field determines `latitude`, `longitude` and `altitude` of the the target (`more info <http://docs.ros.org/indigo/api/geographic_msgs/html/msg/GeoPoint.html>`_). ``props`` field should include a vector of ROS `key-value <http://docs.ros.org/indigo/api/geographic_msgs/html/msg/KeyValue.html>`_ pairs. Supported `keys` are:
 
 * ``velocity``: `value` sets the desired linear velocity in `m/s`
 * ``orientation``: `value` sets the desired orientation at target in radians
+
+.. note::
+    TODO: Add examples (e.g. CLI or code samples)
 
 Contributors to GPS patches
 ---------------------------
