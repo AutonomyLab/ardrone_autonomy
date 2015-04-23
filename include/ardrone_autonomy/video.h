@@ -63,5 +63,6 @@ extern const vp_api_stage_funcs_t vp_stages_export_funcs;
 extern unsigned char buffer[];  // size STREAM_WIDTH * STREAM_HEIGHT * 3
 extern int32_t current_frame_id;  // this will be incremented for every frame
 extern int32_t current_navdata_id;
+extern ros::Time shared_video_receive_time;
 
 #endif  // ARDRONE_AUTONOMY_VIDEO_H
