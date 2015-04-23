@@ -1,14 +1,14 @@
 <package>
   <name>ardrone_autonomy</name>
   <version>1.3.7</version>
-  <description>ardrone_autonomy is a ROS driver for Parrot AR-Drone 1.0 and 2.0 quadrocopter. This driver is based on official AR-Drone SDK version 2.0.1. 
+  <description>ardrone_autonomy is a ROS driver for Parrot AR-Drone 1.0 and 2.0 quadrocopters. This driver is based on official AR-Drone SDK version 2.0.1. 
 </description>
   <author>Mani Monajjemi</author>
   <maintainer email="mmonajje@sfu.ca">Mani Monajjemi</maintainer>
 
   <license>BSD</license>
 
-  <url type="website">http://ros.org/wiki/ardrone_autonomy</url>
+  <url type="website">http://wiki.ros.org/ardrone_autonomy</url>
   <url type="bugtracker">https://github.com/AutonomyLab/ardrone_autonomy/issues</url>
 
   <author>Mani Monajjemi</author>
