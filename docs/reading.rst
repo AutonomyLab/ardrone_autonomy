@@ -76,6 +76,9 @@ Odometry data
 
 Since v. `1.4`, the driver calculates and publishes Odometry data by integrating velocity estimates reported by the drone (which is based on optical flow). The data is published as `nav_msgs/Odometry <http://docs.ros.org/api/nav_msgs/html/msg/Odometry.html>`_ messages to ``ardrone/odometry`` topic. The corresponding `TF` transform is also published as `odom -> base` transformation.
 
+
+.. _selectivenavdata:
+
 Selective Navdata (advanced)
 ----------------------------
 

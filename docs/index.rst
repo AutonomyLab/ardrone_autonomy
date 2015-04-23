@@ -3,10 +3,12 @@
 ardrone_autonomy 
 ================
 
+.. warning::
+    This documentation is for an experimental branch of the driver that enables :doc:`gps`.
+
 `ardrone_autonomy` is a `ROS <http://ros.org>`_ driver for `Parrot AR-Drone <http://ardrone2.parrot.com/>`_ 1.0 & 2.0 quadrocopter. This driver is based on official `AR-Drone SDK <https://projects.ardrone.org/>`_ version 2.0.1. `ardrone_autonomy` is a fork of `AR-Drone Brown <http://code.google.com/p/brown-ros-pkg/wiki/ardrone_brown>`_ driver. This package is developed in `Autonomy Lab <http://autonomylab.org>`_ of `Simon Fraser University <http://www.sfu.ca>`_ by `Mani Monajjemi <http://mani.im>`_  and other :doc:`./contributers` .
 
 External Links: `Source code and issue tracker <https://github.com/AutonomyLab/ardrone_autonomy>`_ | `ROS wiki page <http://wiki.ros.org/ardrone_autonomy>`_ | `Code API <http://docs.ros.org/indigo/api/ardrone_autonomy/html/>`_ 
-
 
 Updates
 -------
@@ -67,9 +69,11 @@ Table of Contents
     installation
     usage
     reading
-    commands
+    commands    
     services
     parameters
     license
     contributers
     FAQ
+    gps
+

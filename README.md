@@ -1,5 +1,7 @@
 # ardrone_autonomy 
 
+**This is an experimental branch of the driver that enables [GPS Support](http://ardrone-autonomy.readthedocs.org/en/gps-waypoint/)**
+
 [ROS](http://ros.org) Driver for [Parrot AR-Drone](http://ardrone2.parrot.com/) 1.0 & 2.0 Quadrocopters
 
 * Documentation: http://ardrone-autonomy.readthedocs.org/
