@@ -83,6 +83,8 @@ AR-Drone 2.0 with Flight Recorder can perform on-board GPS waypoint navigation. 
 * ``velocity``: `value` sets the desired linear velocity in `m/s`
 * ``orientation``: `value` sets the desired orientation at target in radians
 
+After setting the target position, you need to enable autonomous flight mode by calling ``ardrone/setautoflight`` with ``enable = True`` (autonomous flight mode is turned off by default). The service is of type `ardrone_autonomy/RecordEnable <http://docs.ros.org/indigo/api/ardrone_autonomy/html/srv/RecordEnable.html>`_. Similary you can disable the autonomous flight mode by calling this service with ``enable = False``.
+
 .. note::
     TODO: Add examples (e.g. CLI or code samples)
 
