@@ -29,3 +29,6 @@
 /src/ardrone_autonomy
 scripts/cache/DEBS_avail
 CMakeLists.txt.user
+
+# Documentations
+docs/_build/
