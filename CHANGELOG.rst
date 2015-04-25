@@ -3,6 +3,18 @@ Changelog for package ardrone_autonomy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 
+1.4.0 (2015-04-24)
+------------------
+
+* Added support for running multiple instances of the driver on a same machine
+* Added support for publishing odometry data and transform
+* Deprecated "Setting TF root" and "IMU Calibration"
+* Use reception time for video streams 
+* Improved documentation. Documentation is now hosted on readthedocs
+* Updated `gps-waypoint` branch and its documentation
+* Build system improvements + roslint + code cleanups
+* Contributors: Mani Monajjemi, v01d, kbogert
+
 1.3.7 (2014-09-08)
 ------------------
 * Use git protocol instead of https for cmake external project (fixes ca-certificate issues on the build farm)
