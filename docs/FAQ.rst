@@ -22,6 +22,9 @@ This ROS stack includes a series of very basic nodes to show users how to develo
 
 This repository contains the source-code for the Up and flying with the AR.Drone and ROS tutorial series, published on [Robohub](http://www.robohub.org).
 
+- `tum_simulator <http://wiki.ros.org/tum_simulator>`_
+
+AR Drone simulation in Gazebo, compatible with `ardrone_autonomy`.
 
 How can I report a bug, submit patches or ask for a feature?
 ------------------------------------------------------------
