@@ -24,7 +24,7 @@ This repository contains the source-code for the Up and flying with the AR.Drone
 
 - `tum_simulator <http://wiki.ros.org/tum_simulator>`_
 
-AR Drone simulation in Gazebo, compatible with `ardrone_autonomy`.
+AR Drone simulation in `Gazebo <http://wiki.ros.org/gazebo_ros_pkgs>`_, compatible with `ardrone_autonomy`.
 
 How can I report a bug, submit patches or ask for a feature?
 ------------------------------------------------------------

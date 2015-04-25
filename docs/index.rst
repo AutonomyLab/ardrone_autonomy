@@ -69,6 +69,7 @@ Table of Contents
     installation
     usage
     reading
+    frames
     commands    
     services
     parameters
