@@ -100,3 +100,8 @@ Can I control multiple drones using a single PC? or can I make my drone connect 
 ------------------------------------------------------------------------------------------------------------
 
 Since version 1.4, the driver supports connecting to multiple AR-Drones from a single PC. Thanks to efforts and patches provided by @kbogert. For more information please check this `wiki page <https://github.com/AutonomyLab/ardrone_autonomy/wiki/Multiple-AR-Drones>`_.
+
+Is there any support for GPS (Parrot Flight Recorder)
+-----------------------------------------------------
+
+Yes but it is experimental. The code is maintained in a separate branch (`gps-waypoint <https://github.com/AutonomyLab/ardrone_autonomy/tree/gps-waypoint>`_). For more information see `this documentation <http://ardrone-autonomy.readthedocs.org/en/gps-waypoint/>`_.
