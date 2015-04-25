@@ -15,7 +15,6 @@
 *.la
 *.a
 /nbproject/private/
-Makefile
 /build/CMakeFiles/
 
 # Build results
@@ -29,3 +28,7 @@ Makefile
 /srv_gen
 /src/ardrone_autonomy
 scripts/cache/DEBS_avail
+CMakeLists.txt.user
+
+# Documentations
+docs/_build/

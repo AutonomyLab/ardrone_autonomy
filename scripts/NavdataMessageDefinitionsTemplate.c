@@ -42,6 +42,7 @@
 			navdata_pub = node_handle.advertise<ardrone_autonomy::Navdata>("ardrone/navdata", 25);
 			imu_pub = node_handle.advertise<sensor_msgs::Imu>("ardrone/imu", 25);
 			mag_pub = node_handle.advertise<geometry_msgs::Vector3Stamped>("ardrone/mag", 25);
+			odo_pub = node_handle.advertise<nav_msgs::Odometry>("ardrone/odometry", 25);
 		}
 
 		//-------------------------
