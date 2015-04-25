@@ -3,8 +3,8 @@ Changelog for package ardrone_autonomy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 
-Forthcoming
------------
+1.4.0 (2015-04-24)
+------------------
 
 * Added support for running multiple instances of the driver on a same machine
 * Added support for publishing odometry data and transform
