@@ -67,7 +67,8 @@ Table of Contents
     installation
     usage
     reading
-    commands
+    frames
+    commands    
     services
     parameters
     license
