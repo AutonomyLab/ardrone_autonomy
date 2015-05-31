@@ -672,10 +672,8 @@ void ARDroneDriver::PublishTF()
 {
   tf_base_front.stamp_ = ros::Time::now();
   tf_base_bottom.stamp_ = ros::Time::now();
-  tf_odom.stamp_ = ros::Time::now();
   tf_broad.sendTransform(tf_base_front);
   tf_broad.sendTransform(tf_base_bottom);
-  tf_broad.sendTransform(tf_odom);
 }
 
 void ARDroneDriver::PublishOdometry(const navdata_unpacked_t &navdata_raw, const ros::Time &navdata_receive_time)
@@ -719,10 +717,12 @@ void ARDroneDriver::PublishOdometry(const navdata_unpacked_t &navdata_raw, const
   tf::Quaternion q;
   tf::quaternionMsgToTF(odo_msg.pose.pose.orientation, q);
 
+  tf_odom.stamp_ = navdata_receive_time;
   tf_odom.frame_id_ = "odom";
   tf_odom.child_frame_id_ = drone_frame_base;
   tf_odom.setOrigin(t);
   tf_odom.setRotation(q);
+  tf_broad.sendTransform(tf_odom);
 }
 
 void ControlCHandler(int signal)
