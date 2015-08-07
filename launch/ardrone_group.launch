@@ -1,0 +1,19 @@
+<?xml version="1.0"?> 
+<!-- Example launch file for multiple AR Drones -->
+<launch>
+	<!-- Include the ardrone launch file for each drone.
+	     IMPORTANT: Ensure the namespace for each include is unique. -->
+	<include file="$(find ardrone_autonomy)/launch/ardrone.launch" ns="ardrone1">
+		<arg name="ip" value="192.168.1.152" />
+		<!-- Choose ultrasound frequencies to help reduce interference between drones.
+		     Available values are '7' or '8'. -->
+		<arg name="freq" value="7" />
+	</include>
+
+	<!-- Add second drone -->
+	<include file="$(find ardrone_autonomy)/launch/ardrone.launch" ns="ardrone2">
+		<arg name="ip" value="192.168.1.157" />
+		<arg name="freq" value="8" />
+	</include>
+
+</launch>
