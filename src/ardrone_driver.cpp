@@ -61,11 +61,15 @@ ARDroneDriver::ARDroneDriver()
   set_record_srv = node_handle.advertiseService("ardrone/setrecord", SetRecordCallback);
 
   /* TF Frames */
+  std::string tf_prefix_key;
+  private_nh.searchParam("tf_prefix", tf_prefix_key);
+  private_nh.param(tf_prefix_key, tf_prefix, std::string(""));
   private_nh.param<std::string>("drone_frame_id", drone_frame_id, "ardrone_base");
-  drone_frame_base = drone_frame_id + "_link";
-  drone_frame_imu = drone_frame_id + "_imu";
-  drone_frame_front_cam = drone_frame_id + "_frontcam";
-  drone_frame_bottom_cam = drone_frame_id + "_bottomcam";
+  drone_frame_base = tf::resolve(tf_prefix, drone_frame_id + "_link");
+  drone_frame_imu = tf::resolve(tf_prefix, drone_frame_id + "_imu");
+  drone_frame_front_cam = tf::resolve(tf_prefix, drone_frame_id + "_frontcam");
+  drone_frame_bottom_cam = tf::resolve(tf_prefix, drone_frame_id + "_bottomcam");
+  tf_odom.frame_id_ = tf::resolve(tf_prefix, "odom");
 
   if (private_nh.hasParam("root_frame"))
   {
@@ -158,6 +162,7 @@ void ARDroneDriver::run()
         {
           ROS_WARN("The AR-Drone has a suspicious Firmware number. It usually means the network link is unreliable.");
         }
+        ROS_DEBUG_STREAM("Using " << tf_prefix << " to prefix TF frames.");
       }
     }
     else
@@ -718,7 +723,6 @@ void ARDroneDriver::PublishOdometry(const navdata_unpacked_t &navdata_raw, const
   tf::quaternionMsgToTF(odo_msg.pose.pose.orientation, q);
 
   tf_odom.stamp_ = navdata_receive_time;
-  tf_odom.frame_id_ = "odom";
   tf_odom.child_frame_id_ = drone_frame_base;
   tf_odom.setOrigin(t);
   tf_odom.setRotation(q);

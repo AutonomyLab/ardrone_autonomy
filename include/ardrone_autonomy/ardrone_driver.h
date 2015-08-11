@@ -130,7 +130,7 @@ private:
    * TF Frames
    * Base: Should be COM
    */
-  std::string drone_frame_base, drone_frame_imu, drone_frame_front_cam, drone_frame_bottom_cam;
+  std::string tf_prefix, drone_frame_base, drone_frame_imu, drone_frame_front_cam, drone_frame_bottom_cam;
   tf::StampedTransform tf_base_front, tf_base_bottom, tf_odom;
 
   // Huge part of IMU message is constant, let's fill'em once.
