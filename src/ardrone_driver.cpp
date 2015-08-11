@@ -702,7 +702,7 @@ void ARDroneDriver::PublishOdometry(const navdata_unpacked_t &navdata_raw, const
 
   odo_msg.pose.pose.position.x = odometry[0];
   odo_msg.pose.pose.position.y = odometry[1];
-  odo_msg.pose.pose.position.z = navdata_raw.navdata_demo.altitude / 1000;
+  odo_msg.pose.pose.position.z = navdata_raw.navdata_demo.altitude / 1000.0;
   odo_msg.pose.pose.orientation = tf::createQuaternionMsgFromRollPitchYaw(
         navdata_raw.navdata_demo.phi / 180000.0 * M_PI,
         -navdata_raw.navdata_demo.theta / 180000.0 * M_PI,
