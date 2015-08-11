@@ -23,6 +23,8 @@
         <param name="detections_select_v_hsync" value="128" />
         <param name="enemy_without_shell" value="0" />
         <param name="ultrasound_freq" value="$(arg freq)" />
+        <param name="realtime_navdata" value="true" />
+        <param name="realtime_video" value="true" />
         <!-- Covariance Values (3x3 matrices reshaped to 1x9)-->
         <rosparam param="cov/imu_la">[0.1, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.1]</rosparam>
         <rosparam param="cov/imu_av">[1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]</rosparam>
