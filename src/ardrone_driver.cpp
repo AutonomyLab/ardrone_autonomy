@@ -101,20 +101,22 @@ ARDroneDriver::ARDroneDriver()
 
 
   // Front Cam to Base
-  // TODO(mani-monaj): Precise values for Drone1 & Drone2
-  tf_base_front = tf::StampedTransform(
-                    tf::Transform(
-                      tf::createQuaternionFromRPY(-90.0 * _DEG2RAD, 0.0, -90.0 * _DEG2RAD),
-                      tf::Vector3(0.21, 0.0, 0.0)),
-                    ros::Time::now(), drone_frame_base, drone_frame_front_cam);
+  //Tentative Configuration for AR.Drone 2.0
+    tf_base_front = tf::StampedTransform(
+                      tf::Transform(
+                        tf::createQuaternionFromRPY(-90.0 * _DEG2RAD, 0.0, -90.0 * _DEG2RAD),
+                        tf::Vector3(0.19, 0.0, 0.0)),
+                      ros::Time::now(), drone_frame_base, drone_frame_front_cam);
 
-  // Bottom Cam to Base (Bad Assumption: No translation from IMU and Base)
-  // TODO(mani-monaj): This should be different from Drone 1 & 2.
-  tf_base_bottom = tf::StampedTransform(
-                     tf::Transform(
-                       tf::createQuaternionFromRPY(180.0 * _DEG2RAD, 0.0, 90.0 * _DEG2RAD),
-                       tf::Vector3(0.0, -0.02, 0.0)),
-                     ros::Time::now(), drone_frame_base, drone_frame_bottom_cam);
+
+
+    tf_base_bottom = tf::StampedTransform(
+                       tf::Transform(
+                         tf::createQuaternionFromRPY(0.0, 180.0 * _DEG2RAD, 90.0 * _DEG2RAD),
+                         tf::Vector3(-0.06, -0.00, -0.035)),
+                       ros::Time::now(), drone_frame_base, drone_frame_bottom_cam);
+
+    // reset odometry
 
   // reset odometry
   odometry[0] = odometry[1] = 0;
