@@ -4,7 +4,7 @@ teleop:
   piloting:
     type: topic
     message_type: "geometry_msgs/Twist"
-    topic_name: cmd_vel
+    topic_name: /cmd_vel
     deadman_buttons: [7]
     axis_mappings:
       -
@@ -45,10 +45,10 @@ teleop:
     topic_name: reset
     deadman_buttons: [2, 7] # RT + B
     axis_mappings: []
-  flattrim:
+  reset:
     type: topic
     message_type: "std_msgs/Empty"
-    topic_name: flattrim
+    topic_name: reset
     deadman_buttons: [4, 5] # RT + X
     axis_mappings: []
   flip:
