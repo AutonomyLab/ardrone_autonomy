@@ -47,6 +47,8 @@
   <run_depend>camera_info_manager</run_depend>
   <run_depend>message_runtime</run_depend>
   <run_depend>nav_msgs</run_depend>
+  <run_depend>joy</run_depend>
+  <run_depend>joy_teleop</run_depend>
 
   <export>
     <rosdoc config="rosdoc.yaml"/>

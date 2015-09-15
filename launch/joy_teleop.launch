@@ -1,0 +1,22 @@
+<?xml version="1.0" ?>
+<!-- based on example launch files from joy_teleop and teleop_twist_joy packages -->
+<!-- TODO(BUG): group tag prevents this file to be included cleanly from other launch files -->
+<launch>
+  <arg name="joy_dev" default="/dev/input/js0" />
+  <arg name="joy_config" default="log710" />
+  <arg name="teleop_config" default="$(find ardrone_autonomy)/config/$(arg joy_config).yaml" />
+
+  <group ns="ardrone">
+    <rosparam file="$(arg teleop_config)" command="load" />
+
+    <node pkg="joy" type="joy_node" name="joy_node">
+      <param name="dev" value="$(arg joy_dev)" />
+      <param name="deadzone" value="0.2" />
+      <param name="autorepeat_rate" value="20" />
+    </node>
+
+    <node pkg="joy_teleop" type="joy_teleop.py" name="joy_teleop">
+    </node>
+  </group>
+
+</launch>
