@@ -26,5 +26,5 @@ Other Parameters
 These parameters control the behavior of the driver.
 
 * ``drone_frame_id`` - The "frame_id" prefix to be used in all `tf` frame names - default: `ardrone_base`
-* ``cov/imu_la``, ``cov/imu_av`` and ``cov/imu_or`: List of 9 covariance values to be used to fill `imu`'s topic linear acceleration, angular velocity and orientation fields respectively - Default: 0.0 for all members (Please check the :doc:`FAQ` section for a sample launch file that shows how to set these values)
+* ``cov/imu_la``, ``cov/imu_av`` and ``cov/imu_or``: List of 9 covariance values to be used to fill `imu`'s topic linear acceleration, angular velocity and orientation fields respectively - Default: 0.0 for all members (Please check the :doc:`FAQ` section for a sample launch file that shows how to set these values)
 * ``enable_legacy_navdata``: Enables :ref:`legacynavdata` publishing - Default: True
