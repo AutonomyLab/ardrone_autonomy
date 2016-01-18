@@ -14,8 +14,8 @@ In order to fly the drone after takeoff, you can publish a message of type `geom
     -linear.z: move down
     +linear.z: move up
 
-    -angular.z: turn left
-    +angular.z: turn right
+    -angular.z: turn right
+    +angular.z: turn left
 
 The range for each component should be between -1.0 and 1.0. The maximum range can be configured using ROS Parameters_ discussed later in this document. 
 
