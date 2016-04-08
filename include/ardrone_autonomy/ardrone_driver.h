@@ -69,7 +69,7 @@ public:
   ARDroneDriver();
   ~ARDroneDriver();
   void run();
-  static bool ReadCovParams(const std::string& param_name, boost::array<double, 9> &cov_array);
+  static bool ReadCovParams(const std::string& param_name, double *cov_array, const int cov_size);
   static double CalcAverage(const std::vector<double> &vec);
   void PublishVideo();
   void PublishNavdata(const navdata_unpacked_t &navdata_raw, const ros::Time &navdata_receive_time);
@@ -121,6 +121,8 @@ private:
   bool is_inited;
   std::string drone_frame_id;
 
+  nav_msgs::Odometry odo_msg;
+
   // Load auto-generated declarations for full navdata
 #define NAVDATA_STRUCTS_HEADER_PRIVATE
 #include <ardrone_autonomy/NavdataMessageDefinitions.h>
@@ -135,6 +137,7 @@ private:
 
   // Huge part of IMU message is constant, let's fill'em once.
   sensor_msgs::Imu imu_msg;
+
   geometry_msgs::Vector3Stamped mag_msg;
   ardrone_autonomy::Navdata legacynavdata_msg;
 
