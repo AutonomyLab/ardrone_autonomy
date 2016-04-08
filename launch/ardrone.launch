@@ -26,9 +26,22 @@
         <param name="realtime_navdata" value="true" />
         <param name="realtime_video" value="true" />
         <!-- Covariance Values (3x3 matrices reshaped to 1x9)-->
-        <rosparam param="cov/imu_la">[0.1, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.1]</rosparam>
-        <rosparam param="cov/imu_av">[1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]</rosparam>
-        <rosparam param="cov/imu_or">[1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 100000.0]</rosparam>
+        <rosparam param="cov/imu_la">[1.1, 0.0, 0.0, 0.0, 1.1, 0.0, 0.0, 0.0, 0.1]</rosparam>
+        <rosparam param="cov/imu_av">[2.1, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0]</rosparam>
+        <rosparam param="cov/imu_or">[1.3, 0.0, 0.0, 0.0, 0.3, 0.0, 0.0, 0.0, 100000.0]</rosparam>
+        <!-- Covariance Values of Odometry (6x6 matrices reshaped to 1x36)-->
+        <rosparam param="cov/odo_pose">[0.0,   0.0,    0.0,    0.0,    0.0,    0.0,
+                                        0.0,   0.0,    0.0,    0.0,    0.0,    0.0,
+                                        0.0,   0.0,    0.0,    0.0,    0.0,    0.0,
+                                        0.0,   0.0,    0.0,    0.01,   0.0,    0.0,
+                                        0.0,   0.0,    0.0,    0.0,    0.1,    0.0,
+                                        0.0,   0.0,    0.0,    0.0,    0.0,    0.01]</rosparam>
+        <rosparam param="cov/odo_twist">[0.1,   0.0,    0.0,    0.0,    0.0,    0.0,
+                                         0.0,   0.1,    0.0,    0.0,    0.0,    0.0,
+                                         0.0,   0.0,    0.1,    0.0,    0.0,    0.0,
+                                         0.0,   0.0,    0.0,    0.01,   0.0,    0.0,
+                                         0.0,   0.0,    0.0,    0.0,    0.1,    0.0,
+                                         0.0,   0.0,    0.0,    0.0,    0.0,    0.01]</rosparam> 
     </node>
 </launch>
 
