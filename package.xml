@@ -1,0 +1,43 @@
+<package>
+  <name>ardrone_autonomy</name>
+  <version>1.0.0</version>
+  <description>"ardrone_autonomy" is a ROS driver for Parrot AR-Drone quadrocopter. 
+    This driver is based on official AR-Drone SDK version 2.0 and supports both 
+    AR-Drone 1.0 and 2.0. 
+    "ardrone_autonomy" is a fork of AR-Drone Brown driver. This package has 
+    been developed in Autonomy Lab of Simon Fraser University</description>
+  <maintainer email="mail@mail.com">Mani Monajjemi</maintainer>
+
+  <license>BSD</license>
+
+  <url type="website">http://ros.org/wiki/ardrone_autonomy</url>
+  <!-- <url type="bugtracker"></url> -->
+
+  <author>Mani Monajjemi</author>
+
+  <!-- Dependencies which this package needs to build itself. -->
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <!-- Dependencies needed to compile this package. -->
+  <build_depend>roscpp</build_depend>
+  <build_depend>image_transport</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>std_srvs</build_depend>
+  <build_depend>tf</build_depend>
+  <build_depend>camera_info_manager</build_depend>
+  <build_depend>message_generation</build_depend>
+
+  <!-- Dependencies needed after this package is compiled. -->
+  <run_depend>roscpp</run_depend>
+  <run_depend>image_transport</run_depend>
+  <run_depend>sensor_msgs</run_depend>
+  <run_depend>std_srvs</run_depend>
+  <run_depend>tf</run_depend>
+  <run_depend>camera_info_manager</run_depend>
+  <run_depend>message_runtime</run_depend>
+
+  <export>
+    <rosdoc config="rosdoc.yaml"/>
+  </export>
+
+</package>
