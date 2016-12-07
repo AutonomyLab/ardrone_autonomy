@@ -1,0 +1,59 @@
+# Logitech F710 wireless controller
+# Deadman (enable) button: Right Trigger
+teleop:
+  piloting:
+    type: topic
+    message_type: "geometry_msgs/Twist"
+    topic_name: /cmd_vel
+    deadman_buttons: [7]
+    axis_mappings:
+      -
+        axis: 3  # Right thumb stick (up/down)
+        target: linear.x
+        scale: 1.0
+        offset: 0.0
+      -
+        axis: 2  # Right thumb stick (left/right)
+        target: linear.y
+        scale: -1.0
+        offset: 0.0
+      -
+        axis: 1  # Left thumb stick (up/down)
+        target: linear.z
+        scale: 1.0
+        offset: 0.0
+      -
+        axis: 0  # Left thumb stick (left/right)
+        target: angular.z
+        scale: -1.0
+        offset: 0.0
+  takeoff:
+    type: topic
+    message_type: "std_msgs/Empty"
+    topic_name: takeoff
+    deadman_buttons: [3, 7]  # RT + Y
+    axis_mappings: []
+  land:
+    type: topic
+    message_type: "std_msgs/Empty"
+    topic_name: land
+    deadman_buttons: [1, 7]  # RT + A
+    axis_mappings: []
+  emergency:
+    type: topic
+    message_type: "std_msgs/Empty"
+    topic_name: reset
+    deadman_buttons: [2, 7] # RT + B
+    axis_mappings: []
+  reset:
+    type: topic
+    message_type: "std_msgs/Empty"
+    topic_name: reset
+    deadman_buttons: [4, 5] # RT + X
+    axis_mappings: []
+  flip:
+    type: topic
+    message_type: "std_msgs/UInt8"
+    topic_name: flip
+    deadman_buttons: [6, 7, 0] # RT + LT + X
+    axis_mappings: []

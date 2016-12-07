@@ -160,10 +160,21 @@ void CmdVelCallback(const geometry_msgs::TwistConstPtr &msg)
   vp_os_mutex_unlock(&twist_lock);
 }
 
+void ZeroCmdVel()
+{
+ cmd_vel.linear.x = 0.0; 
+ cmd_vel.linear.y = 0.0; 
+ cmd_vel.linear.z = 0.0; 
+ cmd_vel.angular.x = 0.0; 
+ cmd_vel.angular.y = 0.0; 
+ cmd_vel.angular.z = 0.0; 
+}
+
 void LandCallback(const std_msgs::Empty &msg)
 {
   vp_os_mutex_lock(&twist_lock);
   needs_land = true;
+  ZeroCmdVel();
   vp_os_mutex_unlock(&twist_lock);
 }
 
@@ -171,6 +182,7 @@ void ResetCallback(const std_msgs::Empty &msg)
 {
   vp_os_mutex_lock(&twist_lock);
   needs_reset = true;
+  ZeroCmdVel();
   vp_os_mutex_unlock(&twist_lock);
 }
 
@@ -178,6 +190,7 @@ void TakeoffCallback(const std_msgs::Empty &msg)
 {
   vp_os_mutex_lock(&twist_lock);
   needs_takeoff = true;
+  ZeroCmdVel();
   vp_os_mutex_unlock(&twist_lock);
 }
 
