@@ -84,14 +84,24 @@ ARDroneDriver::ARDroneDriver()
     imu_msg.angular_velocity_covariance[i] = 0.0;
     imu_msg.orientation_covariance[i] = 0.0;
   }
-  ReadCovParams("~cov/imu_la", imu_msg.linear_acceleration_covariance);
-  ReadCovParams("~cov/imu_av", imu_msg.angular_velocity_covariance);
-  ReadCovParams("~cov/imu_or", imu_msg.orientation_covariance);
+  ReadCovParams("~cov/imu_la", imu_msg.linear_acceleration_covariance.data(), 9);
+  ReadCovParams("~cov/imu_av", imu_msg.angular_velocity_covariance.data(), 9);
+  ReadCovParams("~cov/imu_or", imu_msg.orientation_covariance.data(), 9);
 
   if (private_nh.hasParam("do_imu_caliberation"))
   {
     ROS_WARN("IMU Caliberation has been deprecated since 1.4.");
   }
+
+  // Fill constant parts of Odometry Message
+  // If no rosparam is set then the default value of 0.0 will be assigned to all covariance values
+  for (int i = 0; i < 36; i++)
+  {
+    odo_msg.pose.covariance[i] = 0.0;
+    odo_msg.twist.covariance[i] = 0.0;
+  }
+  ReadCovParams("~cov/odo_pose", odo_msg.pose.covariance.data(), 36);
+  ReadCovParams("~cov/odo_twist", odo_msg.twist.covariance.data(), 36);
 
   // Camera Info Manager
   cinfo_hori = new camera_info_manager::CameraInfoManager(ros::NodeHandle("ardrone/front"), "ardrone_front");
@@ -229,7 +239,7 @@ double ARDroneDriver::CalcAverage(const std::vector<double> &vec)
   return (ret / vec.size());
 }
 
-bool ARDroneDriver::ReadCovParams(const std::string &param_name, boost::array<double, 9> &cov_array)
+bool ARDroneDriver::ReadCovParams(const std::string &param_name, double* cov_array, const int cov_size)
 {
   XmlRpc::XmlRpcValue cov_list;
   std::stringstream str_stream;
@@ -241,9 +251,9 @@ bool ARDroneDriver::ReadCovParams(const std::string &param_name, boost::array<do
       return false;
     }
 
-    if (cov_list.size() != 9)
+    if (cov_list.size() != cov_size)
     {
-      ROS_WARN("Covariance list size for %s is not of size 9 (Size: %d)", param_name.c_str(), cov_list.size());
+      ROS_WARN("Covariance list size for %s is not of correct size (Size: %d)", param_name.c_str(), cov_list.size());
       return false;
     }
     str_stream << param_name << " set to [";
@@ -251,7 +261,7 @@ bool ARDroneDriver::ReadCovParams(const std::string &param_name, boost::array<do
     {
       ROS_ASSERT(cov_list[i].getType() == XmlRpc::XmlRpcValue::TypeDouble);
       cov_array[i] = static_cast<double>(cov_list[i]);
-      str_stream << cov_array[i] << ((i < 8) ? ", " : "");
+      str_stream << cov_array[i] << ((i < cov_size - 1) ? ", " : "");
     }
     str_stream << "]";
     ROS_INFO("%s", str_stream.str().c_str());
@@ -695,7 +705,6 @@ void ARDroneDriver::PublishOdometry(const navdata_unpacked_t &navdata_raw, const
   }
   last_receive_time = navdata_receive_time;
 
-  nav_msgs::Odometry odo_msg;
   odo_msg.header.stamp = navdata_receive_time;
   odo_msg.header.frame_id = "odom";
   odo_msg.child_frame_id = drone_frame_base;
