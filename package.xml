@@ -1,6 +1,6 @@
 <package>
   <name>ardrone_autonomy</name>
-  <version>1.4.0</version>
+  <version>1.4.1</version>
   <description>ardrone_autonomy is a ROS driver for Parrot AR-Drone 1.0 and 2.0 quadrocopters. This driver is based on official AR-Drone SDK version 2.0.1. 
 </description>
   <author>Mani Monajjemi</author>

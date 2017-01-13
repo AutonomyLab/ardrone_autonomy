@@ -3,6 +3,17 @@ Changelog for package ardrone_autonomy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 
+1.4.1 (2015-10-18)
+------------------
+* Enable realtime navdata/video in sample launch file
+* Fix integer only values for odom.pose.z (fixes `#155 <https://github.com/AutonomyLab/ardrone_autonomy/issues/155>`_) (hattip to @alexjung)
+* Use tf_prefix parameter for multiple drone settings (fixes `#156 <https://github.com/AutonomyLab/ardrone_autonomy/issues/156>`_)
+  - Use tf_prefix to prefix tf frame names
+  - Update single and multiple drone launch files to demo the usage
+* Add example launch file for multiple drones.
+* Publish TF at the same rate as odometry
+* Contributors: Jacob Perron, Mani Monajjemi, Matias N. (v01d)
+
 1.4.0 (2015-04-24)
 ------------------
 

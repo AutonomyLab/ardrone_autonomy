@@ -10,7 +10,7 @@
 
 ## Build Status
 
-* ROS Build farm (_indigo-devel_): [![](http://jenkins.ros.org/buildStatus/icon?job=devel-indigo-ardrone_autonomy)](http://jenkins.ros.org/job/devel-indigo-ardrone_autonomy)
-* ROS Build farm (_hydro-devel_): [![](http://jenkins.ros.org/buildStatus/icon?job=devel-hydro-ardrone_autonomy)](http://jenkins.ros.org/job/devel-hydro-ardrone_autonomy)
-* Travis: [![Build Status](https://travis-ci.org/AutonomyLab/ardrone_autonomy.svg?branch=indigo-devel)](https://travis-ci.org/AutonomyLab/ardrone_autonomy)
+* ROS Build farm (_Jade_): [![Build Status](http://build.ros.org/buildStatus/icon?job=Jdev__ardrone_autonomy__ubuntu_trusty_amd64)](http://build.ros.org/job/Jdev__ardrone_autonomy__ubuntu_trusty_amd64/)
+* ROS Build farm (_Indigo_): [![Build Status](http://build.ros.org/buildStatus/icon?job=Idev__ardrone_autonomy__ubuntu_trusty_amd64)](http://build.ros.org/job/Idev__ardrone_autonomy__ubuntu_trusty_amd64/)
+* Travis (_Jade_/_Indigo_): [![Build Status](https://travis-ci.org/AutonomyLab/ardrone_autonomy.svg?branch=indigo-devel)](https://travis-ci.org/AutonomyLab/ardrone_autonomy)
 
