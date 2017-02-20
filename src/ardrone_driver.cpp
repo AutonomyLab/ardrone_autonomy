@@ -100,20 +100,21 @@ ARDroneDriver::ARDroneDriver()
   // TF Stuff
 
 
-  // Front Cam to Base
+  
   //Tentative Configuration for AR.Drone 2.0
+  // Front Cam to Base
     tf_base_front = tf::StampedTransform(
                       tf::Transform(
-                        tf::createQuaternionFromRPY(-90.0 * _DEG2RAD, 0.0, -90.0 * _DEG2RAD),
-                        tf::Vector3(0.19, 0.0, 0.0)),
+                        tf::createQuaternionFromRPY(180 * _DEG2RAD, 0.0, 90 * _DEG2RAD),
+                        tf::Vector3(0.16, 0.0, 0.0)),
                       ros::Time::now(), drone_frame_base, drone_frame_front_cam);
 
 
-
+  // Bottom Cam to Base
     tf_base_bottom = tf::StampedTransform(
                        tf::Transform(
-                         tf::createQuaternionFromRPY(0.0, 180.0 * _DEG2RAD, 90.0 * _DEG2RAD),
-                         tf::Vector3(-0.06, -0.00, -0.035)),
+                         tf::createQuaternionFromRPY(180.0 * _DEG2RAD, 0.0, 90.0 * _DEG2RAD),
+                         tf::Vector3(0.0, -0.02, 0.0),
                        ros::Time::now(), drone_frame_base, drone_frame_bottom_cam);
 
     // reset odometry
