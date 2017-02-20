@@ -14,3 +14,5 @@
 * ROS Build farm (_Indigo_): [![Build Status](http://build.ros.org/buildStatus/icon?job=Idev__ardrone_autonomy__ubuntu_trusty_amd64)](http://build.ros.org/job/Idev__ardrone_autonomy__ubuntu_trusty_amd64/)
 * Travis (_Jade_/_Indigo_): [![Build Status](https://travis-ci.org/AutonomyLab/ardrone_autonomy.svg?branch=indigo-devel)](https://travis-ci.org/AutonomyLab/ardrone_autonomy)
 
+## New
+* There are some changes in the code of ardrone_driver to use the front camera to control the flight instead of the bottom camera. For this purpose, the front camera has been moved pointing down. The position of the new placement of the camera has been updated in the ardrone_driver.cpp in reference to the ardrone coordinate frame.
