@@ -1,0 +1,55 @@
+<package>
+  <name>ardrone_autonomy</name>
+  <version>1.4.1</version>
+  <description>ardrone_autonomy is a ROS driver for Parrot AR-Drone 1.0 and 2.0 quadrocopters. This driver is based on official AR-Drone SDK version 2.0.1. 
+</description>
+  <author>Mani Monajjemi</author>
+  <maintainer email="mmonajje@sfu.ca">Mani Monajjemi</maintainer>
+
+  <license>BSD</license>
+
+  <url type="website">http://wiki.ros.org/ardrone_autonomy</url>
+  <url type="bugtracker">https://github.com/AutonomyLab/ardrone_autonomy/issues</url>
+
+  <author>Mani Monajjemi</author>
+
+  <!-- Dependencies which this package needs to build itself. -->
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <!-- Dependencies needed to compile this package. -->
+  <!-- Fat SDK dependencies -->
+  <build_depend>binutils</build_depend>
+  <build_depend>daemontools</build_depend>
+  <build_depend>sdl</build_depend>
+  <build_depend>gtk2</build_depend>
+  <build_depend>libxml2</build_depend>
+  <build_depend>libudev-dev</build_depend>
+  <build_depend>libiw-dev</build_depend>
+  <build_depend>git</build_depend>
+
+  <!-- ROS Driver -->
+  <build_depend>roscpp</build_depend>
+  <build_depend>image_transport</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>std_srvs</build_depend>
+  <build_depend>tf</build_depend>
+  <build_depend>camera_info_manager</build_depend>
+  <build_depend>message_generation</build_depend>
+  <build_depend>nav_msgs</build_depend>
+  <build_depend>roslint</build_depend>
+
+  <!-- Dependencies needed after this package is compiled. -->
+  <run_depend>roscpp</run_depend>
+  <run_depend>image_transport</run_depend>
+  <run_depend>sensor_msgs</run_depend>
+  <run_depend>std_srvs</run_depend>
+  <run_depend>tf</run_depend>
+  <run_depend>camera_info_manager</run_depend>
+  <run_depend>message_runtime</run_depend>
+  <run_depend>nav_msgs</run_depend>
+
+  <export>
+    <rosdoc config="rosdoc.yaml"/>
+  </export>
+
+</package>

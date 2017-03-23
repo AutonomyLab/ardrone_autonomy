@@ -1,0 +1,1 @@
+The files in this folder are the under-the-hood scripts to generate full navdata messages and init/publish routines. There is no need to change/execute these files unless you know exactly what you are doing.

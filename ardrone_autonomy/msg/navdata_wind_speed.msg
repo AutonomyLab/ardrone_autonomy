@@ -1,0 +1,17 @@
+Header header
+float64 drone_time
+uint16 tag
+uint16 size
+float32 wind_speed
+float32 wind_angle
+float32 wind_compensation_theta
+float32 wind_compensation_phi
+float32 state_x1
+float32 state_x2
+float32 state_x3
+float32 state_x4
+float32 state_x5
+float32 state_x6
+float32 magneto_debug1
+float32 magneto_debug2
+float32 magneto_debug3
