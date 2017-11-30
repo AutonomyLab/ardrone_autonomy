@@ -686,11 +686,12 @@ void ARDroneDriver::PublishOdometry(const navdata_unpacked_t &navdata_raw, const
   if (last_receive_time.isValid())
   {
     double delta_t = (navdata_receive_time - last_receive_time).toSec();
-    odometry[0] += ((cos((navdata_raw.navdata_demo.psi / 180000.0) * M_PI) *
-                     navdata_raw.navdata_demo.vx - sin((navdata_raw.navdata_demo.psi / 180000.0) * M_PI) *
+    double yaw_angle = -(navdata_raw.navdata_demo.psi / 180000.0) * M_PI;
+    odometry[0] += ((cos(yaw_angle) *
+                     navdata_raw.navdata_demo.vx - sin(yaw_angle) *
                      -navdata_raw.navdata_demo.vy) * delta_t) / 1000.0;
-    odometry[1] += ((sin((navdata_raw.navdata_demo.psi / 180000.0) * M_PI) *
-                     navdata_raw.navdata_demo.vx + cos((navdata_raw.navdata_demo.psi / 180000.0) * M_PI) *
+    odometry[1] += ((sin(yaw_angle) *
+                     navdata_raw.navdata_demo.vx + cos(yaw_angle) *
                      -navdata_raw.navdata_demo.vy) * delta_t) / 1000.0;
   }
   last_receive_time = navdata_receive_time;
